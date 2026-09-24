@@ -16,7 +16,7 @@ from officework import sheet
 様式 = sheet.Book.open("履歴書-厚労省.form.adoc")   # JIS 様式なら 履歴書-JIS.form.adoc
 データ = sheet.Book.open("履歴書.sheet.adoc")
 b = sheet.Book.fill(様式, データ)
-b.save("履歴書.pdf")           # .xlsx にも書き出せます
+b.save("履歴書.pdf")
 ```
 
 自分の履歴書を作るときは、`履歴書.sheet.adoc` を写して、自分の値に書き換えます。

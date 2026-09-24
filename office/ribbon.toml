@@ -1,0 +1,5 @@
+# The ribbon settings file of the resume and application-form edition.
+# install.py copies it to ~/.config/officework/ribbon.toml.
+name = "aiseed office 簡易版"
+tabs = "書類, 確かめる, 報告"
+buttons.書類 = "save, pdf"

@@ -19,7 +19,11 @@ from officework import doc, sheet
 def main():
     if len(sys.argv) < 3:
         sys.exit("使い方: python tools/houkoku.py 様式 データ.sheet.adoc")
-    form_path, data_path = sys.argv[1], sys.argv[2]
+    print(draft(sys.argv[1], sys.argv[2]))
+
+
+def draft(form_path, data_path):
+    """The report draft as text (the ribbon button 報告の下書き uses this too)."""
     data = sheet.Book.open(data_path)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -47,16 +51,18 @@ def main():
         elif (name, kind) not in seen:
             seen.append((name, kind))
     seen = [(n, f"{len(tables[n][0])} 行 × {'・'.join(tables[n][1])}" if k == "表" else k) for n, k in seen]
-    print("## 様式を埋めた結果(値は含みません)")
-    print()
-    print(f"- 様式: {os.path.basename(form_path)}")
-    print(f"- officework: {importlib.metadata.version('officework')}")
-    print(f"- Python: {platform.python_version()} / {platform.system()} {platform.machine()}")
-    print(f"- ページ: {pages}")
-    print(f"- データに無い名前: {'、'.join(filled.missing) or 'なし'}")
-    print(f"- 別紙に回った表: {'、'.join(f'{t}({a}〜{b} 行目)' for t, a, b in filled.bessi) or 'なし'}")
-    print(f"- 欄({len(seen)}): " + "、".join(f"{n}({k})" for n, k in seen))
-
+    lines = [
+        "## 様式を埋めた結果(値は含みません)",
+        "",
+        f"- 様式: {os.path.basename(form_path)}",
+        f"- officework: {importlib.metadata.version('officework')}",
+        f"- Python: {platform.python_version()} / {platform.system()} {platform.machine()}",
+        f"- ページ: {pages}",
+        f"- データに無い名前: {'、'.join(filled.missing) or 'なし'}",
+        f"- 別紙に回った表: {'、'.join(f'{t}({a}〜{b} 行目)' for t, a, b in filled.bessi) or 'なし'}",
+        f"- 欄({len(seen)}): " + "、".join(f"{n}({k})" for n, k in seen),
+    ]
+    return "\n".join(lines)
 
 if __name__ == "__main__":
     main()
