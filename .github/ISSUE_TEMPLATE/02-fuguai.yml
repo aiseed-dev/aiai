@@ -1,0 +1,38 @@
+name: 様式・スキルの不具合
+description: 様式が正しく埋まらない、印刷がずれる、スキルが動かない
+title: "[不具合] "
+labels: ["不具合"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        氏名・住所・マイナンバーなどは書かないでください。画面の写しを付けるときも、見えないように消してください。
+        `python tools/houkoku.py 様式 データ` を動かすと、値を含まない報告の下書きが出ます。それを下の欄に貼ってください。
+  - type: input
+    id: yoshiki
+    attributes:
+      label: 様式
+      placeholder: rirekisho/履歴書-JIS.form.adoc
+    validations:
+      required: true
+  - type: textarea
+    id: shita
+    attributes:
+      label: したこと
+    validations:
+      required: true
+  - type: textarea
+    id: okita
+    attributes:
+      label: 起きたこと
+    validations:
+      required: true
+  - type: textarea
+    id: kitai
+    attributes:
+      label: こうなってほしかったこと
+  - type: textarea
+    id: shitagaki
+    attributes:
+      label: houkoku.py の下書き
+      render: markdown

@@ -1,0 +1,63 @@
+name: 手続きをして分かったこと
+description: 実際に書類を出して分かったこと(要った物、止まった所、窓口で言われたこと)を知らせる
+title: "[手続き] "
+labels: ["手続きの記録"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        氏名・住所・マイナンバー・屋号・電話番号など、あなたや他の人が分かることは書かないでください。
+        書いた内容は公開されます。
+  - type: dropdown
+    id: tetsuzuki
+    attributes:
+      label: 手続き
+      options:
+        - 個人事業の開業届
+        - 所得税の青色申告承認申請
+        - 履歴書
+        - その他(下の欄に書いてください)
+    validations:
+      required: true
+  - type: input
+    id: sonota
+    attributes:
+      label: その他の手続きの名前
+  - type: dropdown
+    id: dashikata
+    attributes:
+      label: 出し方
+      options:
+        - e-Tax
+        - 郵送
+        - 窓口に持参
+        - まだ出していない
+    validations:
+      required: true
+  - type: input
+    id: nengetsu
+    attributes:
+      label: 出した年月
+      placeholder: 2026年10月
+  - type: input
+    id: han
+    attributes:
+      label: 使った様式の版
+      description: 様式の右上などにある版や年(例:令和6年分以降用)。分からなければ空のままで
+  - type: textarea
+    id: itta
+    attributes:
+      label: 要った物
+      description: 添付した書類、本人確認書類、印鑑など
+  - type: textarea
+    id: tomatta
+    attributes:
+      label: 止まった所・分からなかった所
+  - type: textarea
+    id: madoguchi
+    attributes:
+      label: 窓口や電話で言われたこと
+  - type: textarea
+    id: naosu
+    attributes:
+      label: aiai の様式や手順で直すべき所
