@@ -1,0 +1,15 @@
+= {屋号}
+:メニュー: トップ
+:description: {屋号}は、朝に焼いたパンを売る小さなパン屋です。
+
+// The text is the AI's draft from 事業の説明, corrected by the owner.
+自宅の 1 階の小さな店で、毎朝パンを焼いて売っています。 +
+店主が 1 人で焼くので、数は多くありません。
+
+image::images/pan.svg[店のパンの絵]
+
+== お知らせ
+
+news::[3]
+
+link:news.html[お知らせをすべて見る]

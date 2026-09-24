@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="パンの絵">
+  <rect width="320" height="180" fill="#f6efe3"/>
+  <ellipse cx="160" cy="120" rx="120" ry="36" fill="#e2c9a0"/>
+  <path d="M60 118 Q60 50 160 50 Q260 50 260 118 Z" fill="#c8894a"/>
+  <path d="M110 70 q10 20 0 40 M160 62 q10 24 0 48 M210 70 q10 20 0 40" stroke="#f3dcb6" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>
