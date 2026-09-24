@@ -10,3 +10,9 @@ https://creativecommons.org/licenses/by/4.0/deed.ja をご覧ください。
 
 The forms in rirekisho/ are made from the Ministry of Health, Labour and
 Welfare's resume example (厚生労働省「履歴書様式例」, 2021-04-16).
+
+The item lists in kaigyo/ are made from the National Tax Agency's forms and
+their guides (国税庁「個人事業の開業・廃業等届出書」「所得税の青色申告承認
+申請書」). The sources are in kaigyo/README.md. The ministries publish these
+under the Public Data License 1.0 (公共データ利用規約 第1.0版), which is
+compatible with CC BY 4.0. This repository is not made by the government.
