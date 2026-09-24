@@ -1,0 +1,10 @@
+# Gathered material holds names that are not hidden: keep it on your own machine
+材料.adoc
+*/材料.adoc
+# What filling writes
+*.pdf
+*.png
+!**/photo.jpg
+__pycache__/
+assets/
+images/
