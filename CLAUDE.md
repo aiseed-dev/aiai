@@ -98,7 +98,9 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - 申し込み(`moushikomi/`): サーバーは作り、偽の Apple と Google で確かめた。本物の Apple と
   Google では、店の Apple Developer Program の登録(年 99 米ドル、
   https://developer.apple.com/jp/programs/enroll/)と Google Cloud Console のクライアントが
-  できてから試す。申し込みの画面(Web とアプリ)は Flet で作る。預かるのは、ID の番号、
+  できてから試す。画面は Flet で作り、Web の画面は偽の Apple と Google で押して確かめた。
+  iPhone と Android のアプリへの書き出し(flet build)はまだ試していない。flet-web は
+  conda-forge に無いので pip で入れた。預かるのは、ID の番号、
   確かめたメールアドレス、項目に書いた物だけ(取り置きなら品物と数、取りに来る日、呼び名)。
   期限の日が過ぎたら消し、売上は帳簿に個人の情報なしで付ける
 - `office/` のボタンは macOS で、外からの run_macro でだけ確かめた。Linux と Windows は未確認

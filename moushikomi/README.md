@@ -18,8 +18,12 @@ AI に [SKILL.md](SKILL.md) を読ませると、AI が本人に聞きながら�
 - `server.py` は、本人のサーバーで動かします。店や自宅の機械でも、借りるサーバーでも、
   同じように動きます。Apple と Google とのやり取り、申し込みの保存は、すべてここでします。
   Apple の秘密鍵や Google のクライアントシークレットは、このサーバーの外に出ません
-- Web サイトやアプリは、サインインの入口(`/login/apple`、`/login/google`)に人を送り、
-  戻ってきた札(トークン)で、申し込みの API を呼びます
+- 画面(`app/main.py`)は Flet で作ります。`server.py` が、API と同じアドレスの `/app/` で
+  Web の画面として出します。同じコードを、iPhone と Android のアプリにも書き出す予定です
+- 画面は、サインインの入口(`/login/apple`、`/login/google`)に人を送ります。サインインの後、
+  サーバーは 1 回だけ使える引き換えの番号(1 分で切れます)を付けて画面に戻し、画面はそれを
+  `POST /api/session` で札(トークン)と引き換えて、申し込みの API を呼びます。札そのものは
+  アドレスに出ません
 - 預かるのは、Apple や Google が渡す人ごとの番号(sub)、Apple や Google が確かめたメール
   アドレス、項目に書いた物だけです。名前は Apple にも Google にも求めません
 - 期限の日(`:期限:` に書いた項目)が過ぎた申し込みは、消えます。サインインの札は
@@ -28,12 +32,24 @@ AI に [SKILL.md](SKILL.md) を読ませると、AI が本人に聞きながら�
 | API | 中身 |
 |---|---|
 | `GET /login/{apple か google}?next=戻り先` | サインインを始めます。戻り先は、設定の `RETURN_URLS` にある物だけです |
+| `POST /api/session` | 引き換えの番号を札に替えます |
 | `GET /api/form` | 項目の一覧と決まり |
 | `GET /api/me` | サインインしている人(メールアドレスと、店の人かどうか) |
 | `GET`、`POST /api/requests` | 自分の申し込みの一覧と、新しい申し込み |
 | `DELETE /api/requests/{id}` | 自分の申し込みの取り消し |
 | `GET /api/shop/requests` | 店の人だけが見る、すべての申し込み |
 | `POST /api/logout` | サインアウト |
+
+## ファイル
+
+| ファイル | 中身 |
+|---|---|
+| `SKILL.md` | AI への手順。預かる項目を本人と考える |
+| `取り置き.koumoku.adoc` | 見本の項目(架空のパン屋の取り置き) |
+| `server.py` | 申し込みのサーバー(サインイン、API、期限で消すこと、画面を出すこと) |
+| `app/main.py` | 画面(Flet)。項目の一覧から欄を作るので、項目を変えても直さなくてよい |
+| `fake_id.py` | 手元で試すための偽の Apple と Google |
+| `test_server.py` | サインインから取り消しまでの確かめ |
 
 ## 項目の書き方
 
@@ -51,7 +67,8 @@ AI に [SKILL.md](SKILL.md) を読ませると、AI が本人に聞きながら�
 ## 動かす
 
 Python の部品は、conda で入れます(conda-forge の `fastapi`、`uvicorn`、`pyjwt`、
-`cryptography`)。
+`cryptography`、`flet`)。Web の画面を出す `flet-web` は conda-forge に無いので、pip で入れます
+(`pip install flet-web==1.0.1 --no-deps`)。
 
 ```
 python moushikomi/test_server.py
@@ -60,8 +77,18 @@ python moushikomi/test_server.py
 偽の Apple と Google を手元で立て、サインインから取り消しまでを通して確かめます。
 
 ```
+python moushikomi/fake_id.py moushikomi/取り置き.koumoku.adoc
+```
+
+サーバーと画面を、偽の Apple と Google と一緒に手元で立てます。`http://127.0.0.1:8000/app/` を
+開き、サインインの画面で架空の人を選びます。店の人として試すときは `owner@example.jp` を
+選びます。`fake_id.py` は試すためだけの物で、本物のサーバーでは使いません。
+
+```
 python moushikomi/server.py moushikomi/取り置き.koumoku.adoc --port 8000
 ```
+
+画面を出さず API だけにするときは、`--no-screen` を付けます。
 
 設定は、環境の変数で渡します。秘密の値をリポジトリに入れないためです。
 
@@ -92,18 +119,26 @@ Apple は、次の 3 つが Google と違い、`server.py` がそれぞれに合
 
 ## 確かめたこと
 
-- `test_server.py` で、14 の確かめが通りました(Python 3.14、macOS)。
+- `test_server.py` で、17 の確かめが通りました(Python 3.14、macOS)。
   サインイン(Apple、Google)、Apple のクライアントシークレットの署名、戻り先の制限、
   state を 1 回しか使えないこと、id_token の署名・発行元・宛先・期限・nonce の確かめ、
   確かめていないメールアドレスを預からないこと、項目の決まり、一人あたりの件数、
   他人の申し込みを見られず消せないこと、店の人の一覧、期限が過ぎたら消えること、
-  サインアウト、札をハッシュで置くこと
+  サインアウト、札をハッシュで置くこと、引き換えの番号を 1 回しか使えないこと、
+  偽のサインインの画面
 - `server.py` から、id_token の署名、発行元、宛先、期限、nonce の確かめ、state を消す所、
   戻り先の制限、本人だけが取り消せる所、休みの曜日、メールアドレスの確かめを、1 つずつ
   外して試し、どれもテストが失敗することを確かめました
 - 本物の Apple と Google では、まだ試していません。店の Apple Developer の登録と、
   Google Cloud Console のクライアントができてから試します
-- 申し込みの画面(Web とアプリ)は、まだありません。Flet で作る予定です
+- `fake_id.py` で立て、Web の画面をブラウザーで開いて、次のことを実際に押して確かめました。
+  偽の Apple と Google でのサインイン、呼び名・取りに来る日・パンの数を選んでの申し込み、
+  足りないときの知らせ、自分の申し込みの一覧、店の人の一覧、サインアウト、取り消し。
+  取りに来る日には、明日から 7 日先までのうち、休みの日曜と月曜を除いた日だけが出ました。
+  スマートフォンの幅(375 ピクセル)でも横にはみ出しませんでした(Flet 1.0.1)
+- Flet の Dropdown は、選んだ値が Python の側に届かないことがあったので、`on_select` で
+  受け取った値を使っています
+- iPhone と Android のアプリへの書き出し(`flet build`)は、まだ試していません
 
 出典: Google「OpenID Connect」(https://developers.google.com/identity/openid-connect/openid-connect)、
 Google の discovery(https://accounts.google.com/.well-known/openid-configuration)、
