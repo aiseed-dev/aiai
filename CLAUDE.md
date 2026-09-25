@@ -22,6 +22,7 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - 名前の要らないお問い合わせは、Cloudflare の Workers と R2 で受ける。名前が要る物
   (パンの取り置きなど)は、先に認証をする。認証をすると個人の情報に責任を持つので、
   その部分は自分のサーバーで持つ
+- 認証は、できるだけ Apple ID か Google ID でする。使う人がパスキーを使わなくて済む
 - 自然農法の経営計画は、土にたまったりん酸をどう使うかから始める。根拠は海外の研究と
   福岡正信の著作を先に、国内の公式資料を支えに使う。牛ふんや鶏ふんの堆肥と油かすは
   入れない方針。家畜ふんと輸入飼料の段落も入れない。有機 JAS 認証は扱わない(新しく始める人が取る物ではないため)。「有機」の表示の決まりも扱わない(自然農法の野菜は、見れば分かるため)
@@ -77,7 +78,14 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - `website/` の Cloudflare Pages での公開と、お問い合わせの関数(`functions/api/contact.js`、
   Workers と R2)は、実際にはまだ動かしていない。試すには Node.js と wrangler が要る
 - 取り置きのように認証が要る物を、自分のサーバーで受ける仕組み。サーバーをどこに置くか、
-  認証のやり方、使う OSS は未定
+  預かる情報、使う OSS は未定。確かめたこと(2026-09-25):
+  Google は、Google Cloud Console でクライアント ID を作れば使える。料金の記載は無い
+  (https://developers.google.com/identity/openid-connect/openid-connect)。
+  Apple は、Web で使うには Certificates, Identifiers & Profiles で Services ID を作り、
+  Sign in with Apple を有効にした App ID に結び付ける
+  (https://developer.apple.com/help/account/capabilities/configure-sign-in-with-apple-for-the-web/)。
+  Certificates, Identifiers & Profiles は有料の Apple Developer Program の会員だけが使える
+  (https://developer.apple.com/help/account/basics/about-your-developer-account)。年会費は未確認
 - `office/` のボタンは macOS で、外からの run_macro でだけ確かめた。Linux と Windows は未確認
 - 農地法第 3 条の許可申請書の項目、勤め先を辞めて就農するときの年金や保険の手続き。
   自然農法の経営計画ができてから作る
