@@ -9,6 +9,9 @@ asks to be written for its own purpose (元 = 書き分け) are left empty, and
 a request for an AI is written next to it with the purpose and the
 business data only (no name, address or number).
 
+An item list may also define tables (.表 and .表の列): the columns, how
+each is written, and the table in the person's data to copy the rows from.
+
 uketsuke (receive) checks every .sheet.adoc in a folder against the item
 list and writes 受付一覧.adoc: what to fix per file, and the values as one
 table keyed by the form's item codes.
@@ -91,6 +94,29 @@ def items(koumoku):
     raise SystemExit("項目の表(名前・書き方の列がある表)がありません")
 
 
+def table_defs(koumoku):
+    """{table: {"必須", "元", "説明", "列": [{"列", "必須", "書き方", "説明"}]}} from
+    the .表 and .表の列 tables of an item list (empty when the form has none)."""
+    defs = {}
+    for name, header, rows in koumoku["tables"]:
+        if header and header[:1] == ["表"] and "元" in header:
+            for r in rows:
+                d = dict(zip(header, r))
+                defs[d["表"]] = {**d, "列": []}
+    for name, header, rows in koumoku["tables"]:
+        if header and header[:2] == ["表", "列"]:
+            for r in rows:
+                d = dict(zip(header, r))
+                if d["表"] in defs:
+                    defs[d["表"]]["列"].append(d)
+    return defs
+
+
+def tables_of(doc):
+    """{name: (header, rows)} of the tables with a header row."""
+    return {n: (h, rs) for n, h, rs in doc["tables"] if h}
+
+
 # ---- checking one value -----------------------------------------------------
 
 
@@ -119,7 +145,9 @@ def check(kind, v):
     if kind == "電話":
         return None if re.fullmatch(r"\d{2,5}-\d{1,4}-\d{3,4}", v) else "03-0000-0000 の形で書きます"
     if kind == "数":
-        return None if re.fullmatch(r"\d+", v) else "数字で書きます"
+        return None if re.fullmatch(r"\d+(\.\d+)?", v) else "数字で書きます"
+    if kind == "量":
+        return None if re.fullmatch(r"\d+(\.\d+)?\s*[^\d\s.]\S*", v) else "40a、15600kg のように、数と単位で書きます"
     if kind == "個人番号":
         return None if my_number_ok(v) else "12 桁の個人番号を書きます(最後の 1 桁が合いません)"
     if kind.startswith("選ぶ:"):
@@ -130,6 +158,30 @@ def check(kind, v):
         bad = [x for x in v.split("、") if x not in choices]
         return None if not bad else f"{'・'.join(choices)} から選び、「、」で区切ります"
     return None
+
+
+def table_problems(defs, tables):
+    out = []
+    for t, d in defs.items():
+        if t not in tables:
+            out.append(f"表「{t}」がありません")
+            continue
+        header, rows = tables[t]
+        if d.get("必須") == "必須" and not rows:
+            out.append(f"表「{t}」: 1 行も書いてありません")
+        for c in d["列"]:
+            if c["列"] not in header:
+                out.append(f"表「{t}」: 列「{c['列']}」がありません")
+                continue
+            k = header.index(c["列"])
+            for i, r in enumerate(rows, 1):
+                v = r[k] if k < len(r) else ""
+                if not v:
+                    if c.get("必須") == "必須":
+                        out.append(f"表「{t}」{i} 行目の{c['列']}: 書いてありません")
+                elif why := check(c["書き方"], v):
+                    out.append(f"表「{t}」{i} 行目の{c['列']}: {why}")
+    return out
 
 
 def problems(its, data):
@@ -181,6 +233,18 @@ def tsukuru(data_path, koumoku_path):
     head = [f"= {form}"] + [f":{k}: {v}" for k, v in kd["attrs"].items() if k in ("様式", "様式ID")]
     head.append(f":元のデータ: {os.path.basename(data_path)}")
     body = ["", f".{form}", '[cols="1,3"]', "|==="] + [f"|{n} |{cell(v)}" for n, v in rows] + ["|==="]
+    base_tables = tables_of(base_doc)
+    for t, d in table_defs(kd).items():
+        cols = [c["列"] for c in d["列"]]
+        body += ["", f".{t}", "|===", "|" + " |".join(cols), ""]
+        src = d.get("元", "")
+        if src not in ("", "-") and src in base_tables:
+            h, rs = base_tables[src]
+            for r in rs:
+                body.append("|" + " |".join(cell(r[h.index(c)]) if c in h and h.index(c) < len(r) else "" for c in cols))
+        else:
+            by_hand.append(f"表「{t}」")
+        body.append("|===")
     out = os.path.join(os.path.dirname(data_path), f"{form}.sheet.adoc")
     with open(out, "w", encoding="utf-8") as f:
         f.write("\n".join(head + body) + "\n")
@@ -192,7 +256,11 @@ def tsukuru(data_path, koumoku_path):
         # can answer and writes from the person's own words. Only the business
         # table goes to the AI, not the name, address or number.
         jigyou = [(n, v) for t, h, rs in base_doc["tables"] if t == "事業" for n, v, *_ in rs]
+        # Tables with a header (crops, land) are business facts too; the person table is not
+        biz_tables = [(t, h, rs) for t, h, rs in base_doc["tables"] if h and t != "本人"]
         ask_person = [it for it in its if it.get("元") in ("", "-") and it["書き方"] != "個人番号"]
+        fill_tables = [(t, d) for t, d in table_defs(kd).items()
+                       if d.get("元", "") in ("", "-") or d["元"] not in tables_of(base_doc)]
         req = os.path.join(os.path.dirname(data_path), f"{form}.依頼.md")
         with open(req, "w", encoding="utf-8") as f:
             f.write(f"# {form}を書く手伝いの依頼\n\n")
@@ -203,12 +271,19 @@ def tsukuru(data_path, koumoku_path):
             if url := re.search(r"https?://[^)\s]+", kd["attrs"].get("出典", "")):
                 f.write(f"役所の様式と書き方: {url.group(0)}\n\n")
             f.write("## 本人が書いた事業のこと\n\n" + "\n".join(f"- {n}: {v}" for n, v in jigyou) + "\n")
-            if ask_person:
+            for t, h, rs in biz_tables:
+                f.write(f"\n### {t}\n\n| " + " | ".join(h) + " |\n|" + "---|" * len(h) + "\n")
+                f.write("".join("| " + " | ".join(r) + " |\n" for r in rs))
+            if ask_person or fill_tables:
                 f.write("\n## 本人に聞いて決めてもらうこと\n\n")
                 f.write("1 つずつ聞いてください。決めるのは本人です。\n\n")
                 for it in ask_person:
                     note = f"({it['説明']})" if it.get("説明") else ""
                     f.write(f"- {it['名前']}: {it['書き方']}{note}\n")
+                for t, d in fill_tables:
+                    cols = "、".join(c["列"] for c in d["列"])
+                    note = f"({d['説明']})" if d.get("説明") else ""
+                    f.write(f"- 表「{t}」: {cols}{note}\n")
             for it in asks:
                 f.write(f"\n## 本人の言葉から書く文: {it['名前']}\n\n{it['説明']}\n")
                 f.write("\n下書きを見せ、本人が自分の言葉で直せるようにしてください。\n")
@@ -221,6 +296,7 @@ def tsukuru(data_path, koumoku_path):
 def uketsuke(koumoku_path, folder):
     kd = read(koumoku_path)
     its = items(kd)
+    defs = table_defs(kd)
     form = kd["title"] or os.path.basename(koumoku_path).split(".")[0]
     files = sorted(p for p in glob.glob(os.path.join(folder, "*.sheet.adoc")))
     results, values = [], []
@@ -229,10 +305,11 @@ def uketsuke(koumoku_path, folder):
         if d["title"] != form:
             continue
         data = pairs(d)
-        results.append((os.path.basename(p), problems(its, data)))
-        values.append((os.path.basename(p), data))
+        tables = tables_of(d)
+        results.append((os.path.basename(p), problems(its, data) + table_problems(defs, tables)))
+        values.append((os.path.basename(p), {**data, **{f"{t}(行)": str(len(tables.get(t, ([], []))[1])) for t in defs}}))
     # The individual number is checked but never copied into the list
-    cols = [it for it in its if it["書き方"] != "個人番号"]
+    cols = [it for it in its if it["書き方"] != "個人番号"] + [{"名前": f"{t}(行)"} for t in defs]
     lines = [f"= 受付一覧({form})", f":作成日: {datetime.date.today().isoformat()}", "",
              ".受け付けた書類", '[cols="2,1,4"]', "|===", "|ファイル |結果 |直す所", ""]
     for name, probs in results:
