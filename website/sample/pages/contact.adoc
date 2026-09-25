@@ -1,0 +1,12 @@
+= お問い合わせ
+:メニュー: お問い合わせ
+:順番: 4
+:description: {屋号}へのお問い合わせ。
+
+// The text is the AI's draft from the owner's words, corrected by the owner.
+パンの取り置きや、お店へのご質問は、このページからお送りください。
+店主が 1 人で焼いているので、お返事に数日かかることがあります。
+
+お急ぎのときは、お電話({電話})でお問い合わせください。
+
+contact::[]

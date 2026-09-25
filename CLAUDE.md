@@ -67,7 +67,8 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
   「不具合」「手続きの記録」「提案」を作る
 - officework の様式の機能(`Book.fill` など)とリボンの設定ファイルは、officework の push と
   次の版が出るまで、PyPI の officework 0.7.0 には入っていない
-- `website/` の Cloudflare Pages での公開は、実際にはまだ動かしていない
+- `website/` の Cloudflare Pages での公開と、お問い合わせの関数(`functions/api/contact.js`、
+  Workers と R2)は、実際にはまだ動かしていない。試すには Node.js と wrangler が要る
 - `office/` のボタンは macOS で、外からの run_macro でだけ確かめた。Linux と Windows は未確認
 - 農地法第 3 条の許可申請書の項目、勤め先を辞めて就農するときの年金や保険の手続き。
   自然農法の経営計画ができてから作る

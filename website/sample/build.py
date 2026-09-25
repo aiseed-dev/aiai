@@ -15,6 +15,9 @@ It reads a plain part of AsciiDoc: the title and attributes, == and ===
 headings, paragraphs (a line ending in " +" breaks), * and . lists,
 |=== tables, image::, *bold*, link:…[…], https://…[…], mailto:…[…],
 and // comments. `news::[5]` lists the newest five news items.
+`contact::[]` puts the contact form; functions/api/contact.js receives it
+on Cloudflare Pages and keeps each message in R2. A page with
+`:turnstile: サイトキー` also shows Cloudflare Turnstile on the form.
 """
 import datetime
 import html
@@ -93,7 +96,24 @@ def fill(text, data, missing):
     return re.sub(r"\{([^{}\s]+)\}", one, text)
 
 
-def block_html(lines, data, missing, news_items):
+def contact_form(page, sitekey):
+    ts = ""
+    if sitekey:
+        ts = (f'<div class="cf-turnstile" data-sitekey="{html.escape(sitekey)}"></div>'
+              '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>')
+    return f"""<p id="sent" class="notice">お問い合わせを受け取りました。ありがとうございました。</p>
+<p id="error" class="notice">送れませんでした。お返事の先とお問い合わせの中身を書いて、もう一度お送りください。</p>
+<form class="contact" method="post" action="/api/contact">
+<input type="hidden" name="page" value="/{html.escape(page)}">
+<label>お名前<input name="name" maxlength="100" autocomplete="name"></label>
+<label>お返事の先(メールか電話)<input name="reply" maxlength="200" required></label>
+<label>お問い合わせの中身<textarea name="message" rows="6" maxlength="5000" required></textarea></label>
+<label class="hp" aria-hidden="true">Web サイト<input name="website" tabindex="-1" autocomplete="off"></label>
+{ts}<button type="submit">送る</button>
+</form>"""
+
+
+def block_html(lines, data, missing, news_items, page="", sitekey=""):
     out, para, lst = [], [], None
 
     def flush():
@@ -129,6 +149,9 @@ def block_html(lines, data, missing, news_items):
             flush()
             n = int(m.group(1) or 0) or len(news_items)
             out.append(news_list(news_items[:n]))
+        elif s == "contact::[]":
+            flush()
+            out.append(contact_form(page, sitekey))
         elif s == "|===":
             flush()
             rows, header = [], None
@@ -239,7 +262,7 @@ def build(src, out, data_path=None):
     missing = set()
     for href, title, attrs, body in pages:
         title = fill(title or "", data, missing)
-        text = block_html(body, data, missing, items)
+        text = block_html(body, data, missing, items, href, attrs.get("turnstile", ""))
         with open(os.path.join(out, href), "w", encoding="utf-8") as f:
             f.write(page_html(title, text, data, nav, href, 0, fill(attrs.get("description", ""), data, missing)))
     for date, title, attrs, body, href in news:
@@ -252,6 +275,10 @@ def build(src, out, data_path=None):
             shutil.copytree(p, os.path.join(out, extra))
         elif os.path.exists(p):
             shutil.copyfile(p, os.path.join(out, extra))
+    if os.path.isdir(os.path.join(src, "functions")):
+        # Only /api/* runs the functions; the pages stay free static files
+        with open(os.path.join(out, "_routes.json"), "w", encoding="utf-8") as f:
+            f.write('{"version": 1, "include": ["/api/*"], "exclude": []}\n')
     print(f"{out} に {len(pages)} ページとお知らせ {len(news)} 件を書きました")
     if missing:
         print(f"データに無い名前: {'、'.join(sorted(missing))}")

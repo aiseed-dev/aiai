@@ -40,3 +40,10 @@ ul.news { list-style: none; padding: 0; }
 ul.news li { padding: 0.4rem 0; border-bottom: 1px solid var(--line); }
 ul.news time { color: var(--muted); margin-right: 0.75rem; }
 footer { margin-top: 3rem; padding-top: 1rem; padding-bottom: 2rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
+form.contact { display: grid; gap: 1rem; margin: 1.5rem 0; }
+form.contact label { display: grid; gap: 0.25rem; }
+form.contact input, form.contact textarea { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 0.5rem; width: 100%; }
+form.contact button { font: inherit; justify-self: start; padding: 0.5rem 1.5rem; border: 0; border-radius: 6px; background: var(--accent); color: var(--bg); cursor: pointer; }
+form.contact .hp { position: absolute; left: -9999px; }
+.notice { display: none; padding: 0.75rem; border: 1px solid var(--accent); border-radius: 6px; }
+.notice:target { display: block; }
