@@ -6,6 +6,7 @@
 *.png
 !**/photo.jpg
 __pycache__/
+.venv/
 assets/
 images/
 # What tools/todoke.py writes

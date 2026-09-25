@@ -1,9 +1,13 @@
 # aiai
 
-履歴書、開業の届出、許認可の申請書のように、決まった様式の書類を自分で書くための
-見本です。様式、データの見本、データを作って確かめるスクリプトを置いています。
+履歴書、開業の届出、就農の計画、事業の Web サイト、お客さんからの申し込みのように、
+決まった形の書類や仕組みを、AI と一緒に自分で作るための見本とスキルです。
 
-## 提案: 様式は adoc で配り、adoc で受け取る
+使い方は、[使い方の手引き](TSUKAIKATA.md)にまとめています。
+
+## 考え方
+
+### 書類は adoc で書き、adoc で受け渡す
 
 いまの様式は、docx、xlsx、PDF で配られています。たとえば、厚生労働省の
 履歴書様式例は xlsx です。国税庁の開業届は、入力の欄を持つ PDF です。
@@ -31,7 +35,7 @@
 |===
 ```
 
-## 同じことを、観点を変えて何回も書く
+### 同じ事実は 1 回だけ書く
 
 役所や専門家は、仕事を分けて受け持っています。そのため、同じ氏名や住所や
 事業の内容を、書類ごとに何回も書きます。同じ事実でも、受け取る所によって
@@ -45,68 +49,50 @@
 | 書類の目的に合わせて文を書く(事業の概要など) | AI が本人の言葉から下書きし、本人が直す |
 | 本人にしか決められないこと(青色申告にするか、など) | 本人 |
 
-このやり方は、企業の中の申請でも使えます。
+### AI は、本人が考えることを助ける
 
-## AI の使い方
+- 答えを先に出しません。何のための項目か、選ぶと何が変わるかを伝え、本人に 1 つずつ聞きます
+- 文は、本人が書いた言葉から下書きします。本人が言っていないことは足しません
+- AI に渡すのは事業の内容だけです。氏名、住所、電話、個人番号、生年月日は渡しません
 
-AI は、本人が自分で考えることを助けます。
-
-- 答えを先に出しません。何のための項目か、選ぶと何が変わるかを、役所の
-  書き方の範囲で伝え、本人に 1 つずつ聞きます
-- 文は、本人が書いた言葉から下書きします。事業の内容に無いことは足しません
-- AI に渡すのは事業の内容だけです。氏名、住所、電話、個人番号は渡しません
-
-`tools/todoke.py` が、書類ごとにこの依頼の文(`〜.依頼.md`)を書きます。
-
-## 流れ
-
-開業届と青色申告承認申請書の見本([kaigyo](kaigyo/))で説明します。
-
-1. 本人が、自分の事業のことを `事業.sheet.adoc` に書きます
-2. 書類ごとのデータを作ります
-
-   ```
-   python tools/todoke.py tsukuru kaigyo/事業.sheet.adoc kaigyo/開業届.koumoku.adoc
-   ```
-
-   同じ内容はここで写されます。本人が決める項目と、書き分ける文が残ります
-3. `開業届.依頼.md` を AI に渡し、残った項目を本人が考えて埋めます
-4. 受け取る側は、届いた adoc をまとめて確かめます
-
-   ```
-   python tools/todoke.py uketsuke kaigyo/開業届.koumoku.adoc 届いたフォルダー
-   ```
-
-   直す所と、全員の値を 1 つの表にした `受付一覧-開業届.adoc` ができます
-
-書類の項目は `〜.koumoku.adoc` に書きます。項目ごとに、名前、必須か、書き方
-(日付、郵便番号、選ぶ物など)、どこから写すか、説明があります。作目の一覧のような表も、
-列ごとに同じように書けます。国税庁の様式では、
-欄に印刷してあるコード(F01、K01 など)も書きます。
+各フォルダーの `SKILL.md` は、AI に読ませる手順です。
 
 ## 中身
 
 | フォルダー | 中身 |
 |---|---|
 | [kaigyo](kaigyo/) | 開業届と青色申告承認申請書の項目、見本のデータ、受け取る側の見本 |
+| [nougyou](nougyou/) | 農業を始めるときの手続き(出典と確かめた日付き)、青年等就農計画の項目と見本のデータ |
+| [nougyou/keikaku](nougyou/keikaku/) | 自然農法の経営計画を作るスキル。自然農法系の農業の紹介(いいことと難しいこと)と、年ごとの計算 |
 | [rirekisho](rirekisho/) | 履歴書の様式(厚生労働省の様式例、JIS 様式)と見本のデータ |
-| [nougyou](nougyou/) | 農業を始めるときの手続き(出典と確かめた日付き)、自然農法の経営計画を作るスキル、青年等就農計画認定申請書の項目と見本のデータ |
-| [website](website/) | 事業の Web サイトを作るスキル。開業届と同じデータから、公開してよい事実だけを写す |
-| [office](office/) | officework を履歴書・申請書を書くための版にする、リボンの設定とボタン |
+| [website](website/) | 事業の Web サイトを作るスキル。開業届と同じデータから公開してよい事実だけを写し、Cloudflare Pages で公開する。名前の要らないお問い合わせは Cloudflare の Workers と R2 で受ける |
+| [moushikomi](moushikomi/) | Apple ID か Google ID でサインインした人から、申し込み(取り置き、予約、注文など)を受ける仕組み。預かる項目を adoc に書き、画面は Flet で作る |
+| [office](office/) | officework を、書類を書いて直すための版にする、リボンの設定とボタン |
 | [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`houkoku.py`(報告の下書き)、`office_kit.py`(office のボタンが使う) |
 
-見本の人は、すべて架空です。
+見本の人、店、数字は、すべて架空です。
 
 ## 使う物
 
-- `tools/todoke.py` は Python 3 だけで動きます(Python 3.9 で確かめました)
-- 印刷(様式に入れて PDF にする)と履歴書には、[officework](https://github.com/aiseed-dev/officework)
-  を使います。印とデータの書き方は、officework の
-  [様式の手引き](https://github.com/aiseed-dev/officework/blob/main/docs/ja/forms-manual.adoc)にあります
+| 使う所 | 要る物 |
+|---|---|
+| `tools/todoke.py`、`nougyou/keikaku/keikaku.py`、`website/sample/build.py` | Python 3 だけ(Python 3.9 で確かめました) |
+| `moushikomi/` | Python 3 と、conda-forge の `fastapi`、`uvicorn`、`pyjwt`、`cryptography`、`flet`。Web の画面には pip の `flet-web`(Python 3.14 で確かめました) |
+| `website/` の公開とお問い合わせ | Cloudflare のアカウント(無料のプランで使えます) |
+| 様式を埋めて PDF にする、履歴書、`tools/houkoku.py`、`office/` | [officework](https://github.com/aiseed-dev/officework)。印とデータの書き方は、officework の [様式の手引き](https://github.com/aiseed-dev/officework/blob/main/docs/ja/forms-manual.adoc)にあります |
 
-```
-pip install officework
-```
+aiai が使う officework の機能(様式を埋める `Book.fill` と、リボンの設定ファイル)は、
+officework の次の版で入ります。いま PyPI にある officework 0.7.0 には、まだ入っていません。
+
+## いまの状態
+
+- 動かして確かめた物: `tools/todoke.py`、`nougyou/keikaku/keikaku.py`、`website/sample/build.py`、
+  `moushikomi/`(偽の Apple と Google を相手にしたテストと、Web の画面を押して確かめること)
+- まだ確かめていない物:
+  - Cloudflare Pages での公開と、お問い合わせの関数
+  - `moushikomi/` を本物の Apple と Google で使うこと。iPhone と Android のアプリへの書き出し
+  - `office/` の Linux と Windows での動き
+- 自然農法の経営計画は、福岡正信の著作からの引用を、これから足します
 
 ## 報告
 
@@ -117,3 +103,4 @@ pip install officework
 
 [CC BY 4.0](LICENSE) です。使うときは出典を書いてください。
 役所の様式や書き方を元にした物は、それぞれのフォルダーの README に出典を書いています。
+このリポジトリは、国や役所が作った物ではありません。
