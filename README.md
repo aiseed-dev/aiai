@@ -76,7 +76,7 @@
 | [rirekisho](rirekisho/) | 履歴書の様式(厚生労働省の様式例、JIS 様式)と見本のデータ |
 | [website](website/) | 事業の Web サイトを作るスキル。開業届と同じデータから公開してよい事実だけを写し、Cloudflare Pages で公開する。名前の要らないお問い合わせは Cloudflare の Workers と R2 で受ける |
 | [moushikomi](moushikomi/) | Apple ID か Google ID でサインインした人から、申し込み(取り置き、予約、注文など)を受ける仕組み。預かる項目を adoc に書き、画面は Flet で作る |
-| [office](office/) | officework を、書類を書いて直すための版にする、リボンの設定とボタン |
+| [office](office/) | officework の簡易版。書類を書いて直すための、リボンの設定ファイルと Python のボタンだけを置く |
 | [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`houkoku.py`(報告の下書き)、`kakunin.py`(出典を確かめ直す物を出す)、`office_kit.py`(office のボタンが使う) |
 
 見本の人、店、数字は、すべて架空です。
@@ -90,8 +90,9 @@
 | `website/` の公開とお問い合わせ | Cloudflare のアカウント(無料のプランで使えます) |
 | 様式を埋めて PDF にする、履歴書、`tools/houkoku.py`、`office/` | [officework](https://github.com/aiseed-dev/officework)。印とデータの書き方は、officework の [様式の手引き](https://github.com/aiseed-dev/officework/blob/main/docs/ja/forms-manual.adoc)にあります |
 
-aiai が使う officework の機能(様式を埋める `Book.fill` と、リボンの設定ファイル)は、
-officework の次の版で入ります。いま PyPI にある officework 0.7.0 には、まだ入っていません。
+officework は、aiai とは別のプロジェクトです。aiai は公開されている版を使うだけで、
+機能が足りないときやバグは、officework の Issues に報告します。aiai が使う機能(様式を埋める
+`Book.fill` と、リボンの設定ファイル)は、いま PyPI にある officework 0.7.0 には、まだ入っていません。
 
 ## いまの状態
 

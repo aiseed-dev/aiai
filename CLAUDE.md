@@ -18,6 +18,10 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - 外のサービスに頼るのは、大きな AI のモデルと、Web サイトの公開くらいにする。そのほかは、
   OSS と AI で作る。Web サイトは静的なページなので、Cloudflare Pages で公開する(GitHub Pages
   は使わない)
+- officework とは完全に独立させる。aiai は、公開されている officework を使う側で、officework の
+  コードは直さず、公開されていない変更も当てにしない。aiai の中で作るのは、リボンの設定ファイルと
+  Python のボタン(`office/`)だけの簡易版で、専用のアプリは作らない。機能が足りないときやバグは、
+  officework の Issues(https://github.com/aiseed-dev/officework/issues)に報告するだけにする
 - 名前の要らないお問い合わせは、Cloudflare の Workers と R2 で受ける。名前が要る物
   (パンの取り置きなど)は、先に認証をする。認証をすると個人の情報に責任を持つので、
   その部分は自分のサーバーで持つ
@@ -93,7 +97,7 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 | `nougyou/` | 就農の手続き、青年等就農計画の項目、`keikaku/`(自然農法の経営計画のスキル) |
 | `website/` | Web サイトを作るスキル。`sample/` を写すとサイトのリポジトリになる |
 | `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
-| `office/` | officework のリボンの設定ファイル(`ribbon.toml`)と Python のボタン |
+| `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
 
 ## 残っていること(2026-09-26 時点)
 
@@ -103,8 +107,8 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - 自然農法の経営計画: 福岡正信の本文からの引用は、発注者が本とページを示すのを待っている
 - GitHub のリポジトリ(aiseed-dev/aiai、公開)は発注者が作る。作ったら Issue のラベル
   「不具合」「手続きの記録」「提案」「新しい情報」を作る
-- officework の様式の機能(`Book.fill` など)とリボンの設定ファイルは、officework の push と
-  次の版が出るまで、PyPI の officework 0.7.0 には入っていない
+- aiai が使う officework の機能(`Book.fill` など)とリボンの設定ファイルは、PyPI の officework
+  0.7.0 にはまだ入っていない。公開された版で入ったら、その版で README のコマンドを動かして確かめる
 - `website/` の Cloudflare Pages での公開と、お問い合わせの関数(`functions/api/contact.js`、
   Workers と R2)は、実際にはまだ動かしていない。試すには Node.js と wrangler が要る
 - 申し込み(`moushikomi/`): サーバーは作り、偽の Apple と Google で確かめた。本物の Apple と
@@ -115,6 +119,6 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
   conda-forge に無いので pip で入れた。預かるのは、ID の番号、
   確かめたメールアドレス、項目に書いた物だけ(取り置きなら品物と数、取りに来る日、呼び名)。
   期限の日が過ぎたら消し、売上は帳簿に個人の情報なしで付ける
-- `office/` のボタンは macOS で、外からの run_macro でだけ確かめた。Linux と Windows は未確認
+- `office/` のボタンは macOS で、外からの run_macro でだけ確かめた。Linux と Windows、文書の画面のタブは未確認
 - 農地法第 3 条の許可申請書の項目、勤め先を辞めて就農するときの年金や保険の手続き。
   自然農法の経営計画ができてから作る

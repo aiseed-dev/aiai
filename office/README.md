@@ -33,5 +33,11 @@ macOS で確かめました。Linux と Windows ではまだ確かめていま�
 `履歴書.sheet.adoc` を開いて確かめました。タイトルが「aiseed office 簡易版」になり、
 タブが ファイル、書類、ホーム、挿入、レイアウト、共同編集、表示、確かめる、報告 の順に出て、
 書類タブに 保存、印刷、様式で埋める が並びました(2026-09-26)。文書の画面では、
-`tabs = "ホーム, 挿入, レイアウト, 共同編集, 表示"` の設定で、これらのタブが出ることを
-officework の側で確かめてあります(officework のコミット 753dbe05)。
+まだ確かめていません。
+
+## officework との関係
+
+officework は、aiai とは別のプロジェクトです。aiai は、公開されている officework を
+使う側で、ここに置くのは、リボンの設定ファイルと Python のボタンだけの簡易版です。
+専用のアプリは作りません。機能が足りないときや、バグを見つけたときは、officework の
+Issues(https://github.com/aiseed-dev/officework/issues)に報告します。
