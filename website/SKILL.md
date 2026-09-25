@@ -1,6 +1,6 @@
 ---
 name: website
-description: 自分の事業の Web サイトを、adoc のページから作って GitHub Pages で公開するのを手伝う。事業.sheet.adoc から公開してよい事実だけを写し、お客さんに向けた文は本人の言葉から下書きする。
+description: 自分の事業の Web サイトを、adoc のページから作って Cloudflare Pages で公開するのを手伝う。事業.sheet.adoc から公開してよい事実だけを写し、お客さんに向けた文は本人の言葉から下書きする。
 ---
 
 # Web サイトを作る
@@ -48,9 +48,15 @@ description: 自分の事業の Web サイトを、adoc のページから作っ
 
    `_site/index.html` をブラウザーで開きます。スマートフォンの幅でも読めるかを見ます。
    「データに無い名前」と出たら、ページの `{名前}` か `Webサイト.sheet.adoc` を直します
-7. 公開は本人がします。GitHub のアカウントで公開のリポジトリを作り、フォルダーの中身を
-   push します。リポジトリの Settings > Pages で、Source を「GitHub Actions」にします。
-   `.github/workflows/pages.yml` が、push のたびにサイトを作って公開します
+7. 公開は本人がします。フォルダーの中身を、GitLab か GitHub のリポジトリに push します。
+   Cloudflare のダッシュボードで Pages のプロジェクトを作り、そのリポジトリをつなぎます。
+   設定は次のとおりです
+   * Production branch: `main`
+   * Build command: `python build.py . --out _site`
+   * Build output directory: `_site`
+
+   つないだ後は、push のたびに Cloudflare がサイトを作って公開します。
+   Cloudflare の作る所には Python 3.13 が入っていて、`build.py` はそのまま動きます
 8. お知らせは、`news/` に 1 件 1 ファイルで足して push します
 
 ## ページの書き方
