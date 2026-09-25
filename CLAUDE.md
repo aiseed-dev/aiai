@@ -22,7 +22,8 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - 名前の要らないお問い合わせは、Cloudflare の Workers と R2 で受ける。名前が要る物
   (パンの取り置きなど)は、先に認証をする。認証をすると個人の情報に責任を持つので、
   その部分は自分のサーバーで持つ
-- 認証は、できるだけ Apple ID か Google ID でする。使う人がパスキーを使わなくて済む
+- 認証は、Apple ID か Google ID でする。使う人がパスキーを使わなくて済む。スマートフォンを
+  使う人は、アプリを入れるにも、機種を替えて電話帳を引き継ぐにも、どちらかの ID を使っている
   Microsoft ID は使わない。認証の相手を 1 つ足すたびに、登録して手入れする所が 1 つ増える
   (Microsoft は Entra でアプリを登録する。Google は Google Cloud Console、Apple は Services ID)。
   Apple ID と Google ID は、PC でもブラウザーで使える。取り置きは Web だけで受け、電話では
