@@ -1,6 +1,6 @@
 # 使い方の手引き
 
-aiai の見本とスキルを、自分の書類や仕組みに使うまでの手順です。
+aiai のスキルを、自分の書類や仕組みに使うまでの手順です。
 コマンドは、このリポジトリのフォルダーで打ちます。
 
 ## 1. 用意する
@@ -78,8 +78,8 @@ aiai の見本とスキルを、自分の書類や仕組みに使うまでの手
 その AI が作れます。aiai が扱うのは、様式と、
 決まりとして知られていること(記入上の注意など)だけです。
 
-様式を埋めて PDF にするには、officework の次の版が要ります(いまの PyPI の 0.7.0 には
-まだ入っていません)。書き方は [rirekisho/README.md](rirekisho/README.md) にあります。
+様式を埋めて PDF にするには、officework の様式を埋める機能が要ります。この機能は、いま PyPI に
+ある officework 0.7.0 には、まだ入っていません。書き方は [rirekisho/README.md](rirekisho/README.md) にあります。
 
 ## 6. Web サイト([website](website/))
 
@@ -129,8 +129,8 @@ python office/install.py
 ```
 
 タブは、ファイル、書類、ホーム、挿入、レイアウト、共同編集、表示、確かめる、報告 に
-なります。元に戻すときは `python office/install.py --remove` です。officework の次の版が
-要ります。詳しくは [office/README.md](office/README.md) にあります。
+なります。元に戻すときは `python office/install.py --remove` です。この設定を読む機能は、
+いま PyPI にある officework 0.7.0 には、まだ入っていません。詳しくは [office/README.md](office/README.md) にあります。
 
 ## 9. 困ったとき、変わっていたとき
 
