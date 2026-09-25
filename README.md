@@ -68,7 +68,7 @@
 | [website](website/) | 事業の Web サイトを作るスキル。開業届と同じデータから公開してよい事実だけを写し、Cloudflare Pages で公開する。名前の要らないお問い合わせは Cloudflare の Workers と R2 で受ける |
 | [moushikomi](moushikomi/) | Apple ID か Google ID でサインインした人から、申し込み(取り置き、予約、注文など)を受ける仕組み。預かる項目を adoc に書き、画面は Flet で作る |
 | [office](office/) | officework を、書類を書いて直すための版にする、リボンの設定とボタン |
-| [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`houkoku.py`(報告の下書き)、`office_kit.py`(office のボタンが使う) |
+| [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`houkoku.py`(報告の下書き)、`kakunin.py`(出典を確かめ直す物を出す)、`office_kit.py`(office のボタンが使う) |
 
 見本の人、店、数字は、すべて架空です。
 
@@ -96,8 +96,9 @@ officework の次の版で入ります。いま PyPI にある officework 0.7.0 
 
 ## 報告
 
-使って困ったこと、実際に手続きをして分かったことは、[報告のしかた](HOUKOKU.md)を
-見て知らせてください。報告をもとに、様式と手順を直します。
+使って困ったこと、実際に手続きをして分かったこと、書いてあることが変わっていたことは、
+[報告のしかた](HOUKOKU.md)を見て知らせてください。報告をもとに、様式と手順を直します。
+出典を確かめ直す物は、`python tools/kakunin.py --fetch` で一覧にできます。
 
 ## ライセンス
 

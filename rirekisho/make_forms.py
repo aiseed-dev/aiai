@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Makes the resume forms from the Ministry of Health, Labour and Welfare's
-own xlsx of its resume example (履歴書様式例, 2021-04-16):
+own xlsx of its resume example (履歴書様式例; 03_a4.xls from
+https://kouseisaiyou.mhlw.go.jp/methods.html, saved as xlsx):
 
-    python make_forms.py kouroushourirekishoA4.xlsx [out folder]
+    python make_forms.py 03_a4.xlsx [out folder]
 
 It writes 履歴書-厚労省.form.adoc with its look 履歴書-厚労省.tmpl.adoc, and
 履歴書-JIS.form.adoc with 履歴書-JIS.tmpl.adoc, into the out folder (this

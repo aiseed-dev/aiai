@@ -17,9 +17,8 @@ AI に [SKILL.md](SKILL.md) を読ませると、AI が本人に聞きながら�
   書き込みは月に 100 万回までです。ページを見るだけでは、関数は呼ばれません
 - 独自のドメイン(`example.jp` のような名前)を使うときは、その費用がかかります
 
-公開には Cloudflare Pages を使います。GitHub Pages は Microsoft のサービスで、古い技術であり、
-最近の進歩が取り入れられていない、Cloudflare の方がはるかに進んでいる、と発注者は
-判断しています。
+公開には Cloudflare Pages を使います。サイトを作るのも、お問い合わせを受けるのも、
+Cloudflare の中で済みます。
 
 出典: Cloudflare Docs「Limits」(https://developers.cloudflare.com/pages/platform/limits/)、
 「Git integration」(https://developers.cloudflare.com/pages/get-started/git-integration/)、

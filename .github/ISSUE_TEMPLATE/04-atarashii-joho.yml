@@ -1,0 +1,36 @@
+name: 新しい情報
+description: 書いてあることが変わった(制度、金額、様式、ページの場所、研究など)
+title: "[新しい情報] "
+labels: ["新しい情報"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        氏名・住所などは書かないでください。報告は公開されます。
+        `python tools/kakunin.py --fetch --out 確認の結果.md` の結果を、そのまま貼ってもかまいません。
+  - type: input
+    id: basho
+    attributes:
+      label: どこに書いてあることか(ファイルの名前)
+      placeholder: 例 nougyou/README.md の「3. 就農準備資金、経営開始資金」
+    validations:
+      required: true
+  - type: textarea
+    id: kawatta
+    attributes:
+      label: 何が変わったか(いまの書き方と、新しい情報)
+    validations:
+      required: true
+  - type: textarea
+    id: shutten
+    attributes:
+      label: 新しい情報の出典(資料の名前と URL)
+    validations:
+      required: true
+  - type: input
+    id: hi
+    attributes:
+      label: 確かめた日
+      placeholder: 2026-10-01
+    validations:
+      required: true
