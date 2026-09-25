@@ -83,3 +83,7 @@ AI への依頼には、「本人」の表(氏名、住所、電話)と個人番
   (https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/shinkoku/annai/04.htm)
 - 出典:国税庁ホームページ「[手続名]所得税の青色申告承認申請手続」
   (https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/shinkoku/annai/09.htm)
+
+2026-09-26 に確かめました。それぞれのページにある様式の PDF(開業届は令和 6 年の版、
+青色申告承認申請書は平成 28 年の版)と、様式 ID と欄のコードが、項目の表と合うことを
+比べました。
