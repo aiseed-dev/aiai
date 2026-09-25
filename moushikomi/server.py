@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Takes requests (a reservation, a booking, an order) from people who sign
 in with Apple or Google, keeps only what the item list asks for, and drops
 each request once its date has passed.

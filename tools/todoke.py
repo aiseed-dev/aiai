@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Hands in forms as adoc: one data file for the person, one per office.
 
     python tools/todoke.py tsukuru 事業.sheet.adoc 開業届.koumoku.adoc

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Makes the resume forms from the Ministry of Health, Labour and Welfare's
 own xlsx of its resume example (履歴書様式例, 2021-04-16):
 

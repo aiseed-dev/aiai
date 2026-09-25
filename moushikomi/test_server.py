@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Tries server.py from sign-in to cancel, against the fake Apple and Google
 of fake_id.py (which can also hand out broken id_tokens).
 

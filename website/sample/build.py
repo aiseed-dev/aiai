@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Builds a small website from adoc pages, with Python's standard library only.
 
     python build.py サイトのフォルダー [--data Webサイト.sheet.adoc] [--out 出力先]

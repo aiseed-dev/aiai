@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Fake Apple and Google sign-in, for trying server.py and the screen on this
 machine without real accounts. Never use it on a real server.
 

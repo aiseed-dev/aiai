@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Adds up a farm business plan written in adoc, year by year.
 
     python keikaku.py 経営計画.sheet.adoc

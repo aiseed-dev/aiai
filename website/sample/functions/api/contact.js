@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 // Receives the contact form and keeps each message as one JSON file in R2.
 // Cloudflare Pages runs this at POST /api/contact.
 // Bindings (Settings > Bindings in the Pages project):

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """What the aiai ribbon buttons do (office/ribbon/*.py call these).
 
 A button works on the book open in officework, which must be a data file

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # The ribbon settings file of the resume and application-form edition.
 # install.py copies it to ~/.config/officework/ribbon.toml.
 # The editing tabs let a person correct what an AI wrote; other tabs are hidden, not removed.

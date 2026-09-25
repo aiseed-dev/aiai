@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Makes a draft report of filling a form, without any of the data's values.
 
     python tools/houkoku.py 様式.form.adoc データ.sheet.adoc

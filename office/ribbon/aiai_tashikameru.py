@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 リボン = {"ラベル": "足りない名前と別紙", "タブ": "確かめる"}
 # An aiai button. install.py wrote where aiai is into aiai.txt.
 import os

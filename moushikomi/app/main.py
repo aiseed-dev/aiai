@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """The screen for requests, in Flet. server.py serves it as the web page at
 /app/; the same code is meant to become the iPhone and Android app with
 flet build (not tried yet).

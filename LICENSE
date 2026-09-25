@@ -1,11 +1,24 @@
 Copyright (c) 2026 Yasuhiro Niji
 
-This work is licensed under the Creative Commons Attribution 4.0
-International License (CC BY 4.0). To view a copy of this license, visit
+This repository has two licenses.
+
+Code: the program files (.py, .js, .css, .toml) are licensed under the GNU
+Affero General Public License, version 3 or (at your option) any later
+version (AGPL-3.0-or-later). The full text is in COPYING. Each of these
+files begins with "SPDX-License-Identifier: AGPL-3.0-or-later".
+
+Everything else (documents, forms, item lists, sample data, pictures) is
+licensed under the Creative Commons Attribution 4.0 International License
+(CC BY 4.0). To view a copy of this license, visit
 https://creativecommons.org/licenses/by/4.0/
 
-この作品は、クリエイティブ・コモンズ 表示 4.0 国際 ライセンス(CC BY 4.0)
-で提供します。ライセンスの内容は
+コード(.py、.js、.css、.toml のファイル)は、GNU Affero General Public License
+第 3 版、またはそれより後の版(AGPL-3.0-or-later)で提供します。全文は COPYING に
+あります。それぞれのファイルの先頭に「SPDX-License-Identifier: AGPL-3.0-or-later」と
+書いています。
+
+それ以外(文書、様式、項目、見本のデータ、画像)は、クリエイティブ・コモンズ 表示
+4.0 国際 ライセンス(CC BY 4.0)で提供します。ライセンスの内容は
 https://creativecommons.org/licenses/by/4.0/deed.ja をご覧ください。
 
 The forms in rirekisho/ are made from the Ministry of Health, Labour and

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Turns officework into the resume and application-form edition.
 
     python office/install.py            # put the settings and buttons in place
