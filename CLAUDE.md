@@ -91,8 +91,8 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
   次の版が出るまで、PyPI の officework 0.7.0 には入っていない
 - `website/` の Cloudflare Pages での公開と、お問い合わせの関数(`functions/api/contact.js`、
   Workers と R2)は、実際にはまだ動かしていない。試すには Node.js と wrangler が要る
-- 取り置きのように認証が要る物を、自分のサーバーで受ける仕組み。サーバーをどこに置くか、
-  預かる情報、使う OSS は未定。Apple Developer Program は年 99 米ドルで、個人事業主も
+- 取り置きのように認証が要る物を、自分のサーバーで受ける仕組み。サーバーは店や自宅の機械でも
+  借りるサーバーでもよく、どこに置いても同じように動く形で作る。預かる情報と使う OSS は未定。Apple Developer Program は年 99 米ドルで、個人事業主も
   登録できる(https://developer.apple.com/jp/programs/enroll/)。確かめたこと(2026-09-25):
   Google は、Google Cloud Console でクライアント ID を作れば使える。料金の記載は無い
   (https://developers.google.com/identity/openid-connect/openid-connect)。
