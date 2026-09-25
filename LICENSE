@@ -18,5 +18,5 @@ under the Public Data License 1.0 (公共データ利用規約 第1.0版), which
 compatible with CC BY 4.0. This repository is not made by the government.
 
 The item list in nougyou/ is made from the Ministry of Agriculture, Forestry
-and Fisheries' 青年等就農計画認定申請書 and its guides; the source is in
-nougyou/README.md.
+and Fisheries' 青年等就農計画認定申請書 and its guides, published under the
+same Public Data License 1.0. The source is in nougyou/README.md.
