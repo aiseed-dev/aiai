@@ -47,10 +47,16 @@
 - 家畜ふん堆肥は、ほかの有機質の資材よりりん酸と加里が多く、特に豚ぷんと鶏ふんの堆肥は
   りん酸が多い資材です。なたね油かすも、肥料の規格でりん酸を 2% 以上含みます
   (都道府県の施肥基準)
+- 堆肥などの有機質肥料と菌根菌の関係を、過去 20 年の 54 の研究、162 の畑の試験で
+  まとめた研究があります。有機質肥料を入れて菌根菌が増えたのは、植物と菌根菌の
+  結び付きが強い所でした。りん酸の少ない土、乾いた地域や半ば乾いた地域、緯度の低い所、
+  2 種類以上の植物やマメ科の植物がある畑です。それ以外では、菌根菌は減る傾向でした。
+  土のりん酸が増えることは、その違いを説明する理由の 1 つでした(Jiang ほか、2021 年)
 
 そのため、この計画では、菌根菌などの微生物を活かすために、牛ふんや鶏ふんの堆肥と
 油かすを入れません。土のりん酸を、耕さないこと、作る順番、冬の作物と緑肥、微生物の力で
-使います。
+使います。上の条件のうち、2 種類以上の植物を育てることと、マメ科の植物を入れることは、
+作る物と作る順番で選べます。
 
 ### りん酸肥料は輸入に頼っている
 
@@ -94,6 +100,9 @@
 - Treseder KK「A meta-analysis of mycorrhizal responses to nitrogen, phosphorus, and atmospheric
   CO2 in field studies」New Phytologist 164 (2004)
   (https://doi.org/10.1111/j.1469-8137.2004.01159.x)
+- Jiang S, An X, Shao Y, Kang Y, Chen T, Mei X, Dong C, Xu Y, Shen Q「Responses of Arbuscular
+  Mycorrhizal Fungi Occurrence to Organic Fertilizer: A meta-analysis of field studies」
+  Plant and Soil 469 (2021)(https://doi.org/10.1007/s11104-021-05153-y)
 - 農林水産省「肥料をめぐる情勢」(令和 8 年 8 月)
   (https://www.maff.go.jp/j/seisan/sien/sizai/s_hiryo/)
 - 農林水産省「輸入原料に頼らない国内資源由来の肥料をつくる」(2023 年 12 月)
