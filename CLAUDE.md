@@ -23,7 +23,11 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
   (パンの取り置きなど)は、先に認証をする。認証をすると個人の情報に責任を持つので、
   その部分は自分のサーバーで持つ
 - 認証は、できるだけ Apple ID か Google ID でする。使う人がパスキーを使わなくて済む
-  Microsoft ID は、閉鎖的だと発注者は判断しているので使わない
+  Microsoft ID は使わない。日本のスマートフォンの OS は、2026 年 8 月に iOS が 64.74%、
+  Android が 35.25%、そのほかが 0% で(StatCounter、https://gs.statcounter.com/os-market-share/mobile/japan)、
+  Apple ID と Google ID でほぼすべての人に届くため。Microsoft の認証も OpenID Connect を使うので、
+  仕組みが閉じているわけではない
+  (https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc)。2026-09-25 に確かめた
 - 自然農法の経営計画は、土にたまったりん酸をどう使うかから始める。根拠は海外の研究と
   福岡正信の著作を先に、国内の公式資料を支えに使う。牛ふんや鶏ふんの堆肥と油かすは
   入れない方針。家畜ふんと輸入飼料の段落も入れない。有機 JAS 認証は扱わない(新しく始める人が取る物ではないため)。「有機」の表示の決まりも扱わない(自然農法の野菜は、見れば分かるため)
