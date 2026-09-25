@@ -78,6 +78,7 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 | `kaigyo/` | 開業届と青色申告承認申請書の項目、見本、受け取る側の見本 |
 | `nougyou/` | 就農の手続き、青年等就農計画の項目、`keikaku/`(自然農法の経営計画のスキル) |
 | `website/` | Web サイトを作るスキル。`sample/` を写すとサイトのリポジトリになる |
+| `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
 | `office/` | officework のリボンの設定ファイル(`ribbon.toml`)と Python のボタン |
 
 ## 残っていること(2026-09-25 時点)
@@ -94,21 +95,12 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
   次の版が出るまで、PyPI の officework 0.7.0 には入っていない
 - `website/` の Cloudflare Pages での公開と、お問い合わせの関数(`functions/api/contact.js`、
   Workers と R2)は、実際にはまだ動かしていない。試すには Node.js と wrangler が要る
-- 取り置きのように認証が要る物を、自分のサーバーで受ける仕組み。サーバーは店や自宅の機械でも
-  借りるサーバーでもよく、どこに置いても同じように動く形で作る。預かるのは、取り置きに要る物
-  だけにする: ログインした ID の番号(本人だけが見て取り消すため)、品物と数、取りに来る日、
-  呼び名(渡すときに呼ぶため。本名でなくてよい)、ID から渡されるメールアドレス(焼けないときや
-  休みのときに知らせるため)。電話番号、住所、生年月日、顔写真は預からない。店では取り置きの
-  画面を見せてもらう。取りに来る日が過ぎたら記録を消し、売上は帳簿に個人の情報なしで付ける。
-  使う OSS は未定。Apple Developer Program は年 99 米ドルで、個人事業主も
-  登録できる(https://developer.apple.com/jp/programs/enroll/)。確かめたこと(2026-09-25):
-  Google は、Google Cloud Console でクライアント ID を作れば使える。料金の記載は無い
-  (https://developers.google.com/identity/openid-connect/openid-connect)。
-  Apple は、Web で使うには Certificates, Identifiers & Profiles で Services ID を作り、
-  Sign in with Apple を有効にした App ID に結び付ける
-  (https://developer.apple.com/help/account/capabilities/configure-sign-in-with-apple-for-the-web/)。
-  Certificates, Identifiers & Profiles は有料の Apple Developer Program の会員だけが使える
-  (https://developer.apple.com/help/account/basics/about-your-developer-account)
+- 申し込み(`moushikomi/`): サーバーは作り、偽の Apple と Google で確かめた。本物の Apple と
+  Google では、店の Apple Developer Program の登録(年 99 米ドル、
+  https://developer.apple.com/jp/programs/enroll/)と Google Cloud Console のクライアントが
+  できてから試す。申し込みの画面(Web とアプリ)は Flet で作る。預かるのは、ID の番号、
+  確かめたメールアドレス、項目に書いた物だけ(取り置きなら品物と数、取りに来る日、呼び名)。
+  期限の日が過ぎたら消し、売上は帳簿に個人の情報なしで付ける
 - `office/` のボタンは macOS で、外からの run_macro でだけ確かめた。Linux と Windows は未確認
 - 農地法第 3 条の許可申請書の項目、勤め先を辞めて就農するときの年金や保険の手続き。
   自然農法の経営計画ができてから作る

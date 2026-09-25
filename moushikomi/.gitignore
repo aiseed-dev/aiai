@@ -1,0 +1,7 @@
+# The requests hold people's emails, and the .p8 is the Apple sign-in key
+*.db
+*.db-wal
+*.db-shm
+*.p8
+.env
+__pycache__/
