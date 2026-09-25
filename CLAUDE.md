@@ -24,6 +24,9 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
   その部分は自分のサーバーで持つ
 - 認証は、Apple ID か Google ID でする。使う人がパスキーを使わなくて済む。スマートフォンを
   使う人は、アプリを入れるにも、機種を替えて電話帳を引き継ぐにも、どちらかの ID を使っている
+  PC を使う人も、ほとんどがスマートフォンを持っていて、その ID で PC のブラウザーからログインできる。
+  個人のスマートフォンの保有割合は、20〜69 歳で 88.6〜93.8%(総務省「令和 7 年通信利用動向調査」
+  2025 年 8 月末時点、https://www.soumu.go.jp/menu_news/s-news/01tsushin02_02000183.html)
   Microsoft ID は使わない。認証の相手を 1 つ足すたびに、登録して手入れする所が 1 つ増える
   (Microsoft は Entra でアプリを登録する。Google は Google Cloud Console、Apple は Services ID)。
   Apple ID と Google ID は、PC でもブラウザーで使える。取り置きは Web だけで受け、電話では
