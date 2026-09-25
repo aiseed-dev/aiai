@@ -1,97 +1,29 @@
-"""Tries server.py from sign-in to cancel, against fake Apple and Google.
+"""Tries server.py from sign-in to cancel, against the fake Apple and Google
+of fake_id.py (which can also hand out broken id_tokens).
 
     python test_server.py
-
-A small HTTP server stands in for both providers: it serves their discovery
-documents and keys, checks the client secret (Apple's as an ES256 JWT), and
-answers the code with an id_token signed by its own RSA key. The code the
-test sends tells the fake what to put in the id_token, so the same fake can
-also hand out broken ones (wrong nonce, wrong audience, expired, signed by
-another key).
 """
 import base64
 import datetime
-import http.server
 import json
 import os
 import sys
 import tempfile
-import threading
 import time
 import unittest
 import urllib.parse
 
 import jwt
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fake_id  # noqa: E402
 import server  # noqa: E402
+from fake_id import code, seen_secrets  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KOUMOKU = os.path.join(HERE, "取り置き.koumoku.adoc")
 SITE = "https://hanako-pan.example/torioki/"
-
-RSA_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-OTHER_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-APPLE_P8 = ec.generate_private_key(ec.SECP256R1())
-seen_secrets = []
-
-
-class Fake(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
-    def send(self, obj, status=200):
-        data = json.dumps(obj).encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
-
-    def issuer(self, name):
-        return f"http://127.0.0.1:{self.server.server_port}/{name}"
-
-    def do_GET(self):
-        name, _, rest = self.path.strip("/").partition("/")
-        if rest == ".well-known/openid-configuration":
-            iss = self.issuer(name)
-            return self.send({"issuer": iss, "authorization_endpoint": iss + "/auth",
-                              "token_endpoint": iss + "/token", "jwks_uri": iss + "/keys"})
-        if rest == "keys":
-            jwk = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(RSA_KEY.public_key()))
-            return self.send({"keys": [jwk | {"kid": "k1", "alg": "RS256", "use": "sig"}]})
-        self.send({}, 404)
-
-    def do_POST(self):
-        name, _, rest = self.path.strip("/").partition("/")
-        form = dict(urllib.parse.parse_qsl(self.rfile.read(int(self.headers["Content-Length"])).decode()))
-        seen_secrets.append((name, form.get("client_secret")))
-        iss = self.issuer(name)
-        if name == "apple":
-            try:  # Apple's client secret: an ES256 JWT for this Services ID
-                c = jwt.decode(form["client_secret"], APPLE_P8.public_key(), algorithms=["ES256"],
-                               audience=iss)
-                assert c["iss"] == "TEAM123" and c["sub"] == form["client_id"] == "jp.example.hanako.web"
-                assert jwt.get_unverified_header(form["client_secret"])["kid"] == "KEY123"
-            except Exception:
-                return self.send({"error": "invalid_client"}, 400)
-        elif form.get("client_secret") != "google-secret":
-            return self.send({"error": "invalid_client"}, 400)
-        spec = json.loads(base64.urlsafe_b64decode(form["code"]))
-        now = int(time.time())
-        claims = {"iss": iss, "aud": form["client_id"], "sub": spec["sub"], "iat": now, "exp": now + 600,
-                  "nonce": spec["nonce"], "email": spec.get("email", ""), "email_verified": True}
-        claims |= spec.get("override", {})
-        key = OTHER_KEY if spec.get("other_key") else RSA_KEY
-        self.send({"id_token": jwt.encode(claims, key, algorithm="RS256", headers={"kid": "k1"})})
-
-
-def code(nonce, sub, email="", **extra):
-    return base64.urlsafe_b64encode(json.dumps({"nonce": nonce, "sub": sub, "email": email, **extra}).encode()).decode()
-
 
 def next_weekday(start, closed=(6, 0)):
     d = start
@@ -103,21 +35,10 @@ def next_weekday(start, closed=(6, 0)):
 class ServerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.fake = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Fake)
-        threading.Thread(target=cls.fake.serve_forever, daemon=True).start()
-        port = cls.fake.server_port
         cls.tmp = tempfile.TemporaryDirectory()
-        key_file = os.path.join(cls.tmp.name, "AuthKey.p8")
-        with open(key_file, "wb") as f:
-            f.write(APPLE_P8.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
-                                           serialization.NoEncryption()))
-        env = {"BASE_URL": "https://yoyaku.example", "RETURN_URLS": SITE + " hanakopan://signed-in",
-               "DB": os.path.join(cls.tmp.name, "t.db"), "SHOP_EMAILS": "Owner@Example.jp",
-               "GOOGLE_CLIENT_ID": "google-client", "GOOGLE_CLIENT_SECRET": "google-secret",
-               "GOOGLE_ISSUER": f"http://127.0.0.1:{port}/google",
-               "APPLE_SERVICES_ID": "jp.example.hanako.web", "APPLE_TEAM_ID": "TEAM123",
-               "APPLE_KEY_ID": "KEY123", "APPLE_KEY_FILE": key_file,
-               "APPLE_ISSUER": f"http://127.0.0.1:{port}/apple"}
+        cls.fake, env = fake_id.start(cls.tmp.name)
+        env |= {"BASE_URL": "https://yoyaku.example", "RETURN_URLS": SITE + " hanakopan://signed-in",
+                "DB": os.path.join(cls.tmp.name, "t.db"), "SHOP_EMAILS": "Owner@Example.jp"}
         cls.app = server.create_app(KOUMOKU, env)
         cls.c = TestClient(cls.app, follow_redirects=False)
 
@@ -142,9 +63,15 @@ class ServerTest(unittest.TestCase):
         q = self.start(provider, next_url)
         r = self.finish(provider, q, code(q["nonce"], sub, email))
         self.assertEqual(r.status_code, 303, r.text)
+        return self.trade(r, next_url)
+
+    def trade(self, r, next_url=SITE):
         loc = r.headers["location"]
-        self.assertTrue(loc.startswith(next_url + "#token="))
-        return {"Authorization": "Bearer " + loc.split("#token=")[1]}
+        self.assertTrue(loc.startswith(next_url + ("&" if "?" in next_url else "?") + "code="), loc)
+        one = urllib.parse.parse_qs(urllib.parse.urlsplit(loc).query)["code"][0]
+        t = self.c.post("/api/session", json={"code": one})
+        self.assertEqual(t.status_code, 200, t.text)
+        return {"Authorization": "Bearer " + t.json()["token"]}
 
     def good_request(self, days=1):
         d = next_weekday(datetime.date.today() + datetime.timedelta(days=days))
@@ -201,8 +128,27 @@ class ServerTest(unittest.TestCase):
     def test_unverified_email_is_not_kept(self):
         q = self.start("google")
         c = code(q["nonce"], "nv", "nv@example.jp", override={"email_verified": False})
-        h = {"Authorization": "Bearer " + self.finish("google", q, c).headers["location"].split("#token=")[1]}
+        h = self.trade(self.finish("google", q, c))
         self.assertEqual(self.c.get("/api/me", headers=h).json()["email"], "")
+
+    def test_fake_sign_in_page(self):
+        # The page people click on when trying fake_id.py by hand
+        import html
+        import re
+        import urllib.request
+        for p in ("apple", "google"):
+            r = self.c.get(f"/login/{p}", params={"next": SITE})
+            with urllib.request.urlopen(r.headers["location"]) as page:
+                text = page.read().decode()
+            self.assertIn("owner@example.jp", text)
+            if p == "apple":
+                c = html.unescape(re.search(r'name="code" value="([^"]+)"', text).group(1))
+                st = html.unescape(re.search(r'name="state" value="([^"]+)"', text).group(1))
+                back = self.c.post("/callback/apple", data={"code": c, "state": st})
+            else:
+                url = html.unescape(re.search(r'href="([^"]+)"', text).group(1))
+                back = self.c.get("/callback/google?" + urllib.parse.urlsplit(url).query)
+            self.trade(back)
 
     # ---- requests ----
 
@@ -268,6 +214,17 @@ class ServerTest(unittest.TestCase):
         h = self.sign_in("google", "bye")
         self.assertEqual(self.c.post("/api/logout", headers=h).status_code, 200)
         self.assertEqual(self.c.get("/api/requests", headers=h).status_code, 401)
+
+    def test_code_is_used_once(self):
+        q = self.start("google")
+        loc = self.finish("google", q, code(q["nonce"], "code-once")).headers["location"]
+        one = urllib.parse.parse_qs(urllib.parse.urlsplit(loc).query)["code"][0]
+        self.assertEqual(self.c.post("/api/session", json={"code": one}).status_code, 200)
+        self.assertEqual(self.c.post("/api/session", json={"code": one}).status_code, 400)
+        self.assertEqual(self.c.post("/api/session", json={"code": "made-up"}).status_code, 400)
+
+    def test_return_url_with_query(self):
+        self.sign_in("google", "q-user", next_url=SITE + "?from=site")
 
     def test_session_token_is_stored_hashed(self):
         h = self.sign_in("google", "hash")

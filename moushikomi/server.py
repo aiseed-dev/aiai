@@ -33,9 +33,10 @@ as a POST (form_post), and the name is not asked for (people give a
 nickname in the request instead). Only the provider's user id (sub) and the
 email it gives are kept.
 
-After signing in, the person is sent back to the return URL with a session
-token in the fragment (#token=...); the site or app sends it as
-"Authorization: Bearer ...". Tokens are stored hashed.
+After signing in, the person is sent back to the return URL with a one-time
+code (?code=..., good for one use within a minute). The screen trades it at
+POST /api/session for a session token and sends that as
+"Authorization: Bearer ...". Codes and tokens are stored hashed.
 """
 import datetime
 import hashlib
@@ -59,6 +60,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import todoke  # noqa: E402
 
 STATE_SECONDS = 600
+CODE_SECONDS = 60
 SESSION_DAYS = 30
 WEEKDAYS = "月火水木金土日"
 
@@ -246,6 +248,8 @@ SCHEMA = """
         PRAGMA journal_mode=WAL;
         CREATE TABLE IF NOT EXISTS states (state TEXT PRIMARY KEY, provider TEXT, nonce TEXT,
             next TEXT, created REAL);
+        CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY, provider TEXT, sub TEXT,
+            email TEXT, created REAL);
         CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, provider TEXT, sub TEXT,
             email TEXT, expires REAL);
         CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, provider TEXT, sub TEXT,
@@ -282,6 +286,7 @@ def create_app(koumoku, env=None, providers=None):
         last_purge[0] = now
         db.run("DELETE FROM requests WHERE due < ?", (today().isoformat(),))
         db.run("DELETE FROM states WHERE created < ?", (now - STATE_SECONDS,))
+        db.run("DELETE FROM codes WHERE created < ?", (now - CODE_SECONDS,))
         db.run("DELETE FROM sessions WHERE expires < ?", (now,))
 
     def allowed_return(url):
@@ -329,10 +334,11 @@ def create_app(koumoku, env=None, providers=None):
             raise HTTPException(400, "サインインを確かめられませんでした")
         verified = claims.get("email_verified") in (True, "true")
         email = claims.get("email", "") if verified else ""
-        token = secrets.token_urlsafe(32)
-        db.run("INSERT INTO sessions VALUES (?, ?, ?, ?, ?)",
-               (digest(token), name, claims["sub"], email, time.time() + SESSION_DAYS * 86400))
-        return RedirectResponse(row["next"] + "#token=" + token, 303)
+        # The screen gets a one-time code, not the session token, in its URL
+        one = secrets.token_urlsafe(32)
+        db.run("INSERT INTO codes VALUES (?, ?, ?, ?, ?)", (digest(one), name, claims["sub"], email, time.time()))
+        sep = "&" if "?" in row["next"] else "?"
+        return RedirectResponse(row["next"] + sep + urllib.parse.urlencode({"code": one}), 303)
 
     @app.get("/callback/google")
     def callback_google(code: str = "", state: str = ""):
@@ -341,6 +347,21 @@ def create_app(koumoku, env=None, providers=None):
     @app.post("/callback/apple")
     def callback_apple(code: str = Form(""), state: str = Form("")):
         return finish("apple", code, state)
+
+    @app.post("/api/session")
+    async def session(request: Request):
+        try:
+            one = str((await request.json()).get("code", ""))
+        except (ValueError, AttributeError):
+            one = ""
+        row = db.one("DELETE FROM codes WHERE code = ? AND created > ? RETURNING *",
+                     (digest(one), time.time() - CODE_SECONDS))
+        if not row:
+            raise HTTPException(400, "サインインをやり直してください")
+        token = secrets.token_urlsafe(32)
+        db.run("INSERT INTO sessions VALUES (?, ?, ?, ?, ?)",
+               (digest(token), row["provider"], row["sub"], row["email"], time.time() + SESSION_DAYS * 86400))
+        return {"token": token}
 
     @app.get("/api/form")
     def get_form():
@@ -419,6 +440,18 @@ def create_app(koumoku, env=None, providers=None):
     return app
 
 
+def mount_screen(app, base):
+    """Serve the Flet screen (app/main.py) at /app/, next to the API."""
+    import flet as ft
+
+    os.environ.setdefault("MOUSHIKOMI_SERVER", base)
+    os.environ.setdefault("MOUSHIKOMI_RETURN", base + "/app/")
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "app"))
+    from main import main as screen
+
+    app.mount("/app", ft.run(screen, export_asgi_app=True))
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -428,5 +461,9 @@ if __name__ == "__main__":
     ap.add_argument("koumoku", help="申し込みの項目(.koumoku.adoc)")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--no-screen", action="store_true", help="画面(/app/)を出さず、API だけにします")
     a = ap.parse_args()
-    uvicorn.run(create_app(a.koumoku), host=a.host, port=a.port)
+    web = create_app(a.koumoku)
+    if not a.no_screen:
+        mount_screen(web, os.environ["BASE_URL"].rstrip("/"))
+    uvicorn.run(web, host=a.host, port=a.port)
