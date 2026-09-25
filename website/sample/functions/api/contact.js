@@ -4,7 +4,8 @@
 //   CONTACTS          R2 bucket where the messages are kept (required)
 //   TURNSTILE_SECRET  Turnstile secret key; set it to check for bots (optional)
 
-const LIMITS = { name: 100, reply: 200, message: 5000 };
+// No name here: anything that needs a name goes through sign-in on the owner's server
+const LIMITS = { reply: 200, message: 5000 };
 
 function back(form, request, hash) {
   // Return to the page the form was on; only paths on this site

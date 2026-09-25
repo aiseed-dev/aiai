@@ -53,7 +53,7 @@ python website/sample/build.py website/sample --out _site
 | `sample/build.py` | adoc のページから HTML を作るスクリプト。Python の標準ライブラリだけで動きます |
 | `sample/pages/`、`sample/news/` | ページとお知らせ |
 | `sample/style.css` | 見た目。色は先頭の数行で変えられます |
-| `sample/pages/contact.adoc` | お問い合わせのページ |
+| `sample/pages/contact.adoc` | お問い合わせのページ。名前は聞きません |
 | `sample/functions/api/contact.js` | お問い合わせを受け、1 件ずつ R2 に入れる関数(Cloudflare Pages Functions) |
 
 サイトのリポジトリは公開されます。`Webサイト.sheet.adoc` には、公開してよい事実だけを

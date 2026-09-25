@@ -105,7 +105,6 @@ def contact_form(page, sitekey):
 <p id="error" class="notice">送れませんでした。お返事の先とお問い合わせの中身を書いて、もう一度お送りください。</p>
 <form class="contact" method="post" action="/api/contact">
 <input type="hidden" name="page" value="/{html.escape(page)}">
-<label>お名前<input name="name" maxlength="100" autocomplete="name"></label>
 <label>お返事の先(メールか電話)<input name="reply" maxlength="200" required></label>
 <label>お問い合わせの中身<textarea name="message" rows="6" maxlength="5000" required></textarea></label>
 <label class="hp" aria-hidden="true">Web サイト<input name="website" tabindex="-1" autocomplete="off"></label>
