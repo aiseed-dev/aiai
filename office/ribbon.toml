@@ -1,5 +1,6 @@
 # The ribbon settings file of the resume and application-form edition.
 # install.py copies it to ~/.config/officework/ribbon.toml.
+# The editing tabs let a person correct what an AI wrote; other tabs are hidden, not removed.
 name = "aiseed office 簡易版"
-tabs = "書類, 確かめる, 報告"
+tabs = "書類, ホーム, 挿入, レイアウト, 共同編集, 表示, 確かめる, 報告"
 buttons.書類 = "save, pdf"
