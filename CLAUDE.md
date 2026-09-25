@@ -22,7 +22,7 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - 名前の要らないお問い合わせは、Cloudflare の Workers と R2 で受ける。名前が要る物
   (パンの取り置きなど)は、先に認証をする。認証をすると個人の情報に責任を持つので、
   その部分は自分のサーバーで持つ
-- 認証は、Apple ID か Google ID でする。使う人がパスキーを使わなくて済む。スマートフォンを
+- 認証は、Apple ID と Google ID の両方を入れる。Apple Developer Program の料金は払う。使う人がパスキーを使わなくて済む。スマートフォンを
   使う人は、アプリを入れるにも、機種を替えて電話帳を引き継ぐにも、どちらかの ID を使っている
   PC を使う人も、ほとんどがスマートフォンを持っていて、その ID で PC のブラウザーからログインできる。
   個人のスマートフォンの保有割合は、20〜69 歳で 88.6〜93.8%(総務省「令和 7 年通信利用動向調査」
@@ -89,14 +89,15 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - `website/` の Cloudflare Pages での公開と、お問い合わせの関数(`functions/api/contact.js`、
   Workers と R2)は、実際にはまだ動かしていない。試すには Node.js と wrangler が要る
 - 取り置きのように認証が要る物を、自分のサーバーで受ける仕組み。サーバーをどこに置くか、
-  預かる情報、使う OSS は未定。確かめたこと(2026-09-25):
+  預かる情報、使う OSS は未定。Apple Developer Program は年 99 米ドルで、個人事業主も
+  登録できる(https://developer.apple.com/jp/programs/enroll/)。確かめたこと(2026-09-25):
   Google は、Google Cloud Console でクライアント ID を作れば使える。料金の記載は無い
   (https://developers.google.com/identity/openid-connect/openid-connect)。
   Apple は、Web で使うには Certificates, Identifiers & Profiles で Services ID を作り、
   Sign in with Apple を有効にした App ID に結び付ける
   (https://developer.apple.com/help/account/capabilities/configure-sign-in-with-apple-for-the-web/)。
   Certificates, Identifiers & Profiles は有料の Apple Developer Program の会員だけが使える
-  (https://developer.apple.com/help/account/basics/about-your-developer-account)。年会費は未確認
+  (https://developer.apple.com/help/account/basics/about-your-developer-account)
 - `office/` のボタンは macOS で、外からの run_macro でだけ確かめた。Linux と Windows は未確認
 - 農地法第 3 条の許可申請書の項目、勤め先を辞めて就農するときの年金や保険の手続き。
   自然農法の経営計画ができてから作る
