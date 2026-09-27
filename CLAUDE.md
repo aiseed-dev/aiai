@@ -110,6 +110,8 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 | `nougyou/` | 就農の手続き、青年等就農計画の項目、`keikaku/`(自然農法の経営計画のスキル) |
 | `website/` | Web サイトを作るスキル。`sample/` を写すとサイトのリポジトリになる |
 | `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
+| `chousa/` | 同じ業種の店を並べて確かめるスキル。Instagram は人が目で見て確かめ、自動で集めない(利用規約) |
+| `hanashiai/` | 構想を協力者と話し合うためのスキルを作るスキル。渡すスキルのひな形がある |
 | `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
 
 ## 残っていること(2026-09-26 時点)
