@@ -21,8 +21,9 @@ aiai のスキルを、自分の書類や仕組みに使うまでの手順です
    conda install -c conda-forge fastapi uvicorn pyjwt cryptography flet
    pip install flet-web==1.0.1 --no-deps
    ```
-4. AI を用意します。ファイルを読めて、コマンドを動かせる AI(AI のコーディング
-   エージェントなど)が向いています。各フォルダーの `SKILL.md` を AI に読ませて使います
+4. AI を用意します。各フォルダーの `SKILL.md` を AI に読ませて使います。ファイルを読めて、
+   コマンドを動かせる AI(Claude のデスクトップアプリなど)だと、AI が手元で確かめられます。
+   読むだけの AI でも、コマンドを自分で打てば使えます
 
 ## 2. 自分の情報の扱い
 
