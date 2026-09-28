@@ -43,6 +43,34 @@ aiai のスキルを、自分の書類や仕組みに使うまでの手順です
 - 自分のデータ(識別情報と、事業の実際の値)を、公開のリポジトリに push しないでください。
   aiai のリポジトリに入れるのは、架空の見本だけです
 
+### 公開のリポジトリに絶対に入れない物
+
+識別情報より先に、次の物が入っていないかを見ます。1 度 push すると、消しても漏れた物として
+扱う必要があります。
+
+- API のトークンと鍵。AWS のアクセスキー、Google Cloud のサービスアカウントの JSON の鍵、
+  Cloudflare の API トークン、Apple のサインインの鍵(`.p8`)、Anthropic や OpenAI の API キー
+- パスワードが入った接続文字列。`postgresql://ユーザー:パスワード@ホスト/データベース` のような物
+- `.env` のファイルと、compose や設定に直に書いたパスワードや秘密の値(`GOOGLE_CLIENT_SECRET`、
+  `TURNSTILE_SECRET`、`JWT_SECRET` など)
+- SSH の秘密鍵(`id_ed25519` など)と、TLS の秘密鍵(`.pem`、`.key`)
+- お客さんの識別情報が入るデータベースのファイル(`moushikomi.db` など)
+
+- 秘密の値は、環境の変数か、サーバーにだけ置く `.env` で渡します(`moushikomi/README.md` の
+  設定の表がその形です)。`.gitignore` に `.env`、`*.p8`、`*.pem`、`*.db` が入っています
+- コミットするときは、触ったファイルを名前で指定します(`git add .` を使いません)。
+  何が入るかを毎回見ることになります
+- GitHub の個人のアカウントには、対応している秘密の値を push の前に止める機能
+  (push protection)が最初から有効です。止められる物は一部なので、頼り切りません
+- 入ってしまったときは、まずそのトークンや鍵を無効にして作り直します。履歴から消す
+  (`git filter-repo`)のは、その後です
+
+出典: GitHub Docs「Push protection」
+(https://docs.github.com/en/code-security/concepts/secret-security/push-protection)、
+「Removing sensitive data from a repository」
+(https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository)。
+2026-09-28 に確かめました。
+
 ## 3. 開業届と青色申告承認申請書([kaigyo](kaigyo/))
 
 1. 見本を動かします

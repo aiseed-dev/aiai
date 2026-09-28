@@ -25,3 +25,11 @@ nougyou/keikaku/経営計画の結果.adoc
 経営計画の結果.adoc
 # What tools/kakunin.py writes
 確認の結果.md
+# Secrets and the customers' database: never in a public repository
+.env
+.env.*
+!.env.example
+*.p8
+*.pem
+*.key
+*.db
