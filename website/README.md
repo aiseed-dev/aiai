@@ -56,7 +56,9 @@ python website/sample/build.py website/sample --out _site
 | `sample/functions/api/contact.js` | お問い合わせを受け、1 件ずつ R2 に入れる関数(Cloudflare Pages Functions) |
 
 サイトのリポジトリは公開されます。`Webサイト.sheet.adoc` には、公開してよい事実だけを
-入れます。氏名、生年月日、個人番号は入れません。
+入れます。生年月日と個人番号は入れません。氏名と住所は、出すかどうかを本人が決めます。
+通信販売をするなら、広告に事業者の氏名、住所、電話番号の表示が要ります(消費者庁「通信販売」、
+https://www.no-trouble.caa.go.jp/what/mailorder/ 、2026-09-28 に確かめました)。
 
 ## 確かめたこと
 
