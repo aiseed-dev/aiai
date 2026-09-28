@@ -112,7 +112,7 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 | `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
 | `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
 
-## 残っていること(2026-09-26 時点)
+## 残っていること(2026-09-28 時点)
 
 - 履歴書の様式を、公正採用選考のサイトの `03_a4.xls`(公共データ利用規約)から作り直す。
   ハローワークのサイトの xls(いまの様式の元)と、中の文言が同じことは確かめてある。xlsx にするには
@@ -120,8 +120,35 @@ aiai は、履歴書、開業や就農の届出、Web サイト、経営計画�
 - 自然農法の経営計画: 福岡正信の本文からの引用は、発注者が本とページを示すのを待っている
 - GitHub のリポジトリ(aiseed-dev/aiai、公開)は発注者が作る。作ったら Issue のラベル
   「不具合」「手続きの記録」「提案」「新しい情報」を作る
-- aiai が使う officework の機能(`Book.fill` など)とリボンの設定ファイルは、PyPI の officework
-  0.7.0 にはまだ入っていない。公開された版で入ったら、その版で README のコマンドを動かして確かめる
+- officework 0.8.0(PyPI、2026-09-27)で、aiai が使う機能(`Book.fill`、`missing`、`bessi`、リボンの
+  設定ファイル)が入った。macOS で試した結果(2026-09-28):
+  - 止まる問題: PDF と PNG への `save` が戻らない(空のブックでも。JIS 様式は xlsx でも)。書体を探すとき
+    `~/Library/Group Containers/UBF8T346G9.Office/FontCache/4/CloudFonts`(Microsoft Office)を開き、
+    macOS の「ほかのアプリのデータへのアクセス」の確認を待って止まる。`OFFICE_FONT_DIR` では避けられず、
+    `HOME` を空のフォルダーに向けると、どれも 0.5 秒ほどで終わる。officework の Issues に報告する物で、
+    発注者は 0.8.1 で直す予定。Linux(Ubuntu)ではまだ試していない
+  - `HOME` を空にして試すと、厚労省と JIS の様式が見本のデータで正しく埋まり(missing、bessi とも無し)、
+    `tools/houkoku.py` も動いた
+  - JIS 様式の 2 ページ目の「本人希望記入欄(…あれば記入)」の見出しが、枠の右にはみ出す。aiai の様式の
+    側か、officework の側かは、まだ切り分けていない
+  - README の「0.7.0 にはまだ入っていない」は、0.8.1 で試してから「0.8.1 以降」に直す
+- ERPNext(frappe/erpnext、GPL-3.0、v16.36.0)を、日本の会社で使える形にするスキルを作る。企業には、
+  今の ERP を置き換えず、照会(今の ERP のデータを CSV で写して見る)と周りの仕事(CRM、見積、購買の依頼、
+  プロジェクト、備品、社内の問い合わせ)から入る。調べたこと(2026-09-27、ERPNext の develop と version-16):
+  - 日本語: 本体に ja の翻訳が無い(erpnext/locale、frappe/locale)。有志の lifegence/frappe_japanese_translations
+    (MIT、v15 と v16)は、大半が AI の下書きで、人が見直していない
+  - 日本の地域の設定(erpnext/regional)と、日本の勘定科目表(chart_of_accounts の verified と unverified)が無い
+  - 税: 1 枚の請求書に 10% と 8% を混ぜるのは、Item Tax Template で設定できる(説明書の記載。試していない)。
+    税の行ごとに 1 回丸める(`round_row_wise_tax` を切ったとき)。切り捨ての丸め方は無い
+  - インボイス制度: 登録番号は自由な文字の欄(`tax_id`)で、T と 13 桁の確かめが無く、標準の請求書に
+    印刷されない。税率ごとの合計と、軽減税率の品目の印も、標準の請求書に出ない。国税庁の要件
+    (https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm)。
+    「1 枚の請求書で税率ごとに 1 回丸める」は、そのページには無く、まだ確かめていない
+  - 源泉徴収: 1 つの税率は入るが、100 万円を超える所の 20.42% の 2 段の計算と、円未満の切り捨てが無い
+  - 帳票: 日本の請求書、納品書の形、和暦の日付、PDF の日本語の書体(公式の Docker の画像)が無い
+  - 有志: maihatch/erpnext-ja-starter(MIT)は、インボイスの登録番号など 3 つの欄を足すだけ。公式の取り組みは無い
+  - 手を付ける順番: 日本語の画面と書体、見積書・発注書・納品書の形、今の ERP との CSV のつなぎ、
+    会計まで広げるときにインボイス制度・勘定科目・源泉徴収。試すには ERPNext のダウンロードが要る
 - `website/` の Cloudflare Pages での公開と、お問い合わせの関数(`functions/api/contact.js`、
   Workers と R2)は、実際にはまだ動かしていない。試すには Node.js と wrangler が要る
 - 申し込み(`moushikomi/`): サーバーは作り、偽の Apple と Google で確かめた。本物の Apple と
