@@ -1,0 +1,50 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* The look of the site. Change the colors here. */
+:root {
+  --bg: #fffdf8;
+  --text: #2b2622;
+  --muted: #6b625a;
+  --accent: #9a5b25;
+  --line: #e6ddd0;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1d1a17;
+    --text: #efe8df;
+    --muted: #b3a89b;
+    --accent: #e0a36a;
+    --line: #3a342e;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  line-height: 1.8;
+}
+header, main, footer { max-width: 44rem; margin: 0 auto; padding: 0 16px; }
+header { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; align-items: baseline; padding-top: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+header .site { font-size: 1.4rem; font-weight: bold; color: var(--text); text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+nav a { color: var(--muted); text-decoration: none; }
+nav a[aria-current="page"] { color: var(--accent); font-weight: bold; }
+a { color: var(--accent); }
+h1 { font-size: 1.6rem; margin: 2rem 0 1rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
+img { max-width: 100%; height: auto; border-radius: 8px; }
+figure { margin: 1.5rem 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+ul.news { list-style: none; padding: 0; }
+ul.news li { padding: 0.4rem 0; border-bottom: 1px solid var(--line); }
+ul.news time { color: var(--muted); margin-right: 0.75rem; }
+footer { margin-top: 3rem; padding-top: 1rem; padding-bottom: 2rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
+form.contact { display: grid; gap: 1rem; margin: 1.5rem 0; }
+form.contact label { display: grid; gap: 0.25rem; }
+form.contact input, form.contact textarea { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 0.5rem; width: 100%; }
+form.contact button { font: inherit; justify-self: start; padding: 0.5rem 1.5rem; border: 0; border-radius: 6px; background: var(--accent); color: var(--bg); cursor: pointer; }
+form.contact .hp { position: absolute; left: -9999px; }
+.notice { display: none; padding: 0.75rem; border: 1px solid var(--accent); border-radius: 6px; }
+.notice:target { display: block; }

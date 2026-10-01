@@ -143,6 +143,7 @@ AI と一緒に自分で作るための見本とスキルを置くリポジト�
 | `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
 | `soudan/` | セカンドオピニオンのサーバー(`server.py`)。当面は無料の研究サービスで、効果が確かめられたら、低額の会費で運営する(費用は主に API の利用料)。サインインは `moushikomi/server.py` の物を使う。確かめる観点は `観点/*.md` |
 | `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
+| `site/` | aiai の説明のサイトの元。`python website/sample/build.py site --out 出力先` で作る。deb2 の aiai.aiseed.dev で出す予定 |
 | `news/` | aiai ニュース。VLM、スマートドア、スマートロック、鳥獣対策のニュースを、1 日 1 つの adoc にまとめる |
 
 ## 残っていること(2026-10-02 時点)
