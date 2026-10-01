@@ -226,11 +226,11 @@ def providers_from(env):
 class Store:
     """One SQLite connection shared by the app's threads, one statement at a time."""
 
-    def __init__(self, path):
+    def __init__(self, path, schema=None):
         self.db = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
         self.db.row_factory = sqlite3.Row
         self.lock = threading.Lock()
-        self.db.executescript(SCHEMA)
+        self.db.executescript(SCHEMA if schema is None else schema)
 
     def one(self, sql, args=()):
         with self.lock:
@@ -245,7 +245,8 @@ class Store:
             return self.db.execute(sql, args).rowcount
 
 
-SCHEMA = """
+# The sign-in tables; other servers (soudan/) add their own tables after these
+SIGN_IN_SCHEMA = """
         PRAGMA journal_mode=WAL;
         CREATE TABLE IF NOT EXISTS states (state TEXT PRIMARY KEY, provider TEXT, nonce TEXT,
             next TEXT, created REAL);
@@ -253,6 +254,9 @@ SCHEMA = """
             email TEXT, created REAL);
         CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, provider TEXT, sub TEXT,
             email TEXT, expires REAL);
+"""
+
+SCHEMA = SIGN_IN_SCHEMA + """
         CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, provider TEXT, sub TEXT,
             email TEXT, due TEXT, body TEXT, created TEXT);
 """
@@ -262,33 +266,22 @@ def digest(token):
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-# ---- the web app -----------------------------------------------------------------
+# ---- sign-in routes -----------------------------------------------------------------
 
 
-def create_app(koumoku, env=None, providers=None):
-    env = dict(os.environ if env is None else env)
-    form = Koumoku(koumoku)
-    base = env["BASE_URL"].rstrip("/")
-    returns = env.get("RETURN_URLS", "").split()
-    shop = {e.lower() for e in env.get("SHOP_EMAILS", "").split()}
-    tz = zoneinfo.ZoneInfo(env.get("TIMEZONE", "Asia/Tokyo"))
-    db = Store(env.get("DB") or os.path.join(os.path.dirname(os.path.abspath(koumoku)), "moushikomi.db"))
-    provs = providers if providers is not None else providers_from(env)
-    last_purge = [0.0]
+def purge_sign_in(db, now):
+    """Drop old sign-in states and codes, and ended sessions."""
+    db.run("DELETE FROM states WHERE created < ?", (now - STATE_SECONDS,))
+    db.run("DELETE FROM codes WHERE created < ?", (now - CODE_SECONDS,))
+    db.run("DELETE FROM sessions WHERE expires < ?", (now,))
 
-    def today():
-        return datetime.datetime.now(tz).date()
 
-    def purge(force=False):
-        # Drop what is no longer needed: past-due requests, old sign-in states, ended sessions
-        now = time.time()
-        if not force and now - last_purge[0] < 60:
-            return
-        last_purge[0] = now
-        db.run("DELETE FROM requests WHERE due < ?", (today().isoformat(),))
-        db.run("DELETE FROM states WHERE created < ?", (now - STATE_SECONDS,))
-        db.run("DELETE FROM codes WHERE created < ?", (now - CODE_SECONDS,))
-        db.run("DELETE FROM sessions WHERE expires < ?", (now,))
+def sign_in(app, db, provs, base, returns, purge):
+    """Adds /login, /callback, /api/session and /api/logout to app.
+
+    Returns person(authorization): the session row of whoever sends the
+    bearer token, or a 401. purge() is called before each check.
+    """
 
     def allowed_return(url):
         return any(url.startswith(p) for p in returns)
@@ -302,12 +295,6 @@ def create_app(koumoku, env=None, providers=None):
         if not row:
             raise HTTPException(401, "サインインしてください")
         return row
-
-    app = FastAPI(title=form.title, docs_url=None, redoc_url=None, openapi_url=None)
-    origins = sorted({"{0.scheme}://{0.netloc}".format(urllib.parse.urlsplit(u)) for u in returns
-                      if u.startswith("https://") or u.startswith("http://")})
-    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "DELETE"],
-                       allow_headers=["Authorization", "Content-Type"])
 
     @app.get("/login/{name}")
     def login(name: str, next: str):
@@ -363,6 +350,49 @@ def create_app(koumoku, env=None, providers=None):
         db.run("INSERT INTO sessions VALUES (?, ?, ?, ?, ?)",
                (digest(token), row["provider"], row["sub"], row["email"], time.time() + SESSION_DAYS * 86400))
         return {"token": token}
+
+    @app.post("/api/logout")
+    def logout(authorization: str = Header("")):
+        s = person(authorization)
+        db.run("DELETE FROM sessions WHERE token = ?", (s["token"],))
+        return {"ok": True}
+
+    return person
+
+
+# ---- the web app -----------------------------------------------------------------
+
+
+def create_app(koumoku, env=None, providers=None):
+    env = dict(os.environ if env is None else env)
+    form = Koumoku(koumoku)
+    base = env["BASE_URL"].rstrip("/")
+    returns = env.get("RETURN_URLS", "").split()
+    shop = {e.lower() for e in env.get("SHOP_EMAILS", "").split()}
+    tz = zoneinfo.ZoneInfo(env.get("TIMEZONE", "Asia/Tokyo"))
+    db = Store(env.get("DB") or os.path.join(os.path.dirname(os.path.abspath(koumoku)), "moushikomi.db"))
+    provs = providers if providers is not None else providers_from(env)
+    last_purge = [0.0]
+
+    def today():
+        return datetime.datetime.now(tz).date()
+
+    def purge(force=False):
+        # Drop what is no longer needed: past-due requests, old sign-in states, ended sessions
+        now = time.time()
+        if not force and now - last_purge[0] < 60:
+            return
+        last_purge[0] = now
+        db.run("DELETE FROM requests WHERE due < ?", (today().isoformat(),))
+        purge_sign_in(db, now)
+
+    app = FastAPI(title=form.title, docs_url=None, redoc_url=None, openapi_url=None)
+    origins = sorted({"{0.scheme}://{0.netloc}".format(urllib.parse.urlsplit(u)) for u in returns
+                      if u.startswith("https://") or u.startswith("http://")})
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "DELETE"],
+                       allow_headers=["Authorization", "Content-Type"])
+
+    person = sign_in(app, db, provs, base, returns, purge)
 
     @app.get("/api/form")
     def get_form():
@@ -430,12 +460,6 @@ def create_app(koumoku, env=None, providers=None):
             raise HTTPException(403, "店の人だけが見られます")
         rows = db.all("SELECT * FROM requests ORDER BY due, created")
         return [as_dict(r, with_email=True) for r in rows]
-
-    @app.post("/api/logout")
-    def logout(authorization: str = Header("")):
-        s = person(authorization)
-        db.run("DELETE FROM sessions WHERE token = ?", (s["token"],))
-        return {"ok": True}
 
     app.state.db, app.state.form, app.state.purge = db, form, purge
     return app

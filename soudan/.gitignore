@@ -1,0 +1,6 @@
+# The record holds people's emails and what they consulted about
+*.db
+*.db-wal
+*.db-shm
+.env
+__pycache__/

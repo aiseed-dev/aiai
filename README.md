@@ -179,6 +179,7 @@ GitHub の画面では表になります。表計算やワープロのソフト�
 | [website](website/) | 事業の Web サイトを作るスキル。開業届と同じデータから公開してよい事実だけを写し、Cloudflare Pages で公開する。名前の要らないお問い合わせは Cloudflare の Workers と R2 で受ける |
 | [moushikomi](moushikomi/) | Apple ID か Google ID でサインインした人から、申し込み(取り置き、予約、注文など)を受けるスキルと仕組み。預かる項目を adoc に書き、画面は Flet で作る |
 | [news](news/) | aiai ニュース。空き家、民泊、クライミングジムなどに共通する、VLM、スマートドア、スマートロック、鳥獣対策のニュースを毎日まとめる |
+| [soudan](soudan/) | セカンドオピニオン。自分の AI と作った転職の考え、履歴書、起業の企画書を、ほかの会社の AI のモデルに見てもらい、相談と出来事を記録する(試作) |
 | [office](office/) | officework の簡易版。書類を書いて直すための、リボンの設定ファイルと Python のボタンだけ |
 | [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`kakunin.py`(出典を確かめ直す物を出す)、`houkoku.py`(報告の下書き)、`office_kit.py`(office のボタンが使う) |
 

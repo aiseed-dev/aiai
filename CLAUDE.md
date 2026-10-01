@@ -133,6 +133,7 @@ AI と一緒に自分で作るための見本とスキルを置くリポジト�
 | `nougyou/` | 就農の手続き、青年等就農計画の項目、`keikaku/`(自然農法の経営計画のスキル) |
 | `website/` | Web サイトを作るスキル。`sample/` を写すとサイトのリポジトリになる |
 | `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
+| `soudan/` | セカンドオピニオンのサーバー(`server.py`)。サインインは `moushikomi/server.py` の物を使う。確かめる観点は `観点/*.md` |
 | `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
 | `news/` | aiai ニュース。VLM、スマートドア、スマートロック、鳥獣対策のニュースを、1 日 1 つの adoc にまとめる |
 
