@@ -69,7 +69,7 @@ class ServerTest(unittest.TestCase):
 
     def test_info_lists_kinds_and_models(self):
         info = self.c.get("/api/info").json()
-        self.assertEqual({k["name"] for k in info["kinds"]}, {"転職", "履歴書", "企画書"})
+        self.assertEqual({k["name"] for k in info["kinds"]}, {"転職", "学び", "履歴書", "企画書"})
         self.assertEqual(info["models"], ["a:one", "b:two"])
         self.assertIn("研究", info["consent"])
 
