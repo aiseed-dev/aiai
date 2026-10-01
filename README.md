@@ -104,6 +104,23 @@ Nikolov ほか「How is Google using AI for internal code migrations?」(https:/
 Simon Willison による Andy Jassy の投稿の引用(https://simonwillison.net/2024/Aug/24/andy-jassy-amazon-ceo/)。
 2026-10-02 に確かめました。
 
+これまでは、情報を出す側が、サイトや検索の仕組み、アプリのようなソフトウェアにお金を
+かけてきました。人が検索ではなく AI に聞くようになると、AI がサイトを読んでまとめて答え、
+人はサイトの画面を見なくなります。そのため、そうしたソフトウェアの値打ちは下がります。
+残るのは、AI が読んで正しく使える中身(確かな事実、出典、決まった形のデータ)です。
+
+- 米国の大人 900 人の、2025 年 3 月の Google の検索 68,879 回を調べた Pew Research Center の
+  調査では、AI の要約が出たときに検索の結果のリンクを押したのは 8% で、出なかったときの 15% の
+  約半分でした。AI の要約の中のリンクを押したのは 1% でした(2025-07-22)
+- Similarweb と Axios のデータによると、米国の主なニュースのサイト約 100 への訪問は、2024 年の
+  7,000 万回超から、2026 年 7 月の 4,760 万回に減りました(TIME、2026-09-29)
+
+出典: Pew Research Center「Google users are less likely to click on links when an AI summary
+appears in the results」
+(https://www.pewresearch.org/short-reads/2025/07/22/google-users-are-less-likely-to-click-on-links-when-an-ai-summary-appears-in-the-results/)、
+TIME(2026-09-29、https://time.com/article/2026/09/29/google-search-ai-mode-chat)。
+2026-10-02 に確かめました。
+
 Linux のカーネルの開発も、AI を使うことを前提にしています。
 
 - カーネルの公式の文書に、AI を使うときの決まりがあります。AI の手を借りたパッチには、
