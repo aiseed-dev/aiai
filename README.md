@@ -226,6 +226,7 @@ officework の Issues に報告します。
   - `moushikomi/` を本物の Apple と Google で使うこと。iPhone と Android のアプリへの書き出し
   - `soudan/` を本物のモデルにつなぐこと。`soudan/` の画面
   - `office/` の Linux と Windows での動き
+  - `tenshoku/`、`gakusei/`、`genba/` のスキルを、実際に人と AI で通して使うこと
 - これから作る物:
   - `kaigyo/` と `rirekisho/` の `SKILL.md`(いまは、開業届では `todoke.py` が AI への依頼の文を書きます)
   - 起業の企画書を、本人の AI と対話しながら作るスキル(`soudan/観点/企画書.md` は、見る観点だけです)
