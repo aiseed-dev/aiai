@@ -120,7 +120,13 @@ aiai のスキルを、自分の書類や仕組みに使うまでの手順です
 
 自分で自分の長所を探す仕組みなので、仕事を紹介する転職エージェントとは、役割が違います。
 
-## 6. 履歴書([rirekisho](rirekisho/))
+## 6. AI の時代、大学で何を学ぶか([gakusei](gakusei/))
+
+大学の 1 回生向けです。いつも使っている AI に [gakusei/SKILL.md](gakusei/SKILL.md) を読ませます。
+5 の転職と同じ考え方で、これまでのチャットから自分の長所を探し、AI で小さなアプリを作ってみて、
+何を学び、次に何をするかを決めます。授業やゼミのことは、自分の大学の公開の資料で確かめます。
+
+## 7. 履歴書([rirekisho](rirekisho/))
 
 どういう内容を書くかは、本人と、本人が使っている AI に任せます。書く内容の見本や手本は、
 その AI が作れます。aiai が扱うのは、様式と、
@@ -129,7 +135,7 @@ aiai のスキルを、自分の書類や仕組みに使うまでの手順です
 様式を埋めて PDF にするには、officework の様式を埋める機能が要ります。この機能は、いま PyPI に
 ある officework 0.7.0 には、まだ入っていません。書き方は [rirekisho/README.md](rirekisho/README.md) にあります。
 
-## 7. Web サイト([website](website/))
+## 8. Web サイト([website](website/))
 
 1. AI に [website/SKILL.md](website/SKILL.md) を読ませます。AI が、誰に来てほしいか、
    その人が最初に知りたいことは何かを聞きながら、ページを一緒に書きます
@@ -144,7 +150,7 @@ aiai のスキルを、自分の書類や仕組みに使うまでの手順です
 3. 公開は、Cloudflare Pages でします。手順は [website/SKILL.md](website/SKILL.md) の 7 にあります。
    名前の要らないお問い合わせは、Cloudflare の Workers と R2 で受けられます(同じく 8)
 
-## 8. 申し込み(取り置き、予約、注文)([moushikomi](moushikomi/))
+## 9. 申し込み(取り置き、予約、注文)([moushikomi](moushikomi/))
 
 名前が要る申し込みは、先に Apple ID か Google ID でサインインしてもらい、本人の
 サーバーで受けます。預かる物には本人が責任を持つので、要る物だけを預かります。
@@ -168,7 +174,7 @@ aiai のスキルを、自分の書類や仕組みに使うまでの手順です
    サインインの準備をし、本人のサーバーで `server.py` を動かします。設定は
    [moushikomi/README.md](moushikomi/README.md) にあります
 
-## 9. 書類を直す(office)
+## 10. 書類を直す(office)
 
 officework のリボンを、書類を書いて直すための形にします。
 
@@ -180,7 +186,7 @@ python office/install.py
 なります。元に戻すときは `python office/install.py --remove` です。この設定を読む機能は、
 いま PyPI にある officework 0.7.0 には、まだ入っていません。詳しくは [office/README.md](office/README.md) にあります。
 
-## 10. 困ったとき、変わっていたとき
+## 11. 困ったとき、変わっていたとき
 
 使って困ったこと、手続きをして分かったこと、書いてあることが変わっていたことは、
 [報告のしかた](HOUKOKU.md)を見て知らせてください。報告は公開されるので、識別情報は書きません。
