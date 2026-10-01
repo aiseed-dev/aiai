@@ -67,6 +67,60 @@ aiai が扱うのは、知識になっている物です。
 (https://www.ppc.go.jp/news/careful_information/230602_AI_utilize_alert/)、
 番号法(https://laws.e-gov.go.jp/law/425AC0000000027)。2026-09-28 に確かめました。
 
+### AI を使い込んだ経験を、ソフトウェアの外の仕事に活かす
+
+- 転職を考えるときは、いつも使っている AI に、これまでのチャットから自分の長所を探して
+  もらうことから始めます。チャットには、自分で考えたことや、解いた問題が残っています。
+  手順は [tenshoku/SKILL.md](tenshoku/SKILL.md) にあります
+- 狭義のソフトウェア開発は、汎用の LLM がとても安くできます。aiai は、この現実から助言します。
+  ソフトウェア開発の中で居場所を探し直すより、AI を使い込んだ経験を、ものづくり、サービス、
+  店、農業、空き家や民泊の運営のような、ソフトウェアの外の仕事に活かすことを考えます。
+  勤めることも、自分で始めることも入ります
+- 考えを整理して終わりにせず、次にする行動を決めて終えます
+
+短い期間で作った実例です。
+
+- Anthropic の研究者が、16 の Claude のエージェントに C のコンパイラーを Rust で一から書かせ、
+  約 2 週間、API の費用 2 万米ドル弱で、約 10 万行のコンパイラーができました。Linux 6.9 を
+  ビルドできます(2026-02-05)
+- Cursor では、数百のエージェントを約 1 週間動かし、Web ブラウザーを一から書かせました。
+  1,000 のファイルで、100 万行を超えます。同じ仕組みで、Cursor 自身のコードの Solid から
+  React への書き換えを、約 3 週間で行いました(2026-01-14)
+- Airbnb は、約 3,500 のテストのファイルを Enzyme から React Testing Library へ書き換える
+  仕事を、人の手なら 1 年半と見積もっていた所、LLM を使って 6 週間で終えました。人の手で
+  直したのは 100 ファイル足らずでした(2025-03-28 の記事)
+- Google は、JUnit3 から JUnit4 への書き換えで、5,359 のファイル、14 万 9 千行を超える変更を
+  3 か月で行いました。AI が作った変更の約 87% は、そのまま取り込まれました。進みを決めたのは、
+  人が変更を確かめる速さでした(2025-01-12)
+- Amazon は、Java 17 へ上げる仕事が、1 つのアプリにつき約 50 人日から数時間になり、
+  4,500 人年分の仕事が省けたと、社長が書いています(2024-08-24、会社の発表)
+
+出典: Anthropic「Building a C compiler with a team of parallel Claudes」
+(https://www.anthropic.com/engineering/building-c-compiler)、
+Cursor「Scaling long-running autonomous coding」(https://cursor.com/blog/scaling-agents)、
+InfoQ の Airbnb の記事(2025-03-28)
+(https://www.infoq.com/news/2025/03/airbnb-llm-test-migration/)、
+Nikolov ほか「How is Google using AI for internal code migrations?」(https://arxiv.org/abs/2501.06972)、
+Simon Willison による Andy Jassy の投稿の引用(https://simonwillison.net/2024/Aug/24/andy-jassy-amazon-ceo/)。
+2026-10-02 に確かめました。
+
+Linux のカーネルの開発も、AI を使うことを前提にしています。
+
+- カーネルの公式の文書に、AI を使うときの決まりがあります。AI の手を借りたパッチには、
+  使った AI を `Assisted-by:` の行に書きます。開発者の証明(Signed-off-by)を付けられるのは
+  人だけで、AI が書いたコードを確かめて責任を負うのは、出した人です
+- Linus Torvalds は、カーネルのメーリングリストで、Linux は AI に反対するプロジェクトでは
+  ないと書きました(2026-07 の報道)。Linux 7.2 の開発では、AI の道具のレビューから出た
+  直しが多く、大きな更新が普通になったと書いています(2026-08 の報道)
+- 安定版の保守では、取り込むパッチの候補を LLM で絞り込んでいます(2025-06 の講演)
+
+出典: The Linux Kernel documentation「AI Coding Assistants」
+(https://docs.kernel.org/process/coding-assistants.html)、
+Virtualization Review(2026-07-16、https://virtualizationreview.com/articles/2026/07/16/linus-torvalds-says-linux-kernel-is-not-an-anti-ai-project.aspx)、
+The Register(2026-08-10、https://www.theregister.com/os-platforms/2026/08/10/linus-torvalds-says-ai-has-made-huge-linux-kernel-updates-the-new-normal/5285268)、
+LWN.net「Supporting kernel development with large language models」(2025-06-26、https://lwn.net/Articles/1026558/)。
+2026-10-02 に確かめました。
+
 ### 公開のリポジトリに絶対に入れない物
 
 次の物は、1 度 push すると、消しても漏れた物として扱う必要があります。
@@ -103,6 +157,7 @@ GitHub の画面では表になります。表計算やワープロのソフト�
 | [kaigyo](kaigyo/) | 開業届と青色申告承認申請書の項目(国税庁の様式と照らし合わせ済み)、見本のデータ、受け取る側の見本 |
 | [nougyou](nougyou/) | 農業を始めるときの手続き(出典と確かめた日付き)、青年等就農計画の項目と見本のデータ |
 | [nougyou/keikaku](nougyou/keikaku/) | 自然農法の経営計画を作るスキル。自然農法系の農業の紹介(いいことと難しいこと)と、年ごとの計算 |
+| [tenshoku](tenshoku/) | 転職を考えるときに、これまでのチャットから自分の長所を AI に探してもらい、ソフトウェアの外の仕事に活かす道を考え、次の行動を決めるスキル |
 | [rirekisho](rirekisho/) | 履歴書の様式(厚生労働省の様式例、JIS 様式)と、欄の決まり |
 | [website](website/) | 事業の Web サイトを作るスキル。開業届と同じデータから公開してよい事実だけを写し、Cloudflare Pages で公開する。名前の要らないお問い合わせは Cloudflare の Workers と R2 で受ける |
 | [moushikomi](moushikomi/) | Apple ID か Google ID でサインインした人から、申し込み(取り置き、予約、注文など)を受けるスキルと仕組み。預かる項目を adoc に書き、画面は Flet で作る |
