@@ -67,8 +67,18 @@ AI に [SKILL.md](SKILL.md) を読ませると、AI が本人に聞きながら�
 ## 動かす
 
 Python の部品は、conda で入れます(conda-forge の `fastapi`、`uvicorn`、`pyjwt`、
-`cryptography`、`flet`)。Web の画面を出す `flet-web` は conda-forge に無いので、pip で入れます
-(`pip install flet-web==1.0.1 --no-deps`)。
+`cryptography`、`flet`、`python-multipart`、`websockets`)。Web の画面を出す `flet-web` は
+conda-forge に無いので、pip で入れます(`pip install flet-web==1.0.1 --no-deps`)。`flet` は
+`flet-web` と同じ版(1.0.1)にします。
+
+```
+conda install -c conda-forge fastapi uvicorn pyjwt cryptography flet=1.0.1 python-multipart websockets
+pip install flet-web==1.0.1 --no-deps
+```
+
+`python-multipart` は、Apple から POST で届くサインインの結果を受け取るのに要ります。
+`websockets` は、Web の画面がサーバーとつながるのに要ります。pip で fastapi と uvicorn を
+入れたときは、この 2 つが入らず、サーバーが止まるか、画面が「Working...」のまま進みませんでした。
 
 ```
 python moushikomi/test_server.py
@@ -119,7 +129,8 @@ Apple は、次の 3 つが Google と違い、`server.py` がそれぞれに合
 
 ## 確かめたこと
 
-- `test_server.py` で、17 の確かめが通りました(Python 3.14、macOS)。
+- `test_server.py` で、17 の確かめが通りました(Python 3.14、macOS)。Debian 13 でも、
+  conda の Python 3.14.7 と、venv の Python 3.13.5 で、17 の確かめが通りました(2026-10-01)。
   サインイン(Apple、Google)、Apple のクライアントシークレットの署名、戻り先の制限、
   state を 1 回しか使えないこと、id_token の署名・発行元・宛先・期限・nonce の確かめ、
   確かめていないメールアドレスを預からないこと、項目の決まり、一人あたりの件数、

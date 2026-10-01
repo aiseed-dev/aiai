@@ -116,7 +116,7 @@ GitHub の画面では表になります。表計算やワープロのソフト�
 | 使う所 | 要る物 |
 |---|---|
 | `tools/todoke.py`、`tools/kakunin.py`、`nougyou/keikaku/keikaku.py`、`website/sample/build.py` | Python 3 だけ(Python 3.9 で確かめました) |
-| `moushikomi/` | Python 3 と、conda-forge の `fastapi`、`uvicorn`、`pyjwt`、`cryptography`、`flet`。Web の画面には pip の `flet-web`(Python 3.14 で確かめました) |
+| `moushikomi/` | Python 3 と、conda-forge の `fastapi`、`uvicorn`、`pyjwt`、`cryptography`、`flet`、`python-multipart`、`websockets`。Web の画面には pip の `flet-web`(Python 3.14 で確かめました) |
 | `website/` の公開とお問い合わせ | Cloudflare のアカウント(無料のプランで使えます) |
 | 様式を埋めて PDF にする、`tools/houkoku.py`、`office/` | [officework](https://github.com/aiseed-dev/officework)。印とデータの書き方は、officework の [様式の手引き](https://github.com/aiseed-dev/officework/blob/main/docs/ja/forms-manual.adoc)にあります |
 

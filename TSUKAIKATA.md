@@ -15,10 +15,10 @@ aiai のスキルを、自分の書類や仕組みに使うまでの手順です
    git を使わないときは、GitHub の画面の「Code」から ZIP で取って開きます
 2. Python 3 を入れます。`tools/` のスクリプトは、Python の標準ライブラリだけで動きます
 3. 申し込みの仕組み(`moushikomi/`)を使うときは、部品を conda で入れます。
-   Web の画面を出す `flet-web` は conda-forge に無いので、pip で入れます
+   Web の画面を出す `flet-web` は conda-forge に無いので、pip で入れます。`flet-web` と `flet` は同じ版にします
 
    ```
-   conda install -c conda-forge fastapi uvicorn pyjwt cryptography flet
+   conda install -c conda-forge fastapi uvicorn pyjwt cryptography flet=1.0.1 python-multipart websockets
    pip install flet-web==1.0.1 --no-deps
    ```
 4. AI を用意します。各フォルダーの `SKILL.md` を AI に読ませて使います。ファイルを読めて、
