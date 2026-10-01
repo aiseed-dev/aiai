@@ -221,11 +221,13 @@ officework の Issues に報告します。
 
 - 動かして確かめた物: `tools/todoke.py`、`tools/kakunin.py`、`nougyou/keikaku/keikaku.py`、
   `website/sample/build.py`、`moushikomi/`(偽の Apple と Google を相手にしたテストと、Web の画面を
-  押して確かめること)、`soudan/`(偽の Apple と Google、偽のモデルを相手にしたテスト)
+  押して確かめること)、`soudan/`(偽の Apple と Google、偽のモデルを相手にしたテスト)、
+  `site/`(トップページとアプリの画面を、ブラウザーで押して確かめること)
 - まだ確かめていない物:
   - Cloudflare Pages での公開と、お問い合わせの関数
   - `moushikomi/` を本物の Apple と Google で使うこと。iPhone と Android のアプリへの書き出し
-  - `soudan/` を本物のモデルにつなぐこと。`soudan/` の画面
+  - `soudan/` を本物のモデルにつなぐこと。aiai のアプリの中の、セカンドオピニオンの画面
+  - aiai のサイトの公開(aiai.aiseed.dev)と、アプリへの書き出し(`flet build`)
   - `office/` の Linux と Windows での動き
   - `tenshoku/`、`gakusei/`、`genba/` のスキルを、実際に人と AI で通して使うこと
 - これから作る物:
