@@ -2,15 +2,19 @@
 
 AI と共に仕事を始めるためのツール
 
-就職するときの履歴書、起業するときの開業の届出、就農の計画、事業の Web サイト、
-お客さんからの申し込みのように、決まった形の書類や仕組みを、AI と一緒に自分で作るためのスキルです。
+転職の考え、履歴書、起業の企画書、開業の届出、就農の計画、事業の Web サイト、お客さんからの
+申し込みのように、仕事を始めるための書類や仕組みを、AI と一緒に自分で作るためのスキルです。
+
+主役は、本人がふだん使っている AI です。本人は、その AI にスキルを読ませ、対話しながら
+作ります。aiai は、そのやり方と、確かめられた知識を置きます。1 つの AI だけに頼らないように、
+ほかの会社の AI のモデルに見てもらうセカンドオピニオン([soudan](soudan/))も用意しています。
 
 使い方は、[使い方の手引き](TSUKAIKATA.md)にまとめています。
 
 ## 使う人と一緒に育つ
 
-このリポジトリは、使う人と一緒に育っていきます。コードは AI がほぼ無料で書けるので、aiai は
-有料にせず、使う人の報告で知識を育てます。
+このリポジトリは、使う人と一緒に育っていきます。コードは AI がほぼ無料で書けるので、スキルと
+知識は有料にせず、使う人の報告で育てます。
 
 - 実際に手続きをした人の報告で、様式、手順、スキルを直します
 - 制度や金額は変わります。書いてある事実には出典と確かめた日を付け、`tools/kakunin.py` で
@@ -148,7 +152,7 @@ LWN.net「Supporting kernel development with large language models」(2025-06-26
 - `.env` のファイルと、compose や設定に直に書いたパスワードや秘密の値(`GOOGLE_CLIENT_SECRET`、
   `TURNSTILE_SECRET`、`JWT_SECRET` など)
 - SSH の秘密鍵(`id_ed25519` など)と、TLS の秘密鍵(`.pem`、`.key`)
-- お客さんの識別情報が入るデータベースのファイル(`moushikomi.db` など)
+- お客さんの識別情報が入るデータベースのファイル(`moushikomi.db`、`soudan.db` など)
 
 秘密の値は、環境の変数か、サーバーにだけ置く `.env` で渡します。リポジトリには `.env.example`
 (値は `変えてください`)だけを入れます。GitHub には、対応している秘密の値を push の前に止める
@@ -191,6 +195,7 @@ GitHub の画面では表になります。表計算やワープロのソフト�
 |---|---|
 | `tools/todoke.py`、`tools/kakunin.py`、`nougyou/keikaku/keikaku.py`、`website/sample/build.py` | Python 3 だけ(Python 3.9 で確かめました) |
 | `moushikomi/` | Python 3 と、conda-forge の `fastapi`、`uvicorn`、`pyjwt`、`cryptography`、`flet`、`python-multipart`、`websockets`。Web の画面には pip の `flet-web`(Python 3.14 で確かめました) |
+| `soudan/` | `moushikomi/` と同じ部品(画面の `flet` と `flet-web` を除く)。本物のモデルを使うときは、各社の公式の SDK(Anthropic なら `anthropic`) |
 | `website/` の公開とお問い合わせ | Cloudflare のアカウント(無料のプランで使えます) |
 | 様式を埋めて PDF にする、`tools/houkoku.py`、`office/` | [officework](https://github.com/aiseed-dev/officework)。印とデータの書き方は、officework の [様式の手引き](https://github.com/aiseed-dev/officework/blob/main/docs/ja/forms-manual.adoc)にあります |
 
@@ -202,13 +207,15 @@ officework の Issues に報告します。
 
 - 動かして確かめた物: `tools/todoke.py`、`tools/kakunin.py`、`nougyou/keikaku/keikaku.py`、
   `website/sample/build.py`、`moushikomi/`(偽の Apple と Google を相手にしたテストと、Web の画面を
-  押して確かめること)
+  押して確かめること)、`soudan/`(偽の Apple と Google、偽のモデルを相手にしたテスト)
 - まだ確かめていない物:
   - Cloudflare Pages での公開と、お問い合わせの関数
   - `moushikomi/` を本物の Apple と Google で使うこと。iPhone と Android のアプリへの書き出し
+  - `soudan/` を本物のモデルにつなぐこと。`soudan/` の画面
   - `office/` の Linux と Windows での動き
 - これから作る物:
   - `kaigyo/` と `rirekisho/` の `SKILL.md`(いまは、開業届では `todoke.py` が AI への依頼の文を書きます)
+  - 起業の企画書を、本人の AI と対話しながら作るスキル(`soudan/観点/企画書.md` は、見る観点だけです)
   - 自然農法の経営計画に、福岡正信の著作からの引用
 
 ## ライセンス
@@ -218,6 +225,6 @@ officework の Issues に報告します。
 あります。CC BY 4.0 の物を使うときは、出典を書いてください。
 役所の様式や書き方を元にした物は、それぞれのフォルダーの README に出典を書いています。
 
-AGPL では、コードを変えて、ネットワークを通して人に使ってもらうとき(申し込みのサーバーや、
-お問い合わせの関数など)は、使う人に、変えたコードを渡せるようにする必要があります。
+AGPL では、コードを変えて、ネットワークを通して人に使ってもらうとき(申し込みのサーバー、
+セカンドオピニオンのサーバー、お問い合わせの関数など)は、使う人に、変えたコードを渡せるようにする必要があります。
 このリポジトリは、国や役所が作った物ではありません。

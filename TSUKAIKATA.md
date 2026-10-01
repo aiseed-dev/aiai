@@ -54,7 +54,7 @@ aiai のスキルを、自分の書類や仕組みに使うまでの手順です
 - `.env` のファイルと、compose や設定に直に書いたパスワードや秘密の値(`GOOGLE_CLIENT_SECRET`、
   `TURNSTILE_SECRET`、`JWT_SECRET` など)
 - SSH の秘密鍵(`id_ed25519` など)と、TLS の秘密鍵(`.pem`、`.key`)
-- お客さんの識別情報が入るデータベースのファイル(`moushikomi.db` など)
+- お客さんの識別情報が入るデータベースのファイル(`moushikomi.db`、`soudan.db` など)
 
 - 秘密の値は、環境の変数か、サーバーにだけ置く `.env` で渡します(`moushikomi/README.md` の
   設定の表がその形です)。`.gitignore` に `.env`、`*.p8`、`*.pem`、`*.db` が入っています
