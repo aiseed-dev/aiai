@@ -195,7 +195,7 @@ GitHub の画面では表になります。表計算やワープロのソフト�
 | [website](website/) | 事業の Web サイトを作るスキル。開業届と同じデータから公開してよい事実だけを写し、Cloudflare Pages で公開する。名前の要らないお問い合わせは Cloudflare の Workers と R2 で受ける |
 | [moushikomi](moushikomi/) | Apple ID か Google ID でサインインした人から、申し込み(取り置き、予約、注文など)を受けるスキルと仕組み。預かる項目を adoc に書き、画面は Flet で作る |
 | [news](news/) | aiai ニュース。空き家、民泊、クライミングジムなどに共通する、VLM、スマートドア、スマートロック、鳥獣対策のニュースを毎日まとめる |
-| [soudan](soudan/) | セカンドオピニオン。自分の AI と作った転職の考え、何を学ぶかの考え、履歴書、起業の企画書を、ほかの会社の AI のモデルに見てもらい、相談と出来事を記録する(試作) |
+| [soudan](soudan/) | セカンドオピニオン(研究として、募集に応じた人だけが使う)。自分の AI と作った転職の考え、何を学ぶかの考え、履歴書、起業の企画書を、ほかの会社の AI のモデルに見てもらい、相談と出来事を記録する(試作) |
 | [office](office/) | officework の簡易版。書類を書いて直すための、リボンの設定ファイルと Python のボタンだけ |
 | [site](site/) | aiai のサイトとアプリ。トップページは HTML と CSS、`/app/` は Flet の画面(スキルの一覧、写してあなたの AI に貼る、考え方、お知らせ)。同じ画面を `flet build` でアプリにできる形にしている |
 | [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`kakunin.py`(出典を確かめ直す物を出す)、`houkoku.py`(報告の下書き)、`office_kit.py`(office のボタンが使う) |
@@ -222,11 +222,12 @@ officework の Issues に報告します。
 - 動かして確かめた物: `tools/todoke.py`、`tools/kakunin.py`、`nougyou/keikaku/keikaku.py`、
   `website/sample/build.py`、`moushikomi/`(偽の Apple と Google を相手にしたテストと、Web の画面を
   押して確かめること)、`soudan/`(偽の Apple と Google、偽のモデルを相手にしたテスト)、
-  `site/`(トップページとアプリの画面を、ブラウザーで押して確かめること)
+  `site/`(トップページとアプリの画面を、ブラウザーで押して確かめること。セカンドオピニオンの
+  タブは、偽の Apple と Google、偽のモデルで)
 - まだ確かめていない物:
   - Cloudflare Pages での公開と、お問い合わせの関数
   - `moushikomi/` を本物の Apple と Google で使うこと。iPhone と Android のアプリへの書き出し
-  - `soudan/` を本物のモデルにつなぐこと。aiai のアプリの中の、セカンドオピニオンの画面
+  - `soudan/` を本物のモデルにつなぐこと
   - aiai のサイトの公開(aiai.aiseed.dev)と、アプリへの書き出し(`flet build`)
   - `office/` の Linux と Windows での動き
   - `tenshoku/`、`gakusei/`、`genba/` のスキルを、実際に人と AI で通して使うこと

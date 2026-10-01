@@ -3,14 +3,16 @@
 the same code is meant to become the iPhone and Android app with flet build.
 
 It shows the skills (each folder's SKILL.md, copied into assets/skills/ by
-site/make_assets.py), the thinking behind aiai (assets/kangaekata.md) and
-the news (assets/news/*.adoc). A skill can be copied whole, to paste into
-the person's own AI.
+site/make_assets.py), the thinking behind aiai (assets/kangaekata.md), the
+news (assets/news/*.adoc) and the second opinion (soudan_view.py, which
+talks to soudan/server.py). A skill can be copied whole, to paste into the
+person's own AI.
 """
 import os
 import re
 
 import flet as ft
+from soudan_view import SoudanView
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 
@@ -74,6 +76,7 @@ async def main(page: ft.Page):
     skills = load_skills(os.path.join(ASSETS, "skills"))
     news = load_news(os.path.join(ASSETS, "news"))
     clipboard = ft.Clipboard()
+    prefs = ft.SharedPreferences()
     body = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO, spacing=12)
     frame = ft.Container(body, padding=16, expand=True)
 
@@ -139,18 +142,41 @@ async def main(page: ft.Page):
             controls.append(note("まだありません。"))
         show(controls)
 
-    tabs = [show_list, show_kangaekata, show_news]
+    soudan = SoudanView(page, prefs, show)
+    await soudan.start()
 
-    def change(e):
-        tabs[e.control.selected_index]()
+    async def show_soudan():
+        show([ft.ProgressRing()])
+        await soudan.render()
+
+    tabs = [show_list, show_kangaekata, show_news, show_soudan]
+
+    async def change(e):
+        result = tabs[e.control.selected_index]()
+        if result is not None:
+            await result
+
+    async def open_soudan():
+        page.navigation_bar.selected_index = 3
+        await show_soudan()
+
+    async def route_change(e):
+        # Coming back from sign-in: the code is in the address
+        if await soudan.take_code(e.route):
+            await open_soudan()
 
     page.navigation_bar = ft.NavigationBar(
         destinations=[ft.NavigationBarDestination(icon=ft.Icons.MENU_BOOK, label="スキル"),
                       ft.NavigationBarDestination(icon=ft.Icons.LIGHTBULB_OUTLINE, label="考え方"),
-                      ft.NavigationBarDestination(icon=ft.Icons.NOTIFICATIONS_NONE, label="お知らせ")],
+                      ft.NavigationBarDestination(icon=ft.Icons.NOTIFICATIONS_NONE, label="お知らせ"),
+                      ft.NavigationBarDestination(icon=ft.Icons.FORUM_OUTLINED, label="相談")],
         on_change=change)
+    page.on_route_change = route_change
     page.add(ft.SafeArea(frame, expand=True))
-    show_list()
+    if await soudan.take_code(page.route):
+        await open_soudan()
+    else:
+        show_list()
 
 
 if __name__ == "__main__":

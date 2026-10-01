@@ -4,8 +4,11 @@ job-change advice, resume or business plan with their own AI.
 
     python server.py [--host 127.0.0.1] [--port 8010]
 
-People sign in with Apple or Google (the sign-in of moushikomi/server.py),
-agree to the research use (同意.md), and then keep coming back: each time
+It is for recruited people only. Research staff make invitation codes
+(POST /api/research/invites) and hand one to each person who answered the
+call; each code can be used by one person. People sign in with Apple or
+Google (the sign-in of moushikomi/server.py), enter their code, agree to the
+research use (同意.md), and then keep coming back: each time
 they paste a draft with the identifying details taken out, pick one or two
 models, and get each model's opinion. They can also note what happened
 (applied, interviewed, filed the opening notice). Their record grows in
@@ -21,7 +24,8 @@ the file name is the kind. Settings come from environment variables:
     ANTHROPIC_API_KEY     for the anthropic models
     SOUDAN_PER_DAY        model calls one person may make a day (default 10)
     SOUDAN_DAY_LIMIT      model calls everyone together may make a day (default 300)
-    RESEARCH_EMAILS       sign-in emails that may read the summary (space separated)
+    RESEARCH_EMAILS       sign-in emails of the research staff, who make invitation
+                          codes and read the summary (space separated)
     TIMEZONE              default Asia/Tokyo
 
 Drafts are refused, before any model sees them, when they hold what looks
@@ -53,10 +57,24 @@ _spec.loader.exec_module(ms)
 DRAFT_CHARS = 12000
 EVENT_CHARS = 1000
 HISTORY = 3  # earlier consultations of the same kind and model given to the model
+INVITE_LETTERS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0/O, 1/I/L, so they can be read aloud
+
+
+def new_invite():
+    raw = "".join(secrets.choice(INVITE_LETTERS) for _ in range(8))
+    return raw[:4] + "-" + raw[4:]
+
+
+def invite_key(code):
+    """The stored form of an invitation code: typed loosely, kept hashed."""
+    plain = re.sub(r"[^A-Z0-9]", "", unicodedata.normalize("NFKC", str(code)).upper())
+    return hashlib.sha256(plain.encode()).hexdigest()
 
 SCHEMA = ms.SIGN_IN_SCHEMA + """
         CREATE TABLE IF NOT EXISTS people (provider TEXT, sub TEXT, email TEXT, agreed TEXT,
-            agreed_at TEXT, PRIMARY KEY (provider, sub));
+            agreed_at TEXT, invite TEXT, PRIMARY KEY (provider, sub));
+        CREATE TABLE IF NOT EXISTS invites (code TEXT PRIMARY KEY, note TEXT, created TEXT,
+            used_at TEXT);
         CREATE TABLE IF NOT EXISTS consults (id TEXT PRIMARY KEY, provider TEXT, sub TEXT,
             kind TEXT, model TEXT, draft TEXT, answer TEXT, in_tokens INTEGER,
             out_tokens INTEGER, rating INTEGER, created TEXT);
@@ -186,14 +204,24 @@ def create_app(env=None, providers=None, models=None):
                        allow_headers=["Authorization", "Content-Type"])
     person = ms.sign_in(app, db, provs, base, returns, purge)
 
-    def agreed(s):
-        row = db.one("SELECT agreed FROM people WHERE provider = ? AND sub = ?", (s["provider"], s["sub"]))
-        return bool(row) and row["agreed"] == consent_version
+    def joined(s):
+        """(invited, agreed to the current text) of a signed-in person."""
+        row = db.one("SELECT agreed, invite FROM people WHERE provider = ? AND sub = ?", (s["provider"], s["sub"]))
+        return (bool(row) and bool(row["invite"]), bool(row) and row["agreed"] == consent_version)
 
     def member(authorization):
         s = person(authorization)
-        if not agreed(s):
+        invited, ok = joined(s)
+        if not invited:
+            raise HTTPException(403, "セカンドオピニオンは、募集に応じた人だけが使えます。招待の番号が要ります")
+        if not ok:
             raise HTTPException(403, "使い始める前に、記録を残すことと研究に使うことへの同意が要ります")
+        return s
+
+    def staff(authorization):
+        s = person(authorization)
+        if not s["email"] or s["email"].lower() not in research:
+            raise HTTPException(403, "研究の係の人だけが使えます")
         return s
 
     async def body_of(request):
@@ -214,17 +242,28 @@ def create_app(env=None, providers=None, models=None):
     @app.get("/api/me")
     def me(authorization: str = Header("")):
         s = person(authorization)
-        return {"provider": s["provider"], "email": s["email"], "agreed": agreed(s),
+        invited, ok = joined(s)
+        return {"provider": s["provider"], "email": s["email"], "invited": invited, "agreed": ok,
                 "research": bool(s["email"]) and s["email"].lower() in research}
 
     @app.post("/api/agree")
     async def agree(request: Request, authorization: str = Header("")):
         s = person(authorization)
-        if (await body_of(request)).get("version") != consent_version:
+        b = await body_of(request)
+        if b.get("version") != consent_version:
             raise HTTPException(409, "同意の文が変わりました。読み直してください")
-        db.run("INSERT INTO people VALUES (?, ?, ?, ?, ?) ON CONFLICT (provider, sub) DO UPDATE SET "
-               "email = excluded.email, agreed = excluded.agreed, agreed_at = excluded.agreed_at",
-               (s["provider"], s["sub"], s["email"], consent_version, now().isoformat(timespec="microseconds")))
+        invited, _ = joined(s)
+        key = None
+        if not invited:
+            # A code is used once: it is marked as it is taken
+            key = invite_key(b.get("code", ""))
+            if not db.run("UPDATE invites SET used_at = ? WHERE code = ? AND used_at IS NULL",
+                          (now().isoformat(timespec="microseconds"), key)):
+                raise HTTPException(403, "招待の番号が違うか、もう使われています")
+        db.run("INSERT INTO people VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (provider, sub) DO UPDATE SET "
+               "email = excluded.email, agreed = excluded.agreed, agreed_at = excluded.agreed_at, "
+               "invite = COALESCE(people.invite, excluded.invite)",
+               (s["provider"], s["sub"], s["email"], consent_version, now().isoformat(timespec="microseconds"), key))
         return {"ok": True}
 
     @app.get("/api/record")
@@ -340,19 +379,34 @@ def create_app(env=None, providers=None, models=None):
             db.run(f"DELETE FROM {table} WHERE provider = ? AND sub = ?", key)
         return {"ok": True}
 
+    def make_invites(count, note=""):
+        codes = [new_invite() for _ in range(count)]
+        for c in codes:
+            db.run("INSERT INTO invites VALUES (?, ?, ?, NULL)", (invite_key(c), note, now().isoformat(timespec="microseconds")))
+        return codes
+
+    @app.post("/api/research/invites")
+    async def invites(request: Request, authorization: str = Header("")):
+        staff(authorization)
+        b = await body_of(request)
+        count = b.get("count")
+        if not isinstance(count, int) or not 1 <= count <= 100:
+            raise HTTPException(422, ["1 から 100 までの数を選んでください"])
+        return {"codes": make_invites(count, str(b.get("note", ""))[:200])}
+
     @app.get("/api/research/summary")
     def summary(authorization: str = Header("")):
-        s = person(authorization)
-        if not s["email"] or s["email"].lower() not in research:
-            raise HTTPException(403, "研究の係の人だけが見られます")
+        staff(authorization)
         by_model = [dict(r) for r in db.all(
             "SELECT model, kind, COUNT(*) AS consults, AVG(in_tokens) AS in_tokens, "
             "AVG(out_tokens) AS out_tokens, COUNT(rating) AS rated, AVG(rating) AS rating "
             "FROM consults GROUP BY model, kind ORDER BY model, kind")]
-        return {"people": db.one("SELECT COUNT(*) FROM people WHERE agreed = ?", (consent_version,))[0],
+        return {"invites": db.one("SELECT COUNT(*) FROM invites")[0],
+                "invites_used": db.one("SELECT COUNT(*) FROM invites WHERE used_at IS NOT NULL")[0],
+                "people": db.one("SELECT COUNT(*) FROM people WHERE agreed = ?", (consent_version,))[0],
                 "events": db.one("SELECT COUNT(*) FROM events")[0], "by_model": by_model}
 
-    app.state.db, app.state.purge = db, purge
+    app.state.db, app.state.purge, app.state.make_invites = db, purge, make_invites
     return app
 
 

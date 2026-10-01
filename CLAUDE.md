@@ -144,7 +144,7 @@ AI と一緒に自分で作るための見本とスキルを置くリポジト�
 | `nougyou/` | 就農の手続き、青年等就農計画の項目、`keikaku/`(自然農法の経営計画のスキル) |
 | `website/` | Web サイトを作るスキル。`sample/` を写すとサイトのリポジトリになる |
 | `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
-| `soudan/` | セカンドオピニオンのサーバー(`server.py`)。当面は無料の研究サービスで、効果が確かめられたら、低額の会費で運営する(費用は主に API の利用料)。サインインは `moushikomi/server.py` の物を使う。確かめる観点は `観点/*.md` |
+| `soudan/` | セカンドオピニオンのサーバー(`server.py`)。募集に応じた人だけが、招待の番号で使う。当面は無料の研究サービスで、効果が確かめられたら、低額の会費で運営する(費用は主に API の利用料)。サインインは `moushikomi/server.py` の物を使う。確かめる観点は `観点/*.md` |
 | `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
 | `site/` | aiai のサイトとアプリ。トップページ(`index.html`、`top.css`)は手で書いた HTML と CSS、`/app/` は Flet の画面(`app/main.py`)で、そのまま `flet build` でアプリにできる形にする。`make_assets.py` が各 `SKILL.md` を `app/assets/skills/` に写す。`server.py` が両方を出す。deb2 の aiai.aiseed.dev で出す予定 |
 | `news/` | aiai ニュース。VLM、スマートドア、スマートロック、鳥獣対策のニュースを、1 日 1 つの adoc にまとめる |
@@ -208,7 +208,8 @@ AI と一緒に自分で作るための見本とスキルを置くリポジト�
 - aiai のサイトとアプリ(`site/`): deb2 の dev のホームで動かし、ブラウザーで押して確かめた
   (2026-10-02)。aiai.aiseed.dev はまだ準備中のページのままで、Caddy の向きを替えるのは deb2 の側の
   作業(発注者の了解が要る)。`flet build` での iPhone と Android のアプリへの書き出しはまだ。
-  セカンドオピニオンの画面と、`genba/` の記録の画面は、このアプリに足す
+  セカンドオピニオンの画面は「相談」のタブとして足し、`python site/try.py`(偽のサインインと
+  偽のモデル)で押して確かめた。`genba/` の記録の画面は、まだ
 - `tenshoku/`、`gakusei/`、`genba/` のスキル(2026-10-02 に書いた)は、まだ実際に人と AI で通して
   使っていない。`genba/` にはプログラムを置いていない。動く例を置くかは、試してから決める
 - aiai ニュース(`news/`): 毎朝 7 時の定時の作業(Claude のデスクトップアプリの「Scheduled」の

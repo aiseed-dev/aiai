@@ -52,15 +52,17 @@ class ServerTest(unittest.TestCase):
         self.app.state.db.db.close()
         self.tmp.cleanup()
 
-    def sign_in(self, sub, email="", agree=True):
+    def sign_in(self, sub, email="", agree=True, invite=None):
         r = self.c.get("/login/google", params={"next": SITE})
         q = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(r.headers["location"]).query))
         r = self.c.get("/callback/google", params={"code": code(q["nonce"], sub, email), "state": q["state"]})
         one = urllib.parse.parse_qs(urllib.parse.urlsplit(r.headers["location"]).query)["code"][0]
         h = {"Authorization": "Bearer " + self.c.post("/api/session", json={"code": one}).json()["token"]}
         if agree:
+            invite = invite or self.app.state.make_invites(1)[0]
             v = self.c.get("/api/info").json()["consent_version"]
-            self.assertEqual(self.c.post("/api/agree", json={"version": v}, headers=h).status_code, 200)
+            r = self.c.post("/api/agree", json={"version": v, "code": invite}, headers=h)
+            self.assertEqual(r.status_code, 200, r.text)
         return h
 
     def ask(self, h, draft="長所は、粘り強く確かめることです。", kind="転職", models=("a:one",)):
@@ -76,8 +78,38 @@ class ServerTest(unittest.TestCase):
     def test_consent_is_needed_first(self):
         h = self.sign_in("hana", agree=False)
         self.assertEqual(self.ask(h).status_code, 403)
-        self.assertEqual(self.c.post("/api/agree", json={"version": "old"}, headers=h).status_code, 409)
+        code = self.app.state.make_invites(1)[0]
+        self.assertEqual(self.c.post("/api/agree", json={"version": "old", "code": code}, headers=h).status_code, 409)
         self.assertFalse(self.c.get("/api/me", headers=h).json()["agreed"])
+
+    def test_only_invited_people_join(self):
+        v = self.c.get("/api/info").json()["consent_version"]
+        h = self.sign_in("hana", agree=False)
+        self.assertEqual(self.c.post("/api/agree", json={"version": v}, headers=h).status_code, 403)
+        self.assertEqual(self.c.post("/api/agree", json={"version": v, "code": "ABCD-EFGH"}, headers=h).status_code, 403)
+        code = self.app.state.make_invites(1)[0]
+        # Typed loosely: lower case, no dash, full-width letters
+        loose = code.replace("-", "").lower()
+        self.assertEqual(self.c.post("/api/agree", json={"version": v, "code": loose}, headers=h).status_code, 200)
+        me = self.c.get("/api/me", headers=h).json()
+        self.assertTrue(me["invited"] and me["agreed"])
+        # A code is used once
+        t = self.sign_in("taro", agree=False)
+        self.assertEqual(self.c.post("/api/agree", json={"version": v, "code": code}, headers=t).status_code, 403)
+        self.assertEqual(self.ask(t).status_code, 403)
+
+    def test_staff_make_invites(self):
+        h = self.sign_in("hana")
+        self.assertEqual(self.c.post("/api/research/invites", json={"count": 2}, headers=h).status_code, 403)
+        o = self.sign_in("owner", "owner@example.jp")
+        r = self.c.post("/api/research/invites", json={"count": 2, "note": "10 月の募集"}, headers=o)
+        self.assertEqual(r.status_code, 200, r.text)
+        codes = r.json()["codes"]
+        self.assertEqual(len(set(codes)), 2)
+        self.assertEqual(self.c.post("/api/research/invites", json={"count": 0}, headers=o).status_code, 422)
+        self.sign_in("jiro", invite=codes[0])
+        s = self.c.get("/api/research/summary", headers=o).json()
+        self.assertEqual((s["invites_used"], s["people"]), (3, 3))
 
     def test_two_models_answer_and_the_record_grows(self):
         h = self.sign_in("hana")
