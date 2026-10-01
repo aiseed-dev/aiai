@@ -1,0 +1,5 @@
+# The app's own assets are kept (the root .gitignore drops assets/ folders)
+!app/assets/
+# Copied from each folder's SKILL.md by make_assets.py
+app/assets/skills/
+__pycache__/

@@ -197,7 +197,7 @@ GitHub の画面では表になります。表計算やワープロのソフト�
 | [news](news/) | aiai ニュース。空き家、民泊、クライミングジムなどに共通する、VLM、スマートドア、スマートロック、鳥獣対策のニュースを毎日まとめる |
 | [soudan](soudan/) | セカンドオピニオン。自分の AI と作った転職の考え、何を学ぶかの考え、履歴書、起業の企画書を、ほかの会社の AI のモデルに見てもらい、相談と出来事を記録する(試作) |
 | [office](office/) | officework の簡易版。書類を書いて直すための、リボンの設定ファイルと Python のボタンだけ |
-| [site](site/) | aiai の説明のサイトの元(adoc)。`website/sample/build.py` で静的なページにする |
+| [site](site/) | aiai のサイトとアプリ。トップページは HTML と CSS、`/app/` は Flet の画面(スキルの一覧、写してあなたの AI に貼る、考え方、お知らせ)。同じ画面を `flet build` でアプリにできる形にしている |
 | [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`kakunin.py`(出典を確かめ直す物を出す)、`houkoku.py`(報告の下書き)、`office_kit.py`(office のボタンが使う) |
 
 見本の人、店、数字は、すべて架空です。
@@ -209,6 +209,7 @@ GitHub の画面では表になります。表計算やワープロのソフト�
 | `tools/todoke.py`、`tools/kakunin.py`、`nougyou/keikaku/keikaku.py`、`website/sample/build.py` | Python 3 だけ(Python 3.9 で確かめました) |
 | `moushikomi/` | Python 3 と、conda-forge の `fastapi`、`uvicorn`、`pyjwt`、`cryptography`、`flet`、`python-multipart`、`websockets`。Web の画面には pip の `flet-web`(Python 3.14 で確かめました) |
 | `soudan/` | `moushikomi/` と同じ部品(画面の `flet` と `flet-web` を除く)。本物のモデルを使うときは、各社の公式の SDK(Anthropic なら `anthropic`) |
+| `site/` | `moushikomi/` と同じ部品(`fastapi`、`uvicorn`、`flet`、`flet-web`、`websockets`)。先に `python site/make_assets.py` でスキルをアプリの中に写す |
 | `website/` の公開とお問い合わせ | Cloudflare のアカウント(無料のプランで使えます) |
 | 様式を埋めて PDF にする、`tools/houkoku.py`、`office/` | [officework](https://github.com/aiseed-dev/officework)。印とデータの書き方は、officework の [様式の手引き](https://github.com/aiseed-dev/officework/blob/main/docs/ja/forms-manual.adoc)にあります |
 
