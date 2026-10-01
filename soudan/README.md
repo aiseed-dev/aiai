@@ -65,7 +65,7 @@ python soudan/test_server.py
 ```
 
 偽の Apple と Google(`moushikomi/fake_id.py`)と、偽のモデル 2 つを相手に、サインインから
-記録を消すまでを確かめます。
+記録を消すまでを確かめます。画面も一緒に試すときは、`python site/try.py` です(`site/README.md`)。
 
 設定は、環境の変数で渡します。サインインの設定(`BASE_URL`、`RETURN_URLS`、`GOOGLE_*`、
 `APPLE_*`)は `moushikomi/` と同じです。
