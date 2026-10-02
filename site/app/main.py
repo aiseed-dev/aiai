@@ -73,7 +73,7 @@ def load_news(folder):
 
 
 async def main(page: ft.Page):
-    page.title = "aiai"
+    page.title = "aiai — AI 時代の学び方"
     page.padding = 0
     page.theme = ft.Theme(color_scheme_seed=ft.Colors.TEAL)
     skills = load_skills(os.path.join(ASSETS, "skills"))
@@ -117,7 +117,7 @@ async def main(page: ft.Page):
             for n, t in STEPS], wrap=True, spacing=8, run_spacing=8)
         return ft.Container(ft.Column([
             ft.Text("aiai", size=30, weight=ft.FontWeight.W_800, color=ft.Colors.WHITE),
-            ft.Text("AI と共に仕事を始めるためのツール", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
+            ft.Text("AI 時代の学び方", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=16),
             ft.Text("主役は、あなたの AI。スキルを写して、ふだん使っている AI に貼ると、AI があなたに聞きながら一緒に作ります。",
                     color=ft.Colors.with_opacity(0.92, ft.Colors.WHITE), size=13),
             steps], spacing=10),
