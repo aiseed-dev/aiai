@@ -111,9 +111,10 @@ class Fake(http.server.BaseHTTPRequestHandler):
         self.send({"id_token": jwt.encode(claims, key, algorithm="RS256", headers={"kid": "k1"})})
 
 
-def start(folder):
-    """Starts the fake; returns it and the settings server.py needs to use it."""
-    fake = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Fake)
+def start(folder, port=0):
+    """Starts the fake (on any free port, or the given one); returns it and the
+    settings server.py needs to use it."""
+    fake = http.server.ThreadingHTTPServer(("127.0.0.1", port), Fake)
     threading.Thread(target=fake.serve_forever, daemon=True).start()
     key_file = os.path.join(folder, "AuthKey.p8")
     with open(key_file, "wb") as f:

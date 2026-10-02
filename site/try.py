@@ -20,6 +20,7 @@ if __name__ == "__main__":
 
     ap = argparse.ArgumentParser(description="偽のサインインと偽のモデルで、aiai のサイトとアプリを試します")
     ap.add_argument("--port", type=int, default=8020)
+    ap.add_argument("--fake-port", type=int, default=0, help="偽の Apple と Google のポート(既定は空いている物)")
     a = ap.parse_args()
     base = f"http://127.0.0.1:{a.port}"
     os.environ |= {"AIAI_SOUDAN": base + "/soudan", "AIAI_RETURN": base + "/app/"}
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     import server as site
 
     tmp = tempfile.mkdtemp()
-    fake, env = fake_id.start(tmp)
+    fake, env = fake_id.start(tmp, a.fake_port)
     env |= {"BASE_URL": base + "/soudan", "RETURN_URLS": base + "/app/", "DB": os.path.join(tmp, "try.db"),
             "RESEARCH_EMAILS": "owner@example.jp"}
     soudan = site.load_soudan().create_app(env, models={"試し:A": FakeModel("A"), "試し:B": FakeModel("B")})

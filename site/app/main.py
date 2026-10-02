@@ -112,7 +112,7 @@ async def main(page: ft.Page):
         steps = ft.Row([ft.Container(ft.Row([
             ft.Container(ft.Text(n, weight=ft.FontWeight.BOLD, color=ft.Colors.PRIMARY, size=12), width=22,
                          height=22, border_radius=11, bgcolor=ft.Colors.WHITE, alignment=ft.Alignment.CENTER),
-            ft.Text(t, color=ft.Colors.WHITE, size=13)], spacing=6),
+            ft.Text(t, color=ft.Colors.WHITE, size=13)], spacing=6, tight=True),
             padding=ft.Padding.symmetric(vertical=6, horizontal=10), border_radius=999, bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.WHITE))
             for n, t in STEPS], wrap=True, spacing=8, run_spacing=8)
         return ft.Container(ft.Column([
