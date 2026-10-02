@@ -9,23 +9,76 @@
 </head>
 <body>
 <header class="bar">
-  <a class="logo" href="./">aiai</a>
+  <a class="logo" href="./"><span class="mark" aria-hidden="true"></span>aiai</a>
+  <nav class="menu">
+    <a href="#how">使い方</a>
+    <a href="#skills">できること</a>
+    <a href="#why">考え方</a>
+  </nav>
   <a class="open" href="app/">アプリを開く</a>
 </header>
 
 <main>
   <section class="hero">
-    <p class="kicker">AI と共に仕事を始めるためのツール</p>
-    <h1>主役は、<br class="sp">あなたの AI。</h1>
-    <p class="lead">
-      ふだん使っている AI にスキルを読ませて、対話しながら作ります。<br>
-      転職の考え、何を学ぶか、履歴書、起業の企画書、開業の届出、<br class="pc">
-      事業の Web サイト、現場の写真を読むアプリまで。
-    </p>
-    <div class="actions">
-      <a class="button primary" href="app/">スキルを見る</a>
-      <a class="button" href="#how">使い方</a>
+    <div class="hero-text">
+      <p class="kicker">AI と共に仕事を始めるためのツール</p>
+      <h1>主役は、<br>あなたの AI。</h1>
+      <p class="lead">
+        ふだん使っている AI にスキルを読ませて、対話しながら作ります。
+        転職の考え、何を学ぶか、履歴書、起業の企画書、開業の届出、
+        事業の Web サイト、現場の写真を読むアプリまで。
+      </p>
+      <div class="actions">
+        <a class="button primary" href="app/">スキルを見る</a>
+        <a class="button" href="#how">使い方を読む</a>
+      </div>
+      <p class="fine">スキルと知識は無料です。見本の人、店、数字は、すべて架空です。</p>
     </div>
+
+    <figure class="hero-figure" aria-label="スキルを、あなたの AI に読ませ、対話しながら、考えや書類や仕組みができる流れの図">
+      <svg viewBox="0 0 560 360" role="img">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0L10 5 0 10z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <!-- skill card -->
+        <g class="node">
+          <rect x="24" y="118" width="150" height="124" rx="18"/>
+          <text x="99" y="160" class="node-title">スキル</text>
+          <text x="99" y="186" class="node-sub">何を作るか</text>
+          <text x="99" y="206" class="node-sub">何を守るか</text>
+          <text x="99" y="226" class="node-sub">どう確かめるか</text>
+        </g>
+        <!-- arrow skill -> AI -->
+        <path class="flow" d="M176 180 H214" marker-end="url(#arrow)"/>
+        <!-- your AI, the centre -->
+        <g class="node core">
+          <circle cx="300" cy="180" r="78"/>
+          <text x="300" y="172" class="core-title">あなたの</text>
+          <text x="300" y="204" class="core-title big">AI</text>
+        </g>
+        <!-- you, below, in dialogue -->
+        <g class="node you">
+          <rect x="236" y="296" width="128" height="44" rx="22"/>
+          <text x="300" y="324" class="node-title">あなた</text>
+        </g>
+        <path class="flow dialogue" d="M276 294 C262 272 262 266 272 258" marker-end="url(#arrow)"/>
+        <path class="flow dialogue" d="M324 258 C338 266 338 272 324 294" marker-end="url(#arrow)"/>
+        <text x="300" y="282" class="tag">対話</text>
+        <!-- arrow AI -> result -->
+        <path class="flow" d="M380 180 H418" marker-end="url(#arrow)"/>
+        <!-- results -->
+        <g class="node">
+          <rect x="420" y="104" width="116" height="152" rx="18"/>
+          <text x="478" y="136" class="node-title">できあがる</text>
+          <text x="478" y="166" class="node-sub">考え</text>
+          <text x="478" y="190" class="node-sub">書類</text>
+          <text x="478" y="214" class="node-sub">Web サイト</text>
+          <text x="478" y="238" class="node-sub">アプリ</text>
+        </g>
+      </svg>
+    </figure>
   </section>
 
   <section id="how" class="steps">
@@ -49,33 +102,73 @@
     </ol>
   </section>
 
-  <section class="cards">
-    <article>
-      <h2>考える</h2>
-      <p class="tag">転職 ・ 何を学ぶか</p>
-      <p>これまでのチャットから、自分の長所を AI に探してもらいます。長所が生きる仕事や学ぶことを、ソフトウェアの外から考え、AI で小さなアプリを作ってみてから、次の行動を決めます。</p>
-    </article>
-    <article>
-      <h2>作る</h2>
-      <p class="tag">現場の写真 ・ Web サイト ・ 申し込み ・ 書類</p>
-      <p>現場で撮った写真を AI に見せて、判断を助けるアプリ。事業の Web サイトや、お客さんからの申し込みの仕組み。開業届や履歴書の様式と、決まりとして知られていること。</p>
-    </article>
+  <section id="skills" class="skills">
+    <h2>できること</h2>
+    <p class="section-lead">どれも、あなたの AI に読ませて使うスキルです。</p>
+    <div class="grid">
+      <article>
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4z"/></svg></span>
+        <p class="tag">考える</p>
+        <h3>転職を考える</h3>
+        <p>これまでのチャットから自分の長所を AI に探してもらい、ソフトウェアの外の仕事に活かす道を考えます。</p>
+      </article>
+      <article>
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h7a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h7z"/></svg></span>
+        <p class="tag">考える</p>
+        <h3>AI の時代、何を学ぶか</h3>
+        <p>高校生と大学の 1 回生向け。長所を探し、小さなアプリを作ってみてから、何を学ぶかを決めます。</p>
+      </article>
+      <article>
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+        <p class="tag">作る</p>
+        <h3>現場で写真を読む</h3>
+        <p>畑、工場、店、民泊で撮った写真を VLM に見せて、仕事の判断を助けます。答えは人が確かめます。</p>
+      </article>
+      <article>
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
+        <p class="tag">作る</p>
+        <h3>事業の Web サイト</h3>
+        <p>公開してよい事実だけを写して、静的なページを作り、公開します。</p>
+      </article>
+      <article>
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg></span>
+        <p class="tag">作る</p>
+        <h3>申し込みを受ける</h3>
+        <p>Apple ID か Google ID でサインインした人から、取り置き、予約、注文を受けます。</p>
+      </article>
+      <article>
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg></span>
+        <p class="tag">作る</p>
+        <h3>書類を整える</h3>
+        <p>履歴書、開業届、青色申告、就農の計画。様式と、決まりとして知られていることを置いています。</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="why" class="belief">
+    <div class="belief-inner">
+      <p class="kicker light">考え方</p>
+      <h2>力になるのは、確かめられた中身と、現場の知識</h2>
+      <p>狭義のソフトウェア開発は、汎用の LLM がとても安くできるようになりました。人は検索ではなく AI に聞くようになり、AI が読んで正しく使える確かな中身と、あなたしか持っていない現場の知識が力になります。aiai は、AI を使い込んだ経験を、ものづくり、サービス、店、農業、空き家や民泊の運営のような、ソフトウェアの外の仕事に活かすことを考えます。</p>
+      <a class="more" href="app/">考え方を読む →</a>
+    </div>
+  </section>
+
+  <section class="pair">
     <article>
       <h2>確かめる</h2>
-      <p class="tag">出典 ・ セカンドオピニオン</p>
-      <p>事実には、出典と確かめた日を付けています。1 つの AI だけに頼らないように、ほかの会社の AI に見てもらうセカンドオピニオンも、研究として、募集に応じた人に使ってもらう形で準備しています。</p>
+      <p>制度や金額は変わります。aiai に書いてある事実には、出典と確かめた日を付け、古くなった物は確かめ直します。</p>
+      <p>1 つの AI だけに頼らないように、ほかの会社の AI に見てもらうセカンドオピニオンも、研究として、募集に応じた人に使ってもらう形で準備しています。</p>
+    </article>
+    <article>
+      <h2>識別情報は、あなたが決める</h2>
+      <p>氏名、住所、電話、生年月日、個人番号、メールアドレスのように、誰のことか分かる情報を、aiai では識別情報と呼びます。どこまで出すか、AI に渡すかは、あなたが決めます。個人番号だけは、AI に渡しません。</p>
     </article>
   </section>
 
-  <section class="belief">
-    <h2>力になるのは、確かめられた中身と、現場の知識</h2>
-    <p>狭義のソフトウェア開発は、汎用の LLM がとても安くできるようになりました。人は検索ではなく AI に聞くようになり、AI が読んで正しく使える確かな中身と、あなたしか持っていない現場の知識が力になります。aiai は、AI を使い込んだ経験を、ものづくり、サービス、店、農業、空き家や民泊の運営のような、ソフトウェアの外の仕事に活かすことを考えます。</p>
-    <a class="more" href="app/">考え方を読む →</a>
-  </section>
-
-  <section class="privacy">
-    <h2>識別情報は、あなたが決める</h2>
-    <p>氏名、住所、電話、生年月日、個人番号、メールアドレスのように、誰のことか分かる情報を、aiai では識別情報と呼びます。どこまで出すか、AI に渡すかは、あなたが決めます。個人番号だけは、AI に渡しません。</p>
+  <section class="cta">
+    <h2>あなたの AI と、始めましょう</h2>
+    <a class="button primary" href="app/">スキルを見る</a>
   </section>
 </main>
 

@@ -19,6 +19,9 @@ ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 # The order and grouping of the skills on the list; others come last
 GROUPS = [("考える", ["tenshoku", "gakusei"]),
           ("作る", ["genba", "website", "moushikomi", "keikaku"])]
+ICONS = {"tenshoku": ft.Icons.WORK_OUTLINE, "gakusei": ft.Icons.SCHOOL, "genba": ft.Icons.PHOTO_CAMERA,
+         "website": ft.Icons.LANGUAGE, "moushikomi": ft.Icons.EVENT_AVAILABLE, "keikaku": ft.Icons.GRASS}
+STEPS = [("1", "スキルを選ぶ"), ("2", "あなたの AI に貼る"), ("3", "対話しながら作る")]
 
 
 def read(path):
@@ -96,24 +99,50 @@ async def main(page: ft.Page):
 
     def skill_tile(name):
         title, desc, _ = skills[name]
-        return ft.ListTile(title=ft.Text(title, weight=ft.FontWeight.BOLD), subtitle=ft.Text(desc),
+        icon = ft.Container(ft.Icon(ICONS.get(name, ft.Icons.MENU_BOOK), color=ft.Colors.ON_PRIMARY_CONTAINER),
+                            width=44, height=44, border_radius=14, bgcolor=ft.Colors.PRIMARY_CONTAINER,
+                            alignment=ft.Alignment.CENTER)
+        tile = ft.ListTile(leading=icon, title=ft.Text(title, weight=ft.FontWeight.BOLD),
+                           subtitle=ft.Text(desc, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
                            trailing=ft.Icon(ft.Icons.CHEVRON_RIGHT), on_click=lambda e: show_skill(name))
+        return ft.Card(tile, elevation=0, bgcolor=ft.Colors.SURFACE_CONTAINER_LOW)
+
+    def hero():
+        """The band at the top of the first screen: what aiai is, and the three steps."""
+        steps = ft.Row([ft.Container(ft.Row([
+            ft.Container(ft.Text(n, weight=ft.FontWeight.BOLD, color=ft.Colors.PRIMARY, size=12), width=22,
+                         height=22, border_radius=11, bgcolor=ft.Colors.WHITE, alignment=ft.Alignment.CENTER),
+            ft.Text(t, color=ft.Colors.WHITE, size=13)], spacing=6),
+            padding=ft.Padding.symmetric(vertical=6, horizontal=10), border_radius=999, bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.WHITE))
+            for n, t in STEPS], wrap=True, spacing=8, run_spacing=8)
+        return ft.Container(ft.Column([
+            ft.Text("aiai", size=30, weight=ft.FontWeight.W_800, color=ft.Colors.WHITE),
+            ft.Text("AI と共に仕事を始めるためのツール", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
+            ft.Text("主役は、あなたの AI。スキルを写して、ふだん使っている AI に貼ると、AI があなたに聞きながら一緒に作ります。",
+                    color=ft.Colors.with_opacity(0.92, ft.Colors.WHITE), size=13),
+            steps], spacing=10),
+            padding=20, border_radius=22,
+            gradient=ft.LinearGradient(begin=ft.Alignment.TOP_LEFT, end=ft.Alignment.BOTTOM_RIGHT,
+                                       colors=["#0b5c56", "#0f766e"]))
+
+    def group_header(text):
+        return ft.Container(ft.Text(text, size=13, weight=ft.FontWeight.BOLD, color=ft.Colors.PRIMARY),
+                            padding=ft.Padding.only(top=10, left=4))
 
     def show_list():
-        controls = [heading("スキル"),
-                    note("スキルを開き、「写す」で写して、ふだん使っている AI に貼ってください。"
-                         "AI が、あなたに聞きながら一緒に進めます。")]
+        controls = [hero()]
         shown = set()
         for group, names in GROUPS:
             names = [n for n in names if n in skills]
             if names:
-                controls.append(ft.Text(group, size=16, weight=ft.FontWeight.BOLD))
+                controls.append(group_header(group))
                 controls += [skill_tile(n) for n in names]
                 shown.update(names)
         rest = [n for n in skills if n not in shown]
         if rest:
-            controls.append(ft.Text("ほか", size=16, weight=ft.FontWeight.BOLD))
+            controls.append(group_header("ほか"))
             controls += [skill_tile(n) for n in rest]
+        controls.append(note("見本の人、店、数字は、すべて架空です。"))
         show(controls)
 
     def show_skill(name):

@@ -36,13 +36,16 @@ def create_app(soudan=None):
 
     app = FastAPI(title="aiai", docs_url=None, redoc_url=None, openapi_url=None)
 
+    # The browser asks again each time, so a changed page or style shows at once
+    fresh = {"Cache-Control": "no-cache"}
+
     @app.get("/")
     def top():
-        return FileResponse(os.path.join(HERE, "index.html"), media_type="text/html; charset=utf-8")
+        return FileResponse(os.path.join(HERE, "index.html"), media_type="text/html; charset=utf-8", headers=fresh)
 
     @app.get("/top.css")
     def css():
-        return FileResponse(os.path.join(HERE, "top.css"), media_type="text/css; charset=utf-8")
+        return FileResponse(os.path.join(HERE, "top.css"), media_type="text/css; charset=utf-8", headers=fresh)
 
     if soudan is not None:
         app.mount("/soudan", soudan)
