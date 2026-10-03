@@ -13,6 +13,7 @@ import tempfile
 import time
 import unittest
 import urllib.parse
+import zoneinfo
 
 import jwt
 from fastapi.testclient import TestClient
@@ -25,6 +26,11 @@ from fake_id import code, seen_secrets  # noqa: E402
 HERE = os.path.dirname(os.path.abspath(__file__))
 KOUMOKU = os.path.join(HERE, "取り置き.koumoku.adoc")
 SITE = "https://hanako-pan.example/torioki/"
+
+
+def tokyo_today():
+    """Today where the server counts days (TIMEZONE, Asia/Tokyo by default), not on this machine."""
+    return datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).date()
 
 def next_weekday(start, closed=(6, 0)):
     d = start
@@ -75,7 +81,7 @@ class ServerTest(unittest.TestCase):
         return {"Authorization": "Bearer " + t.json()["token"]}
 
     def good_request(self, days=1):
-        d = next_weekday(datetime.date.today() + datetime.timedelta(days=days))
+        d = next_weekday(tokyo_today() + datetime.timedelta(days=days))
         return {"values": {"呼び名": "はな", "取りに来る日": d.isoformat()},
                 "tables": {"品物": [{"品物": "食パン", "数": "2"}, {"品物": "あんパン", "数": "3"}]}}
 
@@ -177,7 +183,7 @@ class ServerTest(unittest.TestCase):
 
     def test_request_rules(self):
         h = self.sign_in("google", "rules", "rules@example.jp")
-        today = datetime.date.today()
+        today = tokyo_today()
         closed = today + datetime.timedelta(days=(6 - today.weekday()) % 7 or 7)  # a Sunday ahead
         cases = [
             ({"values": {"呼び名": "", "取りに来る日": ""}, "tables": {}}, "呼び名を書きます"),
