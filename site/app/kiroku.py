@@ -114,7 +114,11 @@ def _walk(obj, out, when=""):
         if role in USER_ROLES or role in AI_ROLES:
             text = _text_of(target.get("content", target.get("text", target.get("parts", ""))))
             if text.strip():
-                out.append((when or _time_of(target), "user" if role in USER_ROLES else "ai", text.strip()))
+                who = "user" if role in USER_ROLES else "ai"
+                model = target.get("model") if who == "ai" and isinstance(target.get("model"), str) else ""
+                # Which AI answered matters: an old model's weak answer is not the person's fault
+                text = f"[{model}] {text.strip()}" if model else text.strip()
+                out.append((when or _time_of(target), who, text))
             return
         for v in obj.values():
             if isinstance(v, (dict, list)):

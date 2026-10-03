@@ -19,7 +19,7 @@ CLAUDE_CODE = [
     {"type": "user", "timestamp": "2026-09-01T10:00:00Z",
      "message": {"role": "user", "content": "畑の写真から病気の見当を付けるアプリを作りたい"}},
     {"type": "assistant", "timestamp": "2026-09-01T10:00:05Z",
-     "message": {"role": "assistant", "content": [{"type": "text", "text": "いいですね"}]}},
+     "message": {"role": "assistant", "model": "claude-test-1", "content": [{"type": "text", "text": "いいですね"}]}},
     {"type": "user", "timestamp": "2026-09-01T10:01:00Z",
      "message": {"role": "user", "content": [{"type": "tool_result", "content": "ok"}]}},
     {"type": "user", "isMeta": True, "message": {"role": "user", "content": "<command-name>/model</command-name>"}},
@@ -57,6 +57,7 @@ class KirokuTest(unittest.TestCase):
         self.assertEqual([(d, who) for d, who, _ in turns],
                          [("2026-09-01", "user"), ("2026-09-01", "ai"), ("2026-09-02", "user")])
         self.assertIn("畑の写真", turns[0][2])
+        self.assertEqual(turns[1][2], "[claude-test-1] いいですね")
 
     def test_tool_records_are_found(self):
         self.write(".claude/projects/x/s.jsonl", "{}")
