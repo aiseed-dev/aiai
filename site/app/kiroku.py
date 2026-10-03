@@ -3,12 +3,14 @@
 that AI tools keep (Claude Code, Codex, Gemini CLI), the export ZIPs that
 ChatGPT, Claude and Gemini send, and the CSV of Copilot activity that a
 personal Microsoft account can export (its columns are not published, so
-a column is taken only when its name says it is what the person typed). Only what the person wrote is kept.
-Only the standard library is used, so the app carries it everywhere.
+a column is taken only when its name says what it holds). Only the
+standard library is used, so the app carries it everywhere.
 
 Formats are not fixed per company: any JSON is walked, and a dict that
-says it is from the user (role / author.role / sender / type = user or
-human) with text in it (content, text, parts) becomes one message. What
+says who spoke (role / author.role / sender / type) with text in it
+(content, text, parts) becomes one turn: the person's ("user", "human") or
+the AI's ("assistant", "model", "ai", "bot"). The dialogue is kept, not only
+what the person wrote: how they answer the AI shows how they think. What
 cannot be read this way is reported as not read.
 """
 import csv
@@ -22,6 +24,7 @@ import unicodedata
 import zipfile
 
 USER_ROLES = {"user", "human"}
+AI_ROLES = {"assistant", "model", "ai", "bot"}
 TIME_KEYS = ("timestamp", "created_at", "create_time", "createTime", "time", "date")
 
 # What gets hidden before anything leaves the PC
@@ -100,17 +103,18 @@ def _time_of(d):
 
 
 def _walk(obj, out, when=""):
-    """Collects (date, text) of user messages anywhere in a JSON value."""
+    """Collects (date, who, text) turns anywhere in a JSON value; who is "user" or "ai"."""
     if isinstance(obj, dict):
         when = _time_of(obj) or when
         if obj.get("isMeta") or obj.get("isSidechain"):
             return
         msg = obj.get("message") if isinstance(obj.get("message"), dict) else None
         target = msg if msg is not None and _role_of(msg) else obj
-        if _role_of(target) in USER_ROLES:
+        role = _role_of(target)
+        if role in USER_ROLES or role in AI_ROLES:
             text = _text_of(target.get("content", target.get("text", target.get("parts", ""))))
             if text.strip():
-                out.append((when or _time_of(target), text.strip()))
+                out.append((when or _time_of(target), "user" if role in USER_ROLES else "ai", text.strip()))
             return
         for v in obj.values():
             if isinstance(v, (dict, list)):
@@ -139,6 +143,7 @@ def read_json_text(text):
 
 
 PROMPT_COLUMN = re.compile(r"prompt|question|request|user|query|input|質問|入力|依頼", re.I)
+ANSWER_COLUMN = re.compile(r"response|answer|reply|回答|応答", re.I)
 DATE_COLUMN = re.compile(r"date|time|日時|日付", re.I)
 
 
@@ -152,11 +157,14 @@ def read_csv_text(text):
     if prompt is None:
         return []
     date = next((i for i, h in enumerate(head) if DATE_COLUMN.search(h)), None)
+    answer = next((i for i, h in enumerate(head) if ANSWER_COLUMN.search(h)), None)
     out = []
     for r in rows[1:]:
         if prompt < len(r) and r[prompt].strip():
             d = r[date][:10] if date is not None and date < len(r) and re.match(r"\d{4}-\d{2}-\d{2}", r[date]) else ""
-            out.append((d, r[prompt].strip()))
+            out.append((d, "user", r[prompt].strip()))
+            if answer is not None and answer < len(r) and r[answer].strip():
+                out.append((d, "ai", r[answer].strip()))
     return out
 
 
@@ -183,29 +191,37 @@ def read_zip(path):
 # ---- what the app shows and sends ------------------------------------------------
 
 
-def summary(messages):
-    """Counts and the span of dates, for the screen."""
-    dates = sorted(d for d, _ in messages if d)
+def summary(turns):
+    """Counts and the span of dates of the person's turns, for the screen."""
+    mine = [(d, t) for d, who, t in turns if who == "user"]
+    dates = sorted(d for d, _ in mine if d)
     months = {}
     for d in dates:
         months[d[:7]] = months.get(d[:7], 0) + 1
-    return {"messages": len(messages), "chars": sum(len(t) for _, t in messages),
+    return {"messages": len(mine), "replies": len(turns) - len(mine), "chars": sum(len(t) for _, t in mine),
             "first": dates[0] if dates else "", "last": dates[-1] if dates else "", "months": months}
 
 
-def material(messages, limit=60000, per_message=600):
-    """Masked user messages, spread over the whole span, at most `limit` characters.
+def material(turns, limit=60000, per_message=600, per_reply=200):
+    """The dialogue, masked, spread over the whole span, at most `limit` characters.
 
-    Short and repeated messages are dropped; long ones are cut. When there
-    is more than fits, messages are taken at even steps from oldest to newest.
+    Each of the person's turns comes with the start of the AI's turn before
+    it, so how they answered the AI can be read. Short and repeated turns of
+    the person are dropped; long ones are cut. When there is more than fits,
+    exchanges are taken at even steps from oldest to newest.
     """
-    seen, items = set(), []
-    for d, t in sorted(messages, key=lambda m: m[0]):
+    seen, items, last_ai = set(), [], ""
+    for d, who, t in sorted(turns, key=lambda m: m[0]):
         t = " ".join(t.split())
+        if who == "ai":
+            last_ai = t
+            continue
         if len(t) < 15 or t in seen:
             continue
         seen.add(t)
-        items.append(f"[{d or '日付なし'}] {mask(t[:per_message])}")
+        before = f"\n  AI: {mask(last_ai[:per_reply])}" if last_ai else ""
+        items.append(f"[{d or '日付なし'}]{before}\n  あなた: {mask(t[:per_message])}")
+        last_ai = ""
     total = sum(len(x) + 1 for x in items)
     if total > limit and items:
         step = total / limit

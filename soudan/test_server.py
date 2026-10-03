@@ -205,7 +205,7 @@ class ServerTest(unittest.TestCase):
         self.assertIn("次に学ぶとよいこと", prompts[1])
         self.assertIn("農業法人の見学", prompts[1])
         self.assertIn("A の答え 1", prompts[2])
-        self.assertIn("本人が AI に書いた発言", self.a.seen[0][0])
+        self.assertIn("本人と AI の対話", self.a.seen[0][0])
         rec = self.c.get("/api/record", headers=h).json()
         self.assertEqual([x["type"] for x in rec], ["event", "report"])
 

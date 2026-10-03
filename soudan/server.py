@@ -372,8 +372,9 @@ def create_app(env=None, providers=None, models=None):
         """The agent's steps: 自分を知る from the material, then 次を考える from that and the
         events, then one report. Each step is (system, user message)."""
         system = ("あなたは、aiai のアプリの報告書のエージェントです。次の決まりを守ります。\n\n" + rireki_rules +
-                  "\n\n資料は、本人が AI に書いた発言だけを、日付付きで並べた物です。識別情報に見える物は"
-                  "伏せてあります。日本語の、主語と述語のそろった「です・ます」の説明文で書きます。")
+                  "\n\n資料は、本人と AI の対話を、日付付きで並べた物です。「AI:」は AI の答えの初め、"
+                  "「あなた:」は本人がそれを受けて書いたことです。AI の答えを受けて本人がどう返したか"
+                  "(問い直した、断った、確かめた、直した)から読み取ります。識別情報に見える物は伏せてあります。日本語の、主語と述語のそろった「です・ます」の説明文で書きます。")
         lines = [f"- {r['created'][:10]} {r['text']}" for r in events]
         happened = ("本人が書いた出来事:\n" + "\n".join(lines) + "\n\n") if lines else ""
 

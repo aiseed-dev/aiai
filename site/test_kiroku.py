@@ -53,9 +53,10 @@ class KirokuTest(unittest.TestCase):
 
     def test_claude_code_keeps_only_what_the_person_typed(self):
         p = self.write(".claude/projects/x/s.jsonl", "\n".join(json.dumps(o, ensure_ascii=False) for o in CLAUDE_CODE))
-        msgs = kiroku.read_file(p)
-        self.assertEqual([d for d, _ in msgs], ["2026-09-01", "2026-09-02"])
-        self.assertIn("畑の写真", msgs[0][1])
+        turns = kiroku.read_file(p)
+        self.assertEqual([(d, who) for d, who, _ in turns],
+                         [("2026-09-01", "user"), ("2026-09-01", "ai"), ("2026-09-02", "user")])
+        self.assertIn("畑の写真", turns[0][2])
 
     def test_tool_records_are_found(self):
         self.write(".claude/projects/x/s.jsonl", "{}")
@@ -69,7 +70,7 @@ class KirokuTest(unittest.TestCase):
             f.writestr("conversations.json", json.dumps(EXPORT_TREE, ensure_ascii=False))
             f.writestr("other/conversations.json", json.dumps(EXPORT_LIST, ensure_ascii=False))
             f.writestr("chat.html", "<p>読まない</p>")
-        texts = sorted(t for _, t in kiroku.read_zip(z))
+        texts = sorted(t for _, who, t in kiroku.read_zip(z) if who == "user")
         self.assertEqual(len(texts), 2)
         self.assertTrue(any("りん酸" in t for t in texts) and any("取り置き" in t for t in texts))
 
@@ -80,23 +81,31 @@ class KirokuTest(unittest.TestCase):
         self.assertEqual(kiroku.read_zip(z), [])
 
     def test_material_masks_and_spreads(self):
-        msgs = [("2026-09-02", "連絡は hana@example.jp か 090-1234-5678 へ、鍵は sk-abcdefghijklmnopqrstuv です")]
+        msgs = [("2026-09-02", "user", "連絡は hana@example.jp か 090-1234-5678 へ、鍵は sk-abcdefghijklmnopqrstuv です")]
         m = kiroku.material(msgs)
         for secret in ("hana@example.jp", "090-1234-5678", "sk-abcdefghijklmnopqrstuv"):
             self.assertNotIn(secret, m)
-        many = [(f"2026-09-{d:02d}", f"{d} 日目の長めの相談です。" * 20) for d in range(1, 29)]
+        many = [(f"2026-09-{d:02d}", "user", f"{d} 日目の長めの相談です。" * 20) for d in range(1, 29)]
         m = kiroku.material(many, limit=3000)
         self.assertLessEqual(len(m), 3000 + 700)
         self.assertIn("2026-09-01", m)
 
     def test_csv_with_a_prompt_column(self):
         p = self.write("copilot.csv", "Date,Prompt,Response\n2026-09-10T08:00:00,会議のメモを整理して,はい\n")
-        self.assertEqual(kiroku.read_file(p), [("2026-09-10", "会議のメモを整理して")])
+        self.assertEqual(kiroku.read_file(p), [("2026-09-10", "user", "会議のメモを整理して"), ("2026-09-10", "ai", "はい")])
         q = self.write("other.csv", "a,b\n1,2\n")
         self.assertEqual(kiroku.read_file(q), [])
 
+    def test_material_keeps_the_dialogue(self):
+        turns = [("2026-09-01", "user", "畑の写真から病気を見分けるアプリを作りたいです"),
+                 ("2026-09-01", "ai", "まず学習用の写真を千枚集めましょう"),
+                 ("2026-09-01", "user", "千枚は無理です。手元の三十枚で、人が確かめる形にしたいです")]
+        m = kiroku.material(turns)
+        self.assertIn("AI: まず学習用の写真", m)
+        self.assertLess(m.index("AI: まず"), m.index("あなた: 千枚は無理"))
+
     def test_summary(self):
-        s = kiroku.summary([("2026-08-20", "あ"), ("2026-09-01", "いい"), ("", "う")])
+        s = kiroku.summary([("2026-08-20", "user", "あ"), ("2026-09-01", "user", "いい"), ("", "user", "う"), ("", "ai", "え")])
         self.assertEqual((s["messages"], s["first"], s["last"], s["months"]), (3, "2026-08-20", "2026-09-01",
                                                                              {"2026-08": 1, "2026-09": 1}))
 

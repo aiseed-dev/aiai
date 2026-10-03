@@ -2,8 +2,8 @@
 """The records tab of the aiai app: reads the person's AI records on this PC
 (the tools' records, or an export file they pick), shows what was read, and
 with one button has the AI agent on the second-opinion server write a
-report. Only what the person wrote is read, and identifying details are
-hidden on this PC before anything is sent.
+report. The dialogue is read, so how the person answered the AI shows;
+identifying details are hidden on this PC before anything is sent.
 
 It is shown only when the app runs on the person's own PC (AIAI_LOCAL=1),
 because on a shared server "this PC" would be the server. AIAI_RECORDS_HOME
@@ -44,8 +44,9 @@ class KirokuView:
     def controls(self):
         read = [
             ft.Text("記録から報告書を作る", size=22, weight=ft.FontWeight.BOLD),
-            self.note("この PC にある、あなたの AI の記録を読みます。読むのは、あなたが AI に書いた発言だけです。"
-                      "メールアドレスや電話番号などに見える物は、この PC の上で伏せてから送ります。"),
+            self.note("この PC にある、あなたと AI の対話の記録を読みます。AI の答えを受けて、あなたがどう返したかに、"
+                      "長所や考え方が出ます。メールアドレスや電話番号などに見える物は、この PC の上で伏せてから送ります。"
+                      "ほかの記録を足すのも自由です。"),
             ft.Row([ft.FilledButton("PC の AI の道具の記録を読む", icon=ft.Icons.COMPUTER, on_click=self.read_tools),
                     ft.OutlinedButton("書き出したファイルを選ぶ", icon=ft.Icons.UPLOAD_FILE, on_click=self.pick)],
                    wrap=True, spacing=8),
@@ -57,9 +58,10 @@ class KirokuView:
             months = "、".join(f"{m} {n} 件" for m, n in sorted(s["months"].items())[-6:])
             read += [ft.Divider(), ft.Text("読んだ記録", size=16, weight=ft.FontWeight.BOLD),
                      *[ft.Text(f"・{x}") for x in self.sources],
-                     ft.Text(f"あなたの発言 {s['messages']} 件({s['first'] or '日付なし'} から {s['last'] or '日付なし'} まで)"),
+                     ft.Text(f"あなたの発言 {s['messages']} 件、AI の答え {s['replies']} 件"
+                             f"({s['first'] or '日付なし'} から {s['last'] or '日付なし'} まで)"),
                      self.note(f"最近の月: {months}" if months else "日付は読めませんでした")]
-            if self.messages:
+            if any(who == "user" for _, who, _ in self.messages):
                 box = ft.Dropdown(label="報告書を書くモデル", width=280, value=self.model,
                                   options=[ft.DropdownOption(key=m, text=m) for m in self.models])
                 box.on_select = lambda e: setattr(self, "model", e.control.value)
@@ -69,7 +71,8 @@ class KirokuView:
         return read + [self.result]
 
     def load(self, label, messages):
-        self.sources.append(f"{label}: {len(messages)} 件" if messages else f"{label}: 読めませんでした")
+        mine = sum(1 for _, who, _ in messages if who == "user")
+        self.sources.append(f"{label}: あなたの発言 {mine} 件" if mine else f"{label}: 読めませんでした")
         self.messages += messages
 
     async def read_tools(self, e):
