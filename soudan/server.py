@@ -371,8 +371,8 @@ def create_app(env=None, providers=None, models=None):
     def report_steps(material, events):
         """The agent's steps: one per group of rireki/SKILL.md, in order, then one report.
 
-        Every group but the last reads the dialogue; the last (次を考える) reads what the
-        earlier groups found and the person's events. Each step is a function of the
+        Every group reads the dialogue and what the earlier groups found; the last
+        (次を考える) also reads the person's events. Each step is a function of the
         texts done so far that returns the prompt."""
         system = ("あなたは、aiai のアプリの報告書のエージェントです。次の決まりを守ります。\n\n" + rireki_rules +
                   "\n\n資料は、本人と AI の対話を、日付付きで並べた物です。「AI:」は AI の答えの初め、"
@@ -391,9 +391,8 @@ def create_app(env=None, providers=None, models=None):
             return "".join(f"「{g[0]}」でわかったこと:\n{t}\n\n" for g, t in zip(rireki_groups, done))
 
         def step(i, group):
-            if i < len(rireki_groups) - 1:
-                return lambda done: f"{found(done)}{ask(group)}\n\n資料:\n{material}"
-            return lambda done: f"{happened}{found(done)}{ask(group)}"
+            events = happened if i == len(rireki_groups) - 1 else ""
+            return lambda done: f"{events}{found(done)}{ask(group)}\n\n資料:\n{material}"
 
         names = "」「".join(g[0] for g in rireki_groups)
         final = (lambda done: f"次の内容を、1 つの報告書にまとめてください。初めに 3 行の要約を置き、「{names}」の"

@@ -137,7 +137,7 @@ aiai は「AI 時代の学び方」です。個人が、自分の AI と一緒�
 | `tools/todoke.py` | 書類ごとのデータを作る(tsukuru)、受け取って確かめる(uketsuke)。標準ライブラリだけ |
 | `tools/houkoku.py`、`HOUKOKU.md`、`.github/ISSUE_TEMPLATE/` | 報告の下書きと Issue のひな形 |
 | `tools/kakunin.py` | 出典の URL と確かめた日を集め、確かめ直す物を出す。標準ライブラリだけ |
-| `rireki/` | AI とのチャットの記録から自分を知る。「自分を知る」「改善する」「次を考える」の 12 の項目。3 種類: スキル、PC の AI の道具の記録、書き出したファイル。後の 2 つはアプリの「記録」のタブ(`site/app/kiroku.py`、`kiroku_view.py`)が読み、`soudan/` の `/api/reports` の AI エージェントが報告書にする。Microsoft 365 Copilot は、できないことが分かるように、わざと入れてある |
+| `rireki/` | AI とのチャットの記録から自分を知る。「自分を知る」と「次を考える」の 12 の項目。3 種類: スキル、PC の AI の道具の記録、書き出したファイル。後の 2 つはアプリの「記録」のタブ(`site/app/kiroku.py`、`kiroku_view.py`)が読み、`soudan/` の `/api/reports` の AI エージェントが報告書にする。Microsoft 365 Copilot は、できないことが分かるように、わざと入れてある |
 | `tenshoku/` | 転職を考えるときのスキル。チャットから長所を探し、AI でアプリを作る体験をして、次の行動を決める |
 | `gakusei/` | AI の時代、何を学ぶか(高校生と大学の 1 回生向け)。`tenshoku/` と同じ考え方で、チャットから長所を探し、AI でアプリを作る体験をして、学ぶことと次の行動を決める |
 | `genba/` | 現場で撮った写真を VLM に見せて、仕事の判断を助ける小さなアプリを作るスキル。AI の答えは人が確かめて記録する |
