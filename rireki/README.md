@@ -31,7 +31,7 @@ AI は 1 つずつ、そのとおりに作ります。2 と 3 は、本人の PC
 | ChatGPT | できる。ベータで、ワークスペースの持ち主が有効にする | Codex: `~/.codex/history.jsonl` | ZIP |
 | Claude | できる。Free から Enterprise まで。コードの実行を有効にする。フォルダーごと ZIP にして上げる | Claude Code、デスクトップアプリの Claude Code と Cowork: `~/.claude/projects/` | ZIP |
 | Gemini | できる。18 歳以上、個人の Google アカウント。順に提供が広がっている途中 | Gemini CLI: `~/.gemini/tmp/<プロジェクトの印>/chats/` | Google Takeout(公式の説明は未確認) |
-| Microsoft 365 Copilot | 企業の管理者に言ってもらってください | 企業の管理者に言ってもらってください | 企業の管理者に言ってもらってください |
+| Microsoft 365 Copilot | 企業用の場合は、管理者に言ってもらってください | 企業用の場合は、管理者に言ってもらってください | 企業用の場合は、管理者に言ってもらってください |
 
 アプリの「ZIP」は、Claude の形(`<名前>/SKILL.md`)です。Microsoft 365 Copilot には
 `/skills/<名前>.zip?for=m365`(`SKILL.md` をいちばん上に置く形)を使います。
