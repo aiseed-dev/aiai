@@ -198,13 +198,17 @@ class ServerTest(unittest.TestCase):
         self.c.post("/api/events", json={"text": "農業法人の見学に申し込んだ"}, headers=h)
         r = self.report(h)
         self.assertEqual(r.status_code, 200, r.text)
-        self.assertEqual(r.json()["steps"], 3)
+        self.assertEqual(r.json()["steps"], 4)
         prompts = [m[-1]["content"] for _, m in self.a.seen]
         self.assertIn("長所", prompts[0])
         self.assertIn("畑の写真", prompts[0])
-        self.assertIn("次に学ぶとよいこと", prompts[1])
-        self.assertIn("農業法人の見学", prompts[1])
-        self.assertIn("A の答え 1", prompts[2])
+        self.assertIn("十分な答えが出なかったやり取り", prompts[1])
+        self.assertIn("畑の写真", prompts[1])
+        self.assertIn("A の答え 1", prompts[1])
+        self.assertIn("次に学ぶとよいこと", prompts[2])
+        self.assertIn("農業法人の見学", prompts[2])
+        self.assertNotIn("畑の写真", prompts[2])
+        self.assertIn("「改善する」でわかったこと", prompts[3])
         self.assertIn("本人と AI の対話", self.a.seen[0][0])
         rec = self.c.get("/api/record", headers=h).json()
         self.assertEqual([x["type"] for x in rec], ["event", "report"])
@@ -219,9 +223,8 @@ class ServerTest(unittest.TestCase):
 
     def test_report_counts_toward_the_daily_limit(self):
         h = self.sign_in("hana")
-        self.assertEqual(self.report(h).status_code, 200)  # 3 of 4
-        self.assertEqual(self.ask(h).status_code, 200)     # 4 of 4
-        self.assertEqual(self.report(h).status_code, 429)
+        self.assertEqual(self.report(h).status_code, 200)  # 4 of 4
+        self.assertEqual(self.ask(h).status_code, 429)
 
     def test_a_failing_report_is_not_stored(self):
         self.a.fail = server.ModelError("このモデルは、この相談に答えませんでした")

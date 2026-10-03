@@ -369,14 +369,17 @@ def create_app(env=None, providers=None, models=None):
         return out
 
     def report_steps(material, events):
-        """The agent's steps: 自分を知る from the material, then 次を考える from that and the
-        events, then one report. Each step is (system, user message)."""
+        """The agent's steps: one per group of rireki/SKILL.md, in order, then one report.
+
+        Every group but the last reads the dialogue; the last (次を考える) reads what the
+        earlier groups found and the person's events. Each step is a function of the
+        texts done so far that returns the prompt."""
         system = ("あなたは、aiai のアプリの報告書のエージェントです。次の決まりを守ります。\n\n" + rireki_rules +
                   "\n\n資料は、本人と AI の対話を、日付付きで並べた物です。「AI:」は AI の答えの初め、"
                   "「あなた:」は本人がそれを受けて書いたことです。AI の答えを受けて本人がどう返したか"
                   "(問い直した、断った、確かめた、直した)から読み取ります。「AI:」の [ ] の中は、答えた AI の"
                   "モデルの名前です。過去の AI には十分に答えられなかった物もあるので、AI の答えが足りなかった"
-                  "場面での本人の問い直しや断りを、本人の短所と取り違えません。識別情報に見える物は伏せてあります。日本語の、主語と述語のそろった「です・ます」の説明文で書きます。")
+                  "場面での本人の問い直しや断りを、本人の短所と取り違えません。足りなかったやり取りは、改善の提案の材料にします。識別情報に見える物は伏せてあります。日本語の、主語と述語のそろった「です・ます」の説明文で書きます。")
         lines = [f"- {r['created'][:10]} {r['text']}" for r in events]
         happened = ("本人が書いた出来事:\n" + "\n".join(lines) + "\n\n") if lines else ""
 
@@ -384,14 +387,18 @@ def create_app(env=None, providers=None, models=None):
             items = "\n".join(f"- {n}: {d}" for n, d in group[1])
             return f"次の項目を、項目ごとに見出しを付けて書いてください。項目ごとに根拠(いつごろの、何についての発言か)を付けます。\n\n{items}"
 
-        first, second = rireki_groups[0], rireki_groups[-1]
-        return system, [
-            (f"{ask(first)}\n\n資料:\n{material}",),
-            (lambda know: f"{happened}「{first[0]}」でわかったこと:\n{know}\n\n{ask(second)}",),
-            (lambda know, nxt: "次の 2 つを、1 つの報告書にまとめてください。初めに 3 行の要約を置き、"
-             f"「{first[0]}」「{second[0]}」の見出しで並べ、最後に次の行動を期日付きで置きます。\n\n"
-             f"{first[0]}:\n{know}\n\n{second[0]}:\n{nxt}",),
-        ]
+        def found(done):
+            return "".join(f"「{g[0]}」でわかったこと:\n{t}\n\n" for g, t in zip(rireki_groups, done))
+
+        def step(i, group):
+            if i < len(rireki_groups) - 1:
+                return lambda done: f"{found(done)}{ask(group)}\n\n資料:\n{material}"
+            return lambda done: f"{happened}{found(done)}{ask(group)}"
+
+        names = "」「".join(g[0] for g in rireki_groups)
+        final = (lambda done: f"次の内容を、1 つの報告書にまとめてください。初めに 3 行の要約を置き、「{names}」の"
+                 f"見出しで並べ、最後に次の行動を期日付きで置きます。\n\n{found(done)}")
+        return system, [step(i, g) for i, g in enumerate(rireki_groups)] + [final]
 
     @app.post("/api/reports")
     async def report(request: Request, authorization: str = Header("")):
@@ -421,7 +428,7 @@ def create_app(env=None, providers=None, models=None):
         done, tin, tout = [], 0, 0
         try:
             for step in steps:
-                prompt = step[0] if isinstance(step[0], str) else step[0](*done)
+                prompt = step(done)
                 text, i, o = mods[model].answer(system, [{"role": "user", "content": prompt}])
                 done.append(text)
                 tin, tout = tin + i, tout + o

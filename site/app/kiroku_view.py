@@ -66,7 +66,7 @@ class KirokuView:
                                   options=[ft.DropdownOption(key=m, text=m) for m in self.models])
                 box.on_select = lambda e: setattr(self, "model", e.control.value)
                 read += [box, ft.FilledButton("報告書を作る", icon=ft.Icons.AUTO_AWESOME, on_click=self.make),
-                         self.note("AI エージェントが、「自分を知る」「次を考える」の順に項目を作り、1 つの報告書に"
+                         self.note("AI エージェントが、「自分を知る」「改善する」「次を考える」の順に項目を作り、1 つの報告書に"
                                    "まとめます。相談のタブでサインインし、招待の番号で使い始めた人だけが使えます。")]
         return read + [self.result]
 
