@@ -7,6 +7,7 @@ Apple and Google of moushikomi/fake_id.py and two fake models.
 import os
 import sys
 import tempfile
+import time
 import unittest
 import urllib.parse
 
@@ -28,23 +29,29 @@ class FakeModel:
 
     def __init__(self, name, fail=None):
         self.name, self.fail, self.seen = name, fail, []
+        self.fail_at, self.drop_at = None, None  # the call that is refused / that does not connect
 
     def answer(self, system, messages):
         self.seen.append((system, messages))
-        if self.fail:
-            raise self.fail
-        return f"{self.name} の答え {len(messages)}", 100, 20
+        if self.fail or len(self.seen) == self.fail_at:
+            raise self.fail or server.ModelError("このモデルは、この相談に答えませんでした")
+        if len(self.seen) == self.drop_at:
+            raise ConnectionError("dropped")
+        return f"{self.name} の答え #{len(self.seen)}", 100, 20
 
 
 class ServerTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.fake, env = fake_id.start(self.tmp.name)
-        env |= {"BASE_URL": "https://soudan.example", "RETURN_URLS": SITE,
-                "DB": os.path.join(self.tmp.name, "t.db"), "RESEARCH_EMAILS": "Owner@Example.jp",
-                "SOUDAN_PER_DAY": "4", "SOUDAN_DAY_LIMIT": "6"}
+        self.fake, self.env = fake_id.start(self.tmp.name)
+        self.env |= {"BASE_URL": "https://soudan.example", "RETURN_URLS": SITE,
+                     "DB": os.path.join(self.tmp.name, "t.db"), "RESEARCH_EMAILS": "Owner@Example.jp",
+                     "SOUDAN_PER_DAY": "4", "SOUDAN_DAY_LIMIT": "30"}
+        self.start()
+
+    def start(self, **over):
         self.a, self.b = FakeModel("A"), FakeModel("B")
-        self.app = server.create_app(env, models={"a:one": self.a, "b:two": self.b})
+        self.app = server.create_app(self.env | over, models={"a:one": self.a, "b:two": self.b})
         self.c = TestClient(self.app, follow_redirects=False)
 
     def tearDown(self):
@@ -71,7 +78,7 @@ class ServerTest(unittest.TestCase):
 
     def test_info_lists_kinds_and_models(self):
         info = self.c.get("/api/info").json()
-        self.assertEqual({k["name"] for k in info["kinds"]}, {"転職", "学び", "履歴書", "企画書"})
+        self.assertEqual({k["name"] for k in info["kinds"]}, {"自分を知る", "転職", "学び", "履歴書", "企画書"})
         self.assertEqual(info["models"], ["a:one", "b:two"])
         self.assertIn("研究", info["consent"])
 
@@ -115,7 +122,7 @@ class ServerTest(unittest.TestCase):
         h = self.sign_in("hana")
         r = self.ask(h, models=("a:one", "b:two"))
         self.assertEqual(r.status_code, 200, r.text)
-        self.assertEqual([x["answer"] for x in r.json()], ["A の答え 1", "B の答え 1"])
+        self.assertEqual([x["answer"] for x in r.json()], ["A の答え #1", "B の答え #1"])
         system, messages = self.a.seen[0]
         self.assertIn("セカンドオピニオン", system)
         self.assertIn("# 転職の考え", system)
@@ -152,6 +159,7 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.ask(h, draft="あ" * 12001).status_code, 422)
 
     def test_limits_per_person_and_per_day(self):
+        self.start(SOUDAN_DAY_LIMIT="6")
         h = self.sign_in("hana")
         self.assertEqual(self.ask(h, models=("a:one", "b:two")).status_code, 200)
         self.assertEqual(self.ask(h, models=("a:one", "b:two")).status_code, 200)
@@ -193,22 +201,46 @@ class ServerTest(unittest.TestCase):
         return self.c.post("/api/reports", json={"model": model, "material": material, "sources": "Claude Code 3 件"},
                            headers=h)
 
-    def test_report_runs_the_agent_steps(self):
+    def finished(self, h, rid):
+        """The report once its thread is done (the fake models answer at once)."""
+        for _ in range(100):
+            r = self.c.get(f"/api/reports/{rid}", headers=h).json()
+            if r["status"] != "running":
+                return r
+            time.sleep(0.05)
+        self.fail("the report did not finish")
+
+    def test_report_runs_the_agent_one_item_at_a_time(self):
         h = self.sign_in("hana")
         self.c.post("/api/events", json={"text": "農業法人の見学に申し込んだ"}, headers=h)
         r = self.report(h)
         self.assertEqual(r.status_code, 200, r.text)
-        self.assertEqual(r.json()["steps"], 3)
+        self.assertEqual(r.json()["steps"], 13)
+        r = self.finished(h, r.json()["id"])
+        self.assertEqual((r["status"], r["done"], r["error"]), ("done", 13, None))
         prompts = [m[-1]["content"] for _, m in self.a.seen]
-        self.assertIn("長所", prompts[0])
+        self.assertIn("本人と AI の対話", self.a.seen[0][0])
+        # 1. 長所: the dialogue and its own lines, nothing else
+        self.assertIn("「1. 長所」", prompts[0])
+        self.assertIn("書き方: 3 つまで", prompts[0])
         self.assertIn("畑の写真", prompts[0])
         self.assertNotIn("農業法人の見学", prompts[0])
-        for item in ("十分な答えが出なかったやり取り", "次に学ぶとよいこと", "A の答え 1", "畑の写真", "農業法人の見学"):
-            self.assertIn(item, prompts[1])
-        self.assertIn("「次を考える」でわかったこと", prompts[2])
-        self.assertIn("本人と AI の対話", self.a.seen[0][0])
+        # 7. いまの AI での頼み方: only the result of 6
+        self.assertIn("「7. いまの AI での頼み方」", prompts[6])
+        self.assertIn("A の答え #6", prompts[6])
+        self.assertNotIn("A の答え #1\n", prompts[6])
+        self.assertNotIn("畑の写真", prompts[6])
+        # 10. 長所が生きる仕事: the results of 1 to 5 and the events
+        self.assertIn("A の答え #5", prompts[9])
+        self.assertNotIn("A の答え #6", prompts[9])
+        self.assertIn("農業法人の見学", prompts[9])
+        # the summary reads every item, and the report is put together in order
+        self.assertIn("## 12. 次の行動", prompts[12])
+        self.assertTrue(r["report"].startswith("# 報告書\n\n## 要約\n\nA の答え #13"))
+        self.assertLess(r["report"].index("## 1. 長所\n\nA の答え #1\n"), r["report"].index("## 12. 次の行動\n\nA の答え #12"))
         rec = self.c.get("/api/record", headers=h).json()
         self.assertEqual([x["type"] for x in rec], ["event", "report"])
+        self.assertEqual(rec[1]["report"], r["report"])
 
     def test_report_checks(self):
         h = self.sign_in("hana")
@@ -217,24 +249,42 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.report(h, material="連絡は hana@example.jp").status_code, 422)
         self.assertEqual(self.report(h, material="あ" * 80001).status_code, 422)
         self.assertEqual(self.a.seen, [])
+        self.assertEqual(self.c.get("/api/reports/nothing", headers=h).status_code, 404)
 
-    def test_report_counts_toward_the_daily_limit(self):
+    def test_report_limits(self):
+        self.start(SOUDAN_DAY_LIMIT="20")
         h = self.sign_in("hana")
-        self.assertEqual(self.report(h).status_code, 200)  # 3 of 4
-        self.assertEqual(self.ask(h).status_code, 200)     # 4 of 4
-        self.assertEqual(self.report(h).status_code, 429)
+        first = self.report(h)
+        self.assertEqual(first.status_code, 200)
+        self.finished(h, first.json()["id"])
+        self.assertEqual(self.ask(h).status_code, 200)   # a report is not one of the person's consultations
+        t = self.sign_in("taro")
+        self.assertEqual(self.report(t).status_code, 429)  # 13 + 1 + 13 is over everyone's 20 calls
+        self.assertEqual(self.ask(t).status_code, 200)
 
-    def test_a_failing_report_is_not_stored(self):
-        self.a.fail = server.ModelError("このモデルは、この相談に答えませんでした")
+    def test_a_report_that_stops_early_keeps_its_items(self):
         h = self.sign_in("hana")
-        self.assertEqual(self.report(h).status_code, 502)
-        self.assertEqual(self.c.get("/api/record", headers=h).json(), [])
+        self.a.fail_at = 4
+        r = self.finished(h, self.report(h).json()["id"])
+        self.assertEqual((r["status"], r["done"]), ("failed", 3))
+        self.assertEqual(r["error"], "このモデルは、この相談に答えませんでした")
+        self.assertIn("## 3. 繰り返し興味を持っていること\n\nA の答え #3", r["report"])
+        self.assertNotIn("要約", r["report"])
+        self.assertNotIn("## 4.", r["report"])
+        self.assertEqual(len(self.a.seen), 4)  # a refusal is not tried again
+
+    def test_a_connection_failure_is_tried_once_more(self):
+        h = self.sign_in("hana")
+        self.a.drop_at = 2
+        r = self.finished(h, self.report(h).json()["id"])
+        self.assertEqual((r["status"], r["done"]), ("done", 13))
+        self.assertEqual(len(self.a.seen), 14)
 
     def test_deleting_the_record(self):
         h = self.sign_in("hana")
         self.ask(h)
         self.c.post("/api/events", json={"text": "応募した"}, headers=h)
-        self.report(h)
+        self.finished(h, self.report(h).json()["id"])
         self.assertEqual(self.c.delete("/api/record", headers=h).status_code, 200)
         db = self.app.state.db
         for table in ("consults", "events", "reports", "people", "sessions"):

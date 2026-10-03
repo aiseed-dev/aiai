@@ -105,6 +105,15 @@ class KirokuTest(unittest.TestCase):
         self.assertIn("AI: まず学習用の写真", m)
         self.assertLess(m.index("AI: まず"), m.index("あなた: 千枚は無理"))
 
+    def test_handout_has_the_skill_then_the_dialogue(self):
+        skill = "---\nname: rireki\n---\n\n# 自分を知る\n\n## 項目\n\n1. **長所**: 強み\n\n## 使い方\n\nClaude: ZIP"
+        turns = [("2026-09-01", "user", "畑の写真から病気を見分けるアプリを作りたいです")]
+        h = kiroku.handout(skill, turns)
+        self.assertLess(h.index("## スキル"), h.index("1. **長所**"))
+        self.assertLess(h.index("1. **長所**"), h.index("## 資料"))
+        self.assertLess(h.index("## 資料"), h.index("畑の写真"))
+        self.assertNotIn("Claude: ZIP", h)
+
     def test_summary(self):
         s = kiroku.summary([("2026-08-20", "user", "あ"), ("2026-09-01", "user", "いい"), ("", "user", "う"), ("", "ai", "え")])
         self.assertEqual((s["messages"], s["first"], s["last"], s["months"]), (3, "2026-08-20", "2026-09-01",

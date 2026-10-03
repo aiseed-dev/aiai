@@ -231,3 +231,14 @@ def material(turns, limit=60000, per_message=600, per_reply=200):
         step = total / limit
         items = [items[int(i * step)] for i in range(int(len(items) / step))]
     return "\n".join(items)
+
+
+def handout(skill, turns, **limits):
+    """One Markdown file for the person's own AI: what to do, the skill, then the
+    dialogue as 資料. The person uploads or pastes it in their AI's chat."""
+    body = skill.split("\n## 使い方")[0].strip()
+    return ("# AI とのチャットの記録から、自分を知る(材料)\n\n"
+            "この文書は、aiai のアプリが作りました。下の「スキル」のとおりに、「資料」から項目を作ってください。"
+            "資料は、本人と AI の対話を日付順に並べた物です。「AI:」は AI の答えの初め、「あなた:」は本人が"
+            "それを受けて書いたことです。「AI:」の [ ] の中は、答えた AI のモデルの名前です。識別情報に見える物は伏せてあります。\n\n"
+            f"## スキル\n\n{body}\n\n## 資料\n\n{material(turns, **limits)}\n")

@@ -22,8 +22,9 @@ the file name is the kind. Settings come from environment variables:
     SOUDAN_MODELS         the models offered, space separated vendor:model,
                           e.g. "anthropic:claude-opus-5-5"
     ANTHROPIC_API_KEY     for the anthropic models
-    SOUDAN_PER_DAY        model calls one person may make a day (default 10)
-    SOUDAN_DAY_LIMIT      model calls everyone together may make a day (default 300)
+    SOUDAN_PER_DAY        consultations (one per model) one person may make a day (default 10)
+    SOUDAN_DAY_LIMIT      model calls everyone together may make a day (default 300); a
+                          report calls the model once per item of rireki/SKILL.md, then once more
     RESEARCH_EMAILS       sign-in emails of the research staff, who make invitation
                           codes and read the summary (space separated)
     TIMEZONE              default Asia/Tokyo
@@ -38,6 +39,7 @@ import importlib.util
 import os
 import re
 import secrets
+import threading
 import time
 import unicodedata
 import urllib.parse
@@ -83,7 +85,7 @@ SCHEMA = ms.SIGN_IN_SCHEMA + """
             text TEXT, created TEXT);
         CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, provider TEXT, sub TEXT, model TEXT,
             sources TEXT, report TEXT, calls INTEGER, in_tokens INTEGER, out_tokens INTEGER,
-            rating INTEGER, created TEXT);
+            rating INTEGER, created TEXT, status TEXT, done INTEGER, steps INTEGER, error TEXT);
 """
 
 # ---- identifying details --------------------------------------------------------
@@ -135,18 +137,29 @@ def read_kanten(folder):
 
 
 def read_rireki(path):
-    """(rules, [(group, [items])]) from rireki/SKILL.md: its 守ること and 項目 sections."""
+    """(rules, items) from rireki/SKILL.md: its 守ること and 項目 sections.
+
+    Each item is a dict: number, group, name, what (its one line), the lines under
+    it by their label (読む物, 見る所, 書き方), and from 読む物: dialogue (whether it
+    reads the dialogue), events (the person's events) and uses (the numbers of the
+    items whose results it reads)."""
     with open(path, encoding="utf-8") as f:
         text = f.read()
     rules = re.search(r"## 守ること\n(.*?)\n## ", text, re.S).group(1).strip()
     part = re.search(r"## 項目\n(.*?)\n## ", text, re.S).group(1)
-    groups = []
+    items = []
     for block in re.split(r"\n### ", "\n" + part)[1:]:
-        name, _, body = block.partition("\n")
-        items = re.findall(r"^\d+\. \*\*(.+?)\*\*: (.+)$", body, re.M)
-        if items:
-            groups.append((name.strip(), items))
-    return rules, groups
+        group, _, body = block.partition("\n")
+        for m in re.finditer(r"^(\d+)\. \*\*(.+?)\*\*: (.+)\n((?:[ ]+- .+\n?)*)", body, re.M):
+            item = {"number": int(m[1]), "group": group.strip(), "name": m[2], "what": m[3].strip()}
+            item |= dict(re.findall(r"^[ ]+- (.+?): (.+)$", m[4], re.M))
+            reads = item.get("読む物", "")
+            uses = set()
+            for a, b in re.findall(r"(\d+)(?:〜(\d+))?", reads.split("の結果")[0] if "の結果" in reads else ""):
+                uses |= set(range(int(a), int(b or a) + 1))
+            item |= {"dialogue": "対話" in reads, "events": "出来事" in reads, "uses": sorted(uses)}
+            items.append(item)
+    return rules, items
 
 
 # ---- models ----------------------------------------------------------------------------
@@ -204,7 +217,7 @@ def create_app(env=None, providers=None, models=None):
     provs = providers if providers is not None else ms.providers_from(env)
     mods = models if models is not None else models_from(env)
     common, kinds = read_kanten(os.path.join(HERE, "観点"))
-    rireki_rules, rireki_groups = read_rireki(os.path.join(HERE, "..", "rireki", "SKILL.md"))
+    rireki_rules, rireki_items = read_rireki(os.path.join(HERE, "..", "rireki", "SKILL.md"))
     with open(os.path.join(HERE, "同意.md"), encoding="utf-8") as f:
         consent = f.read().strip()
     consent_version = hashlib.sha256(consent.encode()).hexdigest()[:12]
@@ -299,8 +312,8 @@ def create_app(env=None, providers=None, models=None):
                     for r in db.all("SELECT * FROM consults WHERE provider = ? AND sub = ?", key)]
         events = [{"type": "event", "id": r["id"], "text": r["text"], "created": r["created"]}
                   for r in db.all("SELECT * FROM events WHERE provider = ? AND sub = ?", key)]
-        reports = [{"type": "report", "id": r["id"], "model": r["model"], "report": r["report"],
-                    "sources": r["sources"], "rating": r["rating"], "created": r["created"]}
+        reports = [report_of(r) | {"type": "report", "sources": r["sources"], "rating": r["rating"],
+                                   "created": r["created"]}
                    for r in db.all("SELECT * FROM reports WHERE provider = ? AND sub = ?", key)]
         return sorted(consults + events + reports, key=lambda x: x["created"])
 
@@ -318,13 +331,19 @@ def create_app(env=None, providers=None, models=None):
         out.append({"role": "user", "content": head + "今回の下書き:\n" + draft})
         return out
 
-    def calls_today(key=None):
-        """Model calls made today: one per consultation, and each report's steps."""
+    def today(key):
         day = now().date().isoformat()
-        who, args = ("provider = ? AND sub = ? AND ", (*key, day)) if key else ("", (day,))
-        consults = db.one(f"SELECT COUNT(*) FROM consults WHERE {who}created >= ?", args)[0]
+        return ("provider = ? AND sub = ? AND ", (*key, day)) if key else ("", (day,))
+
+    def consults_today(key):
+        who, args = today(key)
+        return db.one(f"SELECT COUNT(*) FROM consults WHERE {who}created >= ?", args)[0]
+
+    def calls_today():
+        """Everyone's model calls today: one per consultation, and each report's steps."""
+        who, args = today(None)
         reports = db.one(f"SELECT COALESCE(SUM(calls), 0) FROM reports WHERE {who}created >= ?", args)[0]
-        return consults + reports
+        return consults_today(None) + reports
 
     @app.post("/api/consults")
     async def consult(request: Request, authorization: str = Header("")):
@@ -347,7 +366,7 @@ def create_app(env=None, providers=None, models=None):
         if problems:
             raise HTTPException(422, problems)
         key = (s["provider"], s["sub"])
-        if calls_today(key) + len(chosen) > per_day:
+        if consults_today(key) + len(chosen) > per_day:
             raise HTTPException(429, f"相談は、一人 1 日 {per_day} 回までです")
         if calls_today() + len(chosen) > day_limit:
             raise HTTPException(429, "今日の相談の受け付けは終わりました。明日またどうぞ")
@@ -369,35 +388,88 @@ def create_app(env=None, providers=None, models=None):
         return out
 
     def report_steps(material, events):
-        """The agent's steps: one per group of rireki/SKILL.md, in order, then one report.
+        """The agent's steps: one per item of rireki/SKILL.md, in order, then a summary.
 
-        Every group reads the dialogue and what the earlier groups found; the last
-        (次を考える) also reads the person's events. Each step is a function of the
-        texts done so far that returns the prompt."""
+        A model gives better answers to small, exact requests, so each step asks
+        for one item with that item's lines (読む物, 見る所, 書き方), and hands it only
+        what its 読む物 names: the dialogue, the results of earlier items, the
+        person's events. Each step is a function of the texts done so far that
+        returns the prompt; assemble(done) makes the report."""
         system = ("あなたは、aiai のアプリの報告書のエージェントです。次の決まりを守ります。\n\n" + rireki_rules +
                   "\n\n資料は、本人と AI の対話を、日付付きで並べた物です。「AI:」は AI の答えの初め、"
                   "「あなた:」は本人がそれを受けて書いたことです。AI の答えを受けて本人がどう返したか"
                   "(問い直した、断った、確かめた、直した)から読み取ります。「AI:」の [ ] の中は、答えた AI の"
                   "モデルの名前です。過去の AI には十分に答えられなかった物もあるので、AI の答えが足りなかった"
-                  "場面での本人の問い直しや断りを、本人の短所と取り違えません。足りなかったやり取りは、改善の提案の材料にします。識別情報に見える物は伏せてあります。日本語の、主語と述語のそろった「です・ます」の説明文で書きます。")
+                  "場面での本人の問い直しや断りを、本人の短所と取り違えません。足りなかったやり取りは、改善の提案の"
+                  "材料にします。識別情報に見える物は伏せてあります。日本語の、主語と述語のそろった「です・ます」の"
+                  "説明文で書きます。頼まれた 1 つの項目だけを、見出しを付けずに書きます。")
         lines = [f"- {r['created'][:10]} {r['text']}" for r in events]
-        happened = ("本人が書いた出来事:\n" + "\n".join(lines) + "\n\n") if lines else ""
+        happened = "\n".join(lines) or "(まだありません)"
+        by_number = {it["number"]: n for n, it in enumerate(rireki_items)}
 
-        def ask(group):
-            items = "\n".join(f"- {n}: {d}" for n, d in group[1])
-            return f"次の項目を、項目ごとに見出しを付けて書いてください。項目ごとに根拠(いつごろの、何についての発言か)を付けます。\n\n{items}"
+        def step(item):
+            def prompt(done):
+                parts = []
+                if item["dialogue"]:
+                    parts.append(f"<資料>\n{material}\n</資料>")
+                for u in item["uses"]:
+                    if by_number.get(u, len(done)) < len(done):
+                        used = rireki_items[by_number[u]]
+                        parts.append(f"<{u}. {used['name']}>\n{done[by_number[u]]}\n</{u}. {used['name']}>")
+                if item["events"]:
+                    parts.append(f"<本人が書いた出来事>\n{happened}\n</本人が書いた出来事>")
+                ask = [f"項目「{item['number']}. {item['name']}」を書いてください。", f"この項目: {item['what']}"]
+                ask += [f"{k}: {item[k]}" for k in ("見る所", "書き方") if k in item]
+                ask.append("根拠は「〇月ごろの、〇〇についてのやり取り」のように書きます。根拠の無いことは書きません。")
+                return "\n\n".join(parts + ["\n".join(ask)])
+            return prompt
 
-        def found(done):
-            return "".join(f"「{g[0]}」でわかったこと:\n{t}\n\n" for g, t in zip(rireki_groups, done))
+        def sections(done):
+            return "\n\n".join(f"## {it['number']}. {it['name']}\n\n{text.strip()}" for it, text in zip(rireki_items, done))
 
-        def step(i, group):
-            events = happened if i == len(rireki_groups) - 1 else ""
-            return lambda done: f"{events}{found(done)}{ask(group)}\n\n資料:\n{material}"
+        summary = (lambda done: f"<報告書>\n{sections(done)}\n</報告書>\n\nこの報告書の初めに置く要約を、3 行で書いてください。"
+                   "1 行目は長所と得意な分野、2 行目は AI の使い方で改善できること、3 行目はいちばん先にする行動です。"
+                   "報告書に無いことは書きません。")
 
-        names = "」「".join(g[0] for g in rireki_groups)
-        final = (lambda done: f"次の内容を、1 つの報告書にまとめてください。初めに 3 行の要約を置き、「{names}」の"
-                 f"見出しで並べ、最後に次の行動を期日付きで置きます。\n\n{found(done)}")
-        return system, [step(i, g) for i, g in enumerate(rireki_groups)] + [final]
+        def assemble(done):
+            """The report from what is done so far: the summary comes last, so a report
+            that stopped early has the items it got and no summary."""
+            items = done[:len(rireki_items)]
+            head = f"## 要約\n\n{done[-1].strip()}\n\n" if len(done) > len(rireki_items) else ""
+            return f"# 報告書\n\n{head}{sections(items)}\n" if items else ""
+
+        return system, [step(it) for it in rireki_items] + [summary], assemble
+
+    def report_of(r):
+        return {"id": r["id"], "model": r["model"], "status": r["status"], "done": r["done"],
+                "steps": r["steps"], "report": r["report"], "error": r["error"]}
+
+    def run_report(rid, model, system, steps, assemble):
+        """Runs the agent's steps in a thread, keeping each finished item in the row, so
+        the app can show how far it is and a report that stops early keeps its items.
+        A connection failure is tried once more; a refusal stops the report."""
+        done, tin, tout = [], 0, 0
+        error = None
+        for step in steps:
+            prompt = step(done)
+            for attempt in (1, 2):
+                error = None
+                try:
+                    text, i, o = mods[model].answer(system, [{"role": "user", "content": prompt}])
+                    break
+                except ModelError as e:
+                    error = str(e)
+                    break
+                except Exception:
+                    error = "このモデルに、いまはつながりませんでした"
+            if error:
+                break
+            done.append(text)
+            tin, tout = tin + i, tout + o
+            db.run("UPDATE reports SET report = ?, done = ?, in_tokens = ?, out_tokens = ? WHERE id = ?",
+                   (assemble(done), len(done), tin, tout, rid))
+        db.run("UPDATE reports SET status = ?, calls = ?, error = ? WHERE id = ?",
+               ("failed" if error else "done", len(done), error, rid))
 
     @app.post("/api/reports")
     async def report(request: Request, authorization: str = Header("")):
@@ -418,28 +490,27 @@ def create_app(env=None, providers=None, models=None):
         if problems:
             raise HTTPException(422, problems)
         key = (s["provider"], s["sub"])
-        system, steps = report_steps(material, db.all(
+        system, steps, assemble = report_steps(material, db.all(
             "SELECT text, created FROM events WHERE provider = ? AND sub = ? ORDER BY created", key))
-        if calls_today(key) + len(steps) > per_day:
-            raise HTTPException(429, f"AI の呼び出しは、一人 1 日 {per_day} 回までです(報告書は {len(steps)} 回使います)")
         if calls_today() + len(steps) > day_limit:
             raise HTTPException(429, "今日の受け付けは終わりました。明日またどうぞ")
-        done, tin, tout = [], 0, 0
-        try:
-            for step in steps:
-                prompt = step(done)
-                text, i, o = mods[model].answer(system, [{"role": "user", "content": prompt}])
-                done.append(text)
-                tin, tout = tin + i, tout + o
-        except ModelError as e:
-            raise HTTPException(502, [str(e)])
-        except Exception:
-            raise HTTPException(502, ["このモデルに、いまはつながりませんでした"])
+        if db.one("SELECT COUNT(*) FROM reports WHERE provider = ? AND sub = ? AND status = 'running'", key)[0]:
+            raise HTTPException(409, ["前の報告書を、まだ作っています"])
         rid = secrets.token_urlsafe(12)
-        db.run("INSERT INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-               (rid, *key, model, sources, done[-1], len(steps), tin, tout, None,
-                now().isoformat(timespec="microseconds")))
-        return {"id": rid, "report": done[-1], "steps": len(steps)}
+        # The steps are counted as calls from the start, so the day's limit holds while it runs
+        db.run("INSERT INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+               (rid, *key, model, sources, "", len(steps), 0, 0, None,
+                now().isoformat(timespec="microseconds"), "running", 0, len(steps), None))
+        threading.Thread(target=run_report, args=(rid, model, system, steps, assemble), daemon=True).start()
+        return report_of(db.one("SELECT * FROM reports WHERE id = ?", (rid,)))
+
+    @app.get("/api/reports/{rid}")
+    def report_progress(rid: str, authorization: str = Header("")):
+        s = member(authorization)
+        r = db.one("SELECT * FROM reports WHERE id = ? AND provider = ? AND sub = ?", (rid, s["provider"], s["sub"]))
+        if not r:
+            raise HTTPException(404, ["その報告書はありません"])
+        return report_of(r)
 
     @app.post("/api/consults/{cid}/rating")
     async def rate(cid: str, request: Request, authorization: str = Header("")):
