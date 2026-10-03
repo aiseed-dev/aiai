@@ -35,5 +35,9 @@ python site/try.py
 - deb2 の dev のホームで動かし、ブラウザーで押して確かめました(2026-10-02)。トップページ
   (スマートフォンの幅と広い幅、明るい画面と暗い画面)、アプリの最初の画面、3 つのタブ、「写す」、
   相談のタブのサインインから、評価、出来事、記録をすべて消すまで
-- aiai.aiseed.dev での公開と、`flet build` でのアプリへの書き出しは、まだです
+- https://aiai.aiseed.dev/ で公開しています(2026-10-04)。Google Cloud の Compute Engine の VM
+  (Debian 13)で、`site/server.py` を systemd(`aiai-site`)で動かし、Caddy の後ろに置いています。
+  Caddy は同じ VM のほかの Web と共有するので、aiai の分は `/etc/caddy/aiai.caddy` に分けています。
+  トップページ、スキルの ZIP、アプリの最初の画面が開くことを、外から確かめました
+- `flet build` でのアプリへの書き出しは、まだです
 - `genba/` の記録の画面は、まだありません

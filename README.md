@@ -231,7 +231,7 @@ officework の Issues に報告します。
   - Cloudflare Pages での公開と、お問い合わせの関数
   - `moushikomi/` を本物の Apple と Google で使うこと。iPhone と Android のアプリへの書き出し
   - `soudan/` を本物のモデルにつなぐこと
-  - aiai のサイトの公開(aiai.aiseed.dev)と、アプリへの書き出し(`flet build`)
+  - アプリへの書き出し(`flet build`)
   - `office/` の Linux と Windows での動き
   - `tenshoku/`、`gakusei/`、`genba/` のスキルを、実際に人と AI で通して使うこと
 - これから作る物:

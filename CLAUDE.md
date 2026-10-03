@@ -53,7 +53,7 @@ aiai は「AI 時代の学び方」です。個人が、自分の AI と一緒�
 - 外のサービスに頼るのは、大きな AI のモデルと、Web サイトの公開くらいにする。そのほかは、
   OSS と AI で作る。本人の事業の Web サイト(`website/`)は静的なページなので、Cloudflare Pages で
   公開する(GitHub Pages は使わない)。aiai のサイトとアプリ(`site/`)は、Flet の画面を出すので、
-  deb2 のサーバーで出す
+  自分で持つサーバー(いまは Google Cloud の Compute Engine の VM)で出す
 - 記録を残す物(セカンドオピニオンの相談と出来事、`genba/` の写真の当たり外れなど)は、aiai の
   アプリ(`site/app/`)の画面にする
 - officework とは完全に独立させる。aiai は、公開されている officework を使う側で、officework の
@@ -148,7 +148,7 @@ aiai は「AI 時代の学び方」です。個人が、自分の AI と一緒�
 | `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
 | `soudan/` | セカンドオピニオンのサーバー(`server.py`)。募集に応じた人だけが、招待の番号で使う。当面は無料の研究サービスで、効果が確かめられたら、低額の会費で運営する(費用は主に API の利用料)。サインインは `moushikomi/server.py` の物を使う。確かめる観点は `観点/*.md` |
 | `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
-| `site/` | aiai のサイトとアプリ。トップページ(`index.html`、`top.css`)は手で書いた HTML と CSS、`/app/` は Flet の画面(`app/main.py`)で、そのまま `flet build` でアプリにできる形にする。`make_assets.py` が各 `SKILL.md` を `app/assets/skills/` に写す。`server.py` が両方を出す。deb2 の aiai.aiseed.dev で出す予定 |
+| `site/` | aiai のサイトとアプリ。トップページ(`index.html`、`top.css`)は手で書いた HTML と CSS、`/app/` は Flet の画面(`app/main.py`)で、そのまま `flet build` でアプリにできる形にする。`make_assets.py` が各 `SKILL.md` を `app/assets/skills/` に写す。`server.py` が両方を出す。https://aiai.aiseed.dev/ で出している(Compute Engine の VM、Caddy は同じ VM のほかの Web と共有し、aiai の分は `/etc/caddy/aiai.caddy`) |
 | `news/` | aiai ニュース。VLM、スマートドア、スマートロック、鳥獣対策のニュースを、1 日 1 つの adoc にまとめる |
 
 ## 残っていること(2026-10-02 時点)
@@ -209,8 +209,10 @@ aiai は「AI 時代の学び方」です。個人が、自分の AI と一緒�
   置く案とは、道筋が重ならない
 - 起業の企画書を、本人の AI と対話しながら作るスキルは、まだ無い(`soudan/観点/企画書.md` は見る観点だけ)
 - aiai のサイトとアプリ(`site/`): deb2 の dev のホームで動かし、ブラウザーで押して確かめた
-  (2026-10-02)。aiai.aiseed.dev はまだ準備中のページのままで、Caddy の向きを替えるのは deb2 の側の
-  作業(発注者の了解が要る)。`flet build` での iPhone と Android のアプリへの書き出しはまだ。
+  (2026-10-02)。2026-10-04 から、Google Cloud の Compute Engine の VM(Debian 13、e2-small)で、
+  https://aiai.aiseed.dev/ として出している。`site/server.py` を systemd の `aiai-site` で動かし、Caddy の
+  後ろに置く。VM のコードは、コミット済みの物を `git archive` で写し、`sudo systemctl restart aiai-site` で
+  入れ替える。`flet build` での iPhone と Android のアプリへの書き出しはまだ。
   セカンドオピニオンの画面は「相談」のタブとして足し、`python site/try.py`(偽のサインインと
   偽のモデル)で押して確かめた。`genba/` の記録の画面は、まだ
 - `tenshoku/`、`gakusei/`、`genba/` のスキル(2026-10-02 に書いた)は、まだ実際に人と AI で通して
