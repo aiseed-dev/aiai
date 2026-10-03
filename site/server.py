@@ -11,13 +11,31 @@ BASE_URL ending in /soudan, and AIAI_SOUDAN, AIAI_SOUDAN_API and AIAI_RETURN
 as in app/soudan_view.py. site/try.py runs it all with fake sign-in and models.
 """
 import importlib.util
+import io
+import re
+import zipfile
 import os
 import sys
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, Response
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+
+
+def skill_zip(name):
+    """A ZIP of one skill, as Claude and Gemini take it: <name>/SKILL.md."""
+    if not re.fullmatch(r"[a-z0-9-]+", name):
+        return None
+    for dirpath, dirnames, filenames in os.walk(ROOT):
+        dirnames[:] = sorted(d for d in dirnames if not d.startswith(".") and d != "site")
+        if os.path.basename(dirpath) == name and "SKILL.md" in filenames:
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+                z.write(os.path.join(dirpath, "SKILL.md"), f"{name}/SKILL.md")
+            return buf.getvalue()
+    return None
 
 
 def load_soudan():
@@ -46,6 +64,14 @@ def create_app(soudan=None):
     @app.get("/top.css")
     def css():
         return FileResponse(os.path.join(HERE, "top.css"), media_type="text/css; charset=utf-8", headers=fresh)
+
+    @app.get("/skills/{name}.zip")
+    def skill(name: str):
+        data = skill_zip(name)
+        if data is None:
+            raise HTTPException(404, "そのスキルはありません")
+        return Response(data, media_type="application/zip",
+                        headers={"Content-Disposition": f'attachment; filename="{name}.zip"'})
 
     if soudan is not None:
         app.mount("/soudan", soudan)

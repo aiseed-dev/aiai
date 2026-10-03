@@ -137,6 +137,7 @@ aiai は「AI 時代の学び方」です。個人が、自分の AI と一緒�
 | `tools/todoke.py` | 書類ごとのデータを作る(tsukuru)、受け取って確かめる(uketsuke)。標準ライブラリだけ |
 | `tools/houkoku.py`、`HOUKOKU.md`、`.github/ISSUE_TEMPLATE/` | 報告の下書きと Issue のひな形 |
 | `tools/kakunin.py` | 出典の URL と確かめた日を集め、確かめ直す物を出す。標準ライブラリだけ |
+| `rireki/` | AI とのチャットの履歴から自分を知るスキル。「自分を知る」と「次を考える」の 9 の項目。ChatGPT、Claude、Gemini のスキルとして使う(`site/server.py` が `/skills/<名前>.zip` で ZIP を出す) |
 | `tenshoku/` | 転職を考えるときのスキル。チャットから長所を探し、AI でアプリを作る体験をして、次の行動を決める |
 | `gakusei/` | AI の時代、何を学ぶか(高校生と大学の 1 回生向け)。`tenshoku/` と同じ考え方で、チャットから長所を探し、AI でアプリを作る体験をして、学ぶことと次の行動を決める |
 | `genba/` | 現場で撮った写真を VLM に見せて、仕事の判断を助ける小さなアプリを作るスキル。AI の答えは人が確かめて記録する |

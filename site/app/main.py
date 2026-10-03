@@ -15,11 +15,14 @@ import flet as ft
 from soudan_view import SoudanView
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+# Where a skill's ZIP can be fetched (site/server.py serves /skills/<name>.zip)
+SITE = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
 
 # The order and grouping of the skills on the list; others come last
-GROUPS = [("考える", ["tenshoku", "gakusei"]),
+GROUPS = [("知る", ["rireki"]),
+          ("考える", ["tenshoku", "gakusei"]),
           ("作る", ["genba", "website", "moushikomi", "keikaku"])]
-ICONS = {"tenshoku": ft.Icons.WORK_OUTLINE, "gakusei": ft.Icons.SCHOOL, "genba": ft.Icons.PHOTO_CAMERA,
+ICONS = {"rireki": ft.Icons.HISTORY, "tenshoku": ft.Icons.WORK_OUTLINE, "gakusei": ft.Icons.SCHOOL, "genba": ft.Icons.PHOTO_CAMERA,
          "website": ft.Icons.LANGUAGE, "moushikomi": ft.Icons.EVENT_AVAILABLE, "keikaku": ft.Icons.GRASS}
 STEPS = [("1", "スキルを選ぶ"), ("2", "あなたの AI に貼る"), ("3", "対話しながら作る")]
 
@@ -153,10 +156,16 @@ async def main(page: ft.Page):
             page.show_dialog(ft.SnackBar(ft.Text("写しました。あなたの AI に貼ってください")))
 
         _, _, md = split_skill(text)
+        zip_url = f"{SITE}/skills/{name}.zip"
         show([ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, tooltip="一覧に戻る", on_click=lambda e: show_list()),
-                      ft.FilledButton("写す", icon=ft.Icons.CONTENT_COPY, on_click=copy)],
+                      ft.Row([ft.OutlinedButton("ZIP", icon=ft.Icons.DOWNLOAD, tooltip="スキルとして上げる ZIP",
+                                                action=ft.OpenUrl(zip_url, target=ft.UrlTarget.BLANK)),
+                              ft.FilledButton("写す", icon=ft.Icons.CONTENT_COPY, on_click=copy)], spacing=8)],
                      alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-              note(desc), ft.Divider(), markdown(md)])
+              note(desc),
+              note("ChatGPT、Claude、Gemini では、スキルとして上げて使えます(Claude は ZIP、Gemini は SKILL.md か ZIP)。"
+                   "スキルが使えないときは、「写す」でチャットに貼ります。"),
+              ft.Divider(), markdown(md)])
 
     def show_kangaekata():
         show([heading("考え方"), markdown(read(os.path.join(ASSETS, "kangaekata.md")))])
