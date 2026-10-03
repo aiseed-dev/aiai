@@ -17,15 +17,16 @@ import zipfile
 import os
 import sys
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
 
-def skill_zip(name):
-    """A ZIP of one skill, as Claude and Gemini take it: <name>/SKILL.md."""
+def skill_zip(name, root=False):
+    """A ZIP of one skill: <name>/SKILL.md as Claude and Gemini take it, or
+    SKILL.md at the top (root=True) as Microsoft 365 Copilot takes it."""
     if not re.fullmatch(r"[a-z0-9-]+", name):
         return None
     for dirpath, dirnames, filenames in os.walk(ROOT):
@@ -33,7 +34,7 @@ def skill_zip(name):
         if os.path.basename(dirpath) == name and "SKILL.md" in filenames:
             buf = io.BytesIO()
             with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-                z.write(os.path.join(dirpath, "SKILL.md"), f"{name}/SKILL.md")
+                z.write(os.path.join(dirpath, "SKILL.md"), "SKILL.md" if root else f"{name}/SKILL.md")
             return buf.getvalue()
     return None
 
@@ -66,8 +67,8 @@ def create_app(soudan=None):
         return FileResponse(os.path.join(HERE, "top.css"), media_type="text/css; charset=utf-8", headers=fresh)
 
     @app.get("/skills/{name}.zip")
-    def skill(name: str):
-        data = skill_zip(name)
+    def skill(name: str, request: Request):
+        data = skill_zip(name, root=request.query_params.get("for") == "m365")
         if data is None:
             raise HTTPException(404, "そのスキルはありません")
         return Response(data, media_type="application/zip",

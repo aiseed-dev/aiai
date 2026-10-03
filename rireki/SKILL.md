@@ -56,16 +56,20 @@ description: AI とのチャットの履歴から、本人の長所、得意な�
 
 ## 使い方
 
-このファイルは、ChatGPT、Claude、Gemini のスキルとして使えます。
+このファイルは、ChatGPT、Claude、Gemini、Microsoft 365 Copilot のスキルとして使えます。
 
 - Claude: このフォルダー(`rireki`)を ZIP にし、Customize > Skills から上げます。コードの実行を
   有効にしておく必要があります
 - Gemini: この `SKILL.md` を、スキルとして上げます。18 歳以上で、個人の Google アカウントの人が
   使えます
+- Microsoft 365 Copilot: `SKILL.md` をいちばん上に置いた ZIP を、エージェントのスキルとして上げます。
+  試しの段階で、Microsoft Frontier Program に入っている組織だけが使えます
 - ChatGPT: スキルが使えるワークスペースで、スキルとして入れます。スキルが使えないときは、
   このファイルの中身をチャットに貼って使います
 
 出典: Anthropic「Use skills in Claude」(https://support.claude.com/en/articles/12512180-use-skills-in-claude)、
 Google「Create & manage skills for Gemini Apps」(https://support.google.com/gemini/answer/17094296)、
-OpenAI Academy「Skills」(https://academy.openai.com/public/clubs/work-users-ynjqu/resources/skills)。
+OpenAI Academy「Skills」(https://academy.openai.com/public/clubs/work-users-ynjqu/resources/skills)、
+Microsoft Learn「Add custom skills to your declarative agent in Agent Builder (preview)」
+(https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/agent-builder-add-skills)。
 2026-10-03 に確かめました。

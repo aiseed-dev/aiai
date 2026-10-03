@@ -23,7 +23,8 @@ if __name__ == "__main__":
     ap.add_argument("--fake-port", type=int, default=0, help="偽の Apple と Google のポート(既定は空いている物)")
     a = ap.parse_args()
     base = f"http://127.0.0.1:{a.port}"
-    os.environ |= {"AIAI_SOUDAN": base + "/soudan", "AIAI_RETURN": base + "/app/"}
+    os.environ |= {"AIAI_SOUDAN": base + "/soudan", "AIAI_RETURN": base + "/app/", "AIAI_SITE": base}
+    os.environ.setdefault("AIAI_LOCAL", "1")  # trying on one's own PC: show the records tab
     import fake_id
     from fake_model import FakeModel
 

@@ -12,6 +12,7 @@ import os
 import re
 
 import flet as ft
+from kiroku_view import LOCAL, KirokuView
 from soudan_view import SoudanView
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
@@ -187,7 +188,14 @@ async def main(page: ft.Page):
         show([ft.ProgressRing()])
         await soudan.render()
 
-    tabs = [show_list, show_kangaekata, show_news, show_soudan]
+    kiroku = KirokuView(page, prefs, show)
+
+    async def show_kiroku():
+        show([ft.ProgressRing()])
+        await kiroku.render()
+
+    # The records tab reads this PC, so it is there only when the app runs on the person's own PC
+    tabs = [show_list] + ([show_kiroku] if LOCAL else []) + [show_kangaekata, show_news, show_soudan]
 
     async def change(e):
         result = tabs[e.control.selected_index]()
@@ -195,7 +203,7 @@ async def main(page: ft.Page):
             await result
 
     async def open_soudan():
-        page.navigation_bar.selected_index = 3
+        page.navigation_bar.selected_index = tabs.index(show_soudan)
         await show_soudan()
 
     async def route_change(e):
@@ -204,8 +212,9 @@ async def main(page: ft.Page):
             await open_soudan()
 
     page.navigation_bar = ft.NavigationBar(
-        destinations=[ft.NavigationBarDestination(icon=ft.Icons.MENU_BOOK, label="スキル"),
-                      ft.NavigationBarDestination(icon=ft.Icons.LIGHTBULB_OUTLINE, label="考え方"),
+        destinations=[ft.NavigationBarDestination(icon=ft.Icons.MENU_BOOK, label="スキル")]
+        + ([ft.NavigationBarDestination(icon=ft.Icons.HISTORY, label="記録")] if LOCAL else [])
+        + [ft.NavigationBarDestination(icon=ft.Icons.LIGHTBULB_OUTLINE, label="考え方"),
                       ft.NavigationBarDestination(icon=ft.Icons.NOTIFICATIONS_NONE, label="お知らせ"),
                       ft.NavigationBarDestination(icon=ft.Icons.FORUM_OUTLINED, label="相談")],
         on_change=change)

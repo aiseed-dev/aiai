@@ -5,6 +5,8 @@
 | `index.html`、`top.css` | トップページ。手で書いた HTML と CSS だけで、外の書体や部品は読み込みません |
 | `app/main.py` | Flet の画面。スキルの一覧(開いて「写す」で写し、自分の AI に貼る)、考え方、お知らせ、相談の 4 つのタブ。同じコードを `flet build` で iPhone と Android のアプリにする予定です |
 | `app/soudan_view.py` | 相談のタブ。`soudan/server.py` と話します |
+| `app/kiroku.py`、`app/kiroku_view.py` | 記録のタブ。PC の AI の道具の記録や、書き出したファイルから、本人の発言だけを機械的に読み、識別情報に見える物を伏せて、報告書の AI エージェントに渡します。本人の PC で動かすとき(`AIAI_LOCAL=1`)だけ出ます。標準ライブラリだけ |
+| `test_kiroku.py` | 記録の読み方の確かめ |
 | `app/assets/` | アプリが持ち歩く物。`kangaekata.md`(考え方)、`news/*.adoc`(お知らせ)、`skills/`(各フォルダーの `SKILL.md` の写し。`make_assets.py` が作り、リポジトリには入れません) |
 | `make_assets.py` | 各フォルダーの `SKILL.md` を `app/assets/skills/` に写します。標準ライブラリだけ |
 | `server.py` | `/` でトップページ、`/app/` で Flet の画面、`SOUDAN_MODELS` があれば `/soudan/` でセカンドオピニオンのサーバーを出します |

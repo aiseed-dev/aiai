@@ -57,6 +57,7 @@ _spec.loader.exec_module(ms)
 DRAFT_CHARS = 12000
 EVENT_CHARS = 1000
 HISTORY = 3  # earlier consultations of the same kind and model given to the model
+MATERIAL_CHARS = 80000  # what the app sends for a report: masked messages the person wrote
 INVITE_LETTERS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0/O, 1/I/L, so they can be read aloud
 
 
@@ -80,6 +81,9 @@ SCHEMA = ms.SIGN_IN_SCHEMA + """
             out_tokens INTEGER, rating INTEGER, created TEXT);
         CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, provider TEXT, sub TEXT,
             text TEXT, created TEXT);
+        CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, provider TEXT, sub TEXT, model TEXT,
+            sources TEXT, report TEXT, calls INTEGER, in_tokens INTEGER, out_tokens INTEGER,
+            rating INTEGER, created TEXT);
 """
 
 # ---- identifying details --------------------------------------------------------
@@ -125,6 +129,24 @@ def read_kanten(folder):
             first = text.splitlines()[0].lstrip("# ").strip()
             kinds[name[:-3]] = (first, text)
     return common, kinds
+
+
+# ---- the report: items from rireki/SKILL.md --------------------------------------------
+
+
+def read_rireki(path):
+    """(rules, [(group, [items])]) from rireki/SKILL.md: its 守ること and 項目 sections."""
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    rules = re.search(r"## 守ること\n(.*?)\n## ", text, re.S).group(1).strip()
+    part = re.search(r"## 項目\n(.*?)\n## ", text, re.S).group(1)
+    groups = []
+    for block in re.split(r"\n### ", "\n" + part)[1:]:
+        name, _, body = block.partition("\n")
+        items = re.findall(r"^\d+\. \*\*(.+?)\*\*: (.+)$", body, re.M)
+        if items:
+            groups.append((name.strip(), items))
+    return rules, groups
 
 
 # ---- models ----------------------------------------------------------------------------
@@ -182,6 +204,7 @@ def create_app(env=None, providers=None, models=None):
     provs = providers if providers is not None else ms.providers_from(env)
     mods = models if models is not None else models_from(env)
     common, kinds = read_kanten(os.path.join(HERE, "観点"))
+    rireki_rules, rireki_groups = read_rireki(os.path.join(HERE, "..", "rireki", "SKILL.md"))
     with open(os.path.join(HERE, "同意.md"), encoding="utf-8") as f:
         consent = f.read().strip()
     consent_version = hashlib.sha256(consent.encode()).hexdigest()[:12]
@@ -276,7 +299,10 @@ def create_app(env=None, providers=None, models=None):
                     for r in db.all("SELECT * FROM consults WHERE provider = ? AND sub = ?", key)]
         events = [{"type": "event", "id": r["id"], "text": r["text"], "created": r["created"]}
                   for r in db.all("SELECT * FROM events WHERE provider = ? AND sub = ?", key)]
-        return sorted(consults + events, key=lambda x: x["created"])
+        reports = [{"type": "report", "id": r["id"], "model": r["model"], "report": r["report"],
+                    "sources": r["sources"], "rating": r["rating"], "created": r["created"]}
+                   for r in db.all("SELECT * FROM reports WHERE provider = ? AND sub = ?", key)]
+        return sorted(consults + events + reports, key=lambda x: x["created"])
 
     def messages_for(s, kind, model, draft):
         key = (s["provider"], s["sub"])
@@ -293,11 +319,12 @@ def create_app(env=None, providers=None, models=None):
         return out
 
     def calls_today(key=None):
+        """Model calls made today: one per consultation, and each report's steps."""
         day = now().date().isoformat()
-        if key:
-            return db.one("SELECT COUNT(*) FROM consults WHERE provider = ? AND sub = ? AND created >= ?",
-                          (*key, day))[0]
-        return db.one("SELECT COUNT(*) FROM consults WHERE created >= ?", (day,))[0]
+        who, args = ("provider = ? AND sub = ? AND ", (*key, day)) if key else ("", (day,))
+        consults = db.one(f"SELECT COUNT(*) FROM consults WHERE {who}created >= ?", args)[0]
+        reports = db.one(f"SELECT COALESCE(SUM(calls), 0) FROM reports WHERE {who}created >= ?", args)[0]
+        return consults + reports
 
     @app.post("/api/consults")
     async def consult(request: Request, authorization: str = Header("")):
@@ -341,6 +368,70 @@ def create_app(env=None, providers=None, models=None):
             out.append({"model": m, "id": cid, "answer": text})
         return out
 
+    def report_steps(material, events):
+        """The agent's steps: 自分を知る from the material, then 次を考える from that and the
+        events, then one report. Each step is (system, user message)."""
+        system = ("あなたは、aiai のアプリの報告書のエージェントです。次の決まりを守ります。\n\n" + rireki_rules +
+                  "\n\n資料は、本人が AI に書いた発言だけを、日付付きで並べた物です。識別情報に見える物は"
+                  "伏せてあります。日本語の、主語と述語のそろった「です・ます」の説明文で書きます。")
+        lines = [f"- {r['created'][:10]} {r['text']}" for r in events]
+        happened = ("本人が書いた出来事:\n" + "\n".join(lines) + "\n\n") if lines else ""
+
+        def ask(group):
+            items = "\n".join(f"- {n}: {d}" for n, d in group[1])
+            return f"次の項目を、項目ごとに見出しを付けて書いてください。項目ごとに根拠(いつごろの、何についての発言か)を付けます。\n\n{items}"
+
+        first, second = rireki_groups[0], rireki_groups[-1]
+        return system, [
+            (f"{ask(first)}\n\n資料:\n{material}",),
+            (lambda know: f"{happened}「{first[0]}」でわかったこと:\n{know}\n\n{ask(second)}",),
+            (lambda know, nxt: "次の 2 つを、1 つの報告書にまとめてください。初めに 3 行の要約を置き、"
+             f"「{first[0]}」「{second[0]}」の見出しで並べ、最後に次の行動を期日付きで置きます。\n\n"
+             f"{first[0]}:\n{know}\n\n{second[0]}:\n{nxt}",),
+        ]
+
+    @app.post("/api/reports")
+    async def report(request: Request, authorization: str = Header("")):
+        s = member(authorization)
+        b = await body_of(request)
+        model, material = str(b.get("model", "")), str(b.get("material", "")).strip()
+        sources = str(b.get("sources", ""))[:500]
+        problems = []
+        if model not in mods:
+            problems.append("モデルを 1 つ選んでください")
+        if not material:
+            problems.append("読み込んだ記録がありません")
+        elif len(material) > MATERIAL_CHARS:
+            problems.append(f"記録は {MATERIAL_CHARS} 字までです")
+        found = identifiers(material)
+        if found:
+            problems.append("次の物が入っているようです。伏せてから送ってください: " + "、".join(found))
+        if problems:
+            raise HTTPException(422, problems)
+        key = (s["provider"], s["sub"])
+        system, steps = report_steps(material, db.all(
+            "SELECT text, created FROM events WHERE provider = ? AND sub = ? ORDER BY created", key))
+        if calls_today(key) + len(steps) > per_day:
+            raise HTTPException(429, f"AI の呼び出しは、一人 1 日 {per_day} 回までです(報告書は {len(steps)} 回使います)")
+        if calls_today() + len(steps) > day_limit:
+            raise HTTPException(429, "今日の受け付けは終わりました。明日またどうぞ")
+        done, tin, tout = [], 0, 0
+        try:
+            for step in steps:
+                prompt = step[0] if isinstance(step[0], str) else step[0](*done)
+                text, i, o = mods[model].answer(system, [{"role": "user", "content": prompt}])
+                done.append(text)
+                tin, tout = tin + i, tout + o
+        except ModelError as e:
+            raise HTTPException(502, [str(e)])
+        except Exception:
+            raise HTTPException(502, ["このモデルに、いまはつながりませんでした"])
+        rid = secrets.token_urlsafe(12)
+        db.run("INSERT INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+               (rid, *key, model, sources, done[-1], len(steps), tin, tout, None,
+                now().isoformat(timespec="microseconds")))
+        return {"id": rid, "report": done[-1], "steps": len(steps)}
+
     @app.post("/api/consults/{cid}/rating")
     async def rate(cid: str, request: Request, authorization: str = Header("")):
         s = member(authorization)
@@ -375,7 +466,7 @@ def create_app(env=None, providers=None, models=None):
     def forget(authorization: str = Header("")):
         s = person(authorization)
         key = (s["provider"], s["sub"])
-        for table in ("consults", "events", "people", "sessions"):
+        for table in ("consults", "events", "reports", "people", "sessions"):
             db.run(f"DELETE FROM {table} WHERE provider = ? AND sub = ?", key)
         return {"ok": True}
 
@@ -404,7 +495,10 @@ def create_app(env=None, providers=None, models=None):
         return {"invites": db.one("SELECT COUNT(*) FROM invites")[0],
                 "invites_used": db.one("SELECT COUNT(*) FROM invites WHERE used_at IS NOT NULL")[0],
                 "people": db.one("SELECT COUNT(*) FROM people WHERE agreed = ?", (consent_version,))[0],
-                "events": db.one("SELECT COUNT(*) FROM events")[0], "by_model": by_model}
+                "events": db.one("SELECT COUNT(*) FROM events")[0], "by_model": by_model,
+                "reports": [dict(r) for r in db.all(
+                    "SELECT model, COUNT(*) AS reports, AVG(in_tokens) AS in_tokens, AVG(out_tokens) AS out_tokens "
+                    "FROM reports GROUP BY model ORDER BY model")]}
 
     app.state.db, app.state.purge, app.state.make_invites = db, purge, make_invites
     return app

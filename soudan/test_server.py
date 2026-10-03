@@ -189,13 +189,54 @@ class ServerTest(unittest.TestCase):
         self.assertEqual((a["consults"], a["rated"], a["rating"]), (1, 1, 5.0))
         self.assertNotIn("粘り強く", str(s))
 
+    def report(self, h, material="[2026-09-01] 畑の写真から病気の見当を付けるアプリを作りたい", model="a:one"):
+        return self.c.post("/api/reports", json={"model": model, "material": material, "sources": "Claude Code 3 件"},
+                           headers=h)
+
+    def test_report_runs_the_agent_steps(self):
+        h = self.sign_in("hana")
+        self.c.post("/api/events", json={"text": "農業法人の見学に申し込んだ"}, headers=h)
+        r = self.report(h)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(r.json()["steps"], 3)
+        prompts = [m[-1]["content"] for _, m in self.a.seen]
+        self.assertIn("長所", prompts[0])
+        self.assertIn("畑の写真", prompts[0])
+        self.assertIn("次に学ぶとよいこと", prompts[1])
+        self.assertIn("農業法人の見学", prompts[1])
+        self.assertIn("A の答え 1", prompts[2])
+        self.assertIn("本人が AI に書いた発言", self.a.seen[0][0])
+        rec = self.c.get("/api/record", headers=h).json()
+        self.assertEqual([x["type"] for x in rec], ["event", "report"])
+
+    def test_report_checks(self):
+        h = self.sign_in("hana")
+        self.assertEqual(self.report(h, material="").status_code, 422)
+        self.assertEqual(self.report(h, model="c:three").status_code, 422)
+        self.assertEqual(self.report(h, material="連絡は hana@example.jp").status_code, 422)
+        self.assertEqual(self.report(h, material="あ" * 80001).status_code, 422)
+        self.assertEqual(self.a.seen, [])
+
+    def test_report_counts_toward_the_daily_limit(self):
+        h = self.sign_in("hana")
+        self.assertEqual(self.report(h).status_code, 200)  # 3 of 4
+        self.assertEqual(self.ask(h).status_code, 200)     # 4 of 4
+        self.assertEqual(self.report(h).status_code, 429)
+
+    def test_a_failing_report_is_not_stored(self):
+        self.a.fail = server.ModelError("このモデルは、この相談に答えませんでした")
+        h = self.sign_in("hana")
+        self.assertEqual(self.report(h).status_code, 502)
+        self.assertEqual(self.c.get("/api/record", headers=h).json(), [])
+
     def test_deleting_the_record(self):
         h = self.sign_in("hana")
         self.ask(h)
         self.c.post("/api/events", json={"text": "応募した"}, headers=h)
+        self.report(h)
         self.assertEqual(self.c.delete("/api/record", headers=h).status_code, 200)
         db = self.app.state.db
-        for table in ("consults", "events", "people", "sessions"):
+        for table in ("consults", "events", "reports", "people", "sessions"):
             self.assertEqual(db.one(f"SELECT COUNT(*) FROM {table}")[0], 0, table)
         self.assertEqual(self.c.get("/api/me", headers=h).status_code, 401)
 
