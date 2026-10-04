@@ -536,7 +536,7 @@ h1 {
 
 /* ---- steps ---------------------------------------------------------- */
 
-.steps { padding: 48px 0; }
+.steps { padding: 24px 0 48px; }
 .steps h2 { text-align: center; margin-bottom: 36px; }
 
 .steps > ol {
@@ -640,6 +640,19 @@ h3 { margin: 14px 0 6px; font-size: 1.15rem; }
 .skills h3 { margin: 4px 0 8px; }
 
 /* ---- the example dialogue and how to load, inside 使い方 ------------ */
+
+.usage {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 24px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--fg);
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+.usage strong { color: var(--accent-deep); margin-right: 8px; }
 
 .example {
   display: grid;
