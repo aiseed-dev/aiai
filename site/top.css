@@ -778,6 +778,16 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 .news-day li .chip { flex: none; }
 .news-day[hidden], .news-day li[hidden] { display: none; }
 
+/* a guide's page: the parts for people, then the full text folded away */
+.people .items { columns: 2; column-gap: 32px; padding-left: 1.4em; }
+.people .items li, .people .flow li { margin: 6px 0; break-inside: avoid; }
+.people .flow li { margin: 12px 0; }
+.full { margin-top: 36px; border-top: 1px solid var(--line); padding-top: 8px; }
+.full summary { cursor: pointer; font-weight: 700; color: var(--muted); padding: 10px 0; }
+.full summary:hover { color: var(--fg); }
+.full[open] summary { color: var(--fg); }
+.full .prose { margin-top: 0; border-top: none; }
+
 .news-entry { padding: 8px 0 20px; border-bottom: 1px solid var(--line); }
 .news-entry h2 { margin-top: 28px; }
 .news-entry .src { font-size: 0.85rem; color: var(--muted); }
@@ -867,6 +877,7 @@ footer strong { color: var(--fg); }
   .vlm, .chat { max-width: 560px; width: 100%; justify-self: center; }
   .dialog { grid-template-columns: 1fr; }
   .steps > ol, .grid, .pair, .howto, .promise, .example, .load ul { grid-template-columns: 1fr; }
+  .people .items { columns: 1; }
   .path-steps { grid-template-columns: 1fr 1fr; }
   .step:nth-child(2)::after { display: none; }
   .steps > ol::before { display: none; }

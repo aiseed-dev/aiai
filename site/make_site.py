@@ -314,6 +314,31 @@ def load_skills():
     return dict(sorted(skills.items(), key=lambda kv: order.index(kv[0]) if kv[0] in order else len(order)))
 
 
+def sections(body):
+    """[(heading, text)] of a guide's "## " sections; the heading is "" before the first."""
+    parts = re.split(r"^## (.+)$", body, flags=re.M)
+    out = [("", parts[0])]
+    for i in range(1, len(parts), 2):
+        out.append((parts[i].strip(), parts[i + 1]))
+    return out
+
+
+def for_people(body):
+    """The parts of a guide a person wants to see: the steps, and the names of the
+    items when there is an item list. The rest is written for the AI."""
+    out = []
+    for heading, text in sections(body):
+        if heading.startswith("項目"):
+            names = re.findall(r"^\d+\. \*\*(.+?)\*\*", text, re.M)
+            if names:
+                out.append(f"<h2>できる項目</h2><ol class=\"items\">" + "".join(f"<li>{inline(n)}</li>" for n in names) + "</ol>")
+        elif "手順" in heading:
+            steps = [m[1] for m in re.finditer(r"^\d+\. (.+?)(?=^\d+\. |\Z)", text, re.M | re.S)]
+            if steps:
+                out.append("<h2>あなたの AI は、こう進めます</h2><ol class=\"flow\">" + "".join(f"<li>{inline(join_lines(s.splitlines()))}</li>" for s in steps) + "</ol>")
+    return "\n".join(out)
+
+
 def skill_page(name, step, title, description, raw, body):
     return page(title, f"""<article>
 <p class="kicker">{html.escape(step) or "手引き"}</p>
@@ -323,10 +348,16 @@ def skill_page(name, step, title, description, raw, body):
   <button class="button primary" type="button" data-copy="skill-src">手引きを写す</button>
   <a class="button" href="/skills/{name}.zip" download>ZIP をダウンロード</a>
 </div>
-<p class="fine">{HOW_TO_LOAD}</p>
+<p class="fine">写して、ふだん使っている AI のチャットに貼ります。AI に「スキル」として登録しておくこともできます(Claude は ZIP、Gemini は SKILL.md か ZIP)。</p>
+<div class="prose people">
+{for_people(body)}
+</div>
+<details class="full">
+<summary>手引きの全文(あなたの AI が読む物)</summary>
 <div class="prose">
 {markdown(body)}
 </div>
+</details>
 <textarea id="skill-src" hidden>{html.escape(raw)}</textarea>
 </article>
 {COPY_SCRIPT}""", description)
