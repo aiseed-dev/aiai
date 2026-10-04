@@ -8,6 +8,7 @@
 | `app/main.py` | Flet の画面。スキルの一覧(開いて「写す」で写し、自分の AI に貼る)、考え方、お知らせ、相談の 4 つのタブ。同じコードを `flet build` で iPhone と Android のアプリにする予定です |
 | `app/soudan_view.py` | 相談のタブ。`soudan/server.py` と話します |
 | `app/kiroku.py`、`app/kiroku_view.py` | 記録のタブ。PC の AI の道具の記録や、書き出したファイルから、本人の発言だけを機械的に読み、識別情報に見える物を伏せて、報告書の AI エージェントに渡します。本人の PC で動かすとき(`AIAI_LOCAL=1`)だけ出ます。標準ライブラリだけ |
+| `app/server_view.py` | サーバーのタブ。本人の PC で動かすときだけ。サーバーが毎日 0 時 5 分に `tools/kougeki.py` で書く攻撃の記録(SSH の試み、穴を探す HTTP の要求、開いている口、Gemini の所見)を、SSH で `~/aiai-server/` に取り込み、日ごとに並べて見せる。サーバーは `AIAI_SERVER`(`dev@example.jp`)で決める |
 | `app/news_adoc.py`、`app/news_view.py` | ニュースのタブ。本人の PC で動かすとき(`AIAI_LOCAL=1`)だけ。`news/tsukuru.py` で AI の CLI に今日の下書きを書かせ、記事ごとに残す・消す・直すをして adoc に保存し、`news/好み.adoc` も直す。ほかでは「お知らせ」として読むだけ |
 | `test_kiroku.py` | 記録の読み方の確かめ |
 | `app/assets/` | アプリが持ち歩く物。`kangaekata.md`(考え方)、`news/*.adoc`(お知らせ)、`skills/`(各フォルダーの `SKILL.md` の写し。`make_assets.py` が作り、リポジトリには入れません) |
