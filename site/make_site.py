@@ -283,6 +283,9 @@ document.querySelectorAll("[data-copy]").forEach(function (b) {
 });
 </script>"""
 
+# The guides that are tools of their own, not steps of the path
+TOOL_GUIDES = {"news": "ニュース"}
+
 HOW_TO_LOAD = ("「写す」で写して、ふだん使っている AI のチャットに貼ります。貼るほかに、AI に「スキル」として登録しておくこともできます。"
                "Claude は ZIP を、Gemini は SKILL.md か ZIP を上げます。ChatGPT は、スキルが使えるワークスペースで入れます。"
                "Microsoft 365 Copilot は、企業用の場合は、管理者に言ってもらってください。")
@@ -302,7 +305,7 @@ def load_skills():
             m = re.search(r"^# (.+)$", body, re.M)
             title = m[1].strip() if m else name
             body = body[:m.start()] + body[m.end():] if m else body
-            skills[name] = (step_of.get(name, ""), title, front.get("description", ""), raw, body)
+            skills[name] = (step_of.get(name, TOOL_GUIDES.get(name, "")), title, front.get("description", ""), raw, body)
     order = [n for _, names in STEPS for n in names]
     return dict(sorted(skills.items(), key=lambda kv: order.index(kv[0]) if kv[0] in order else len(order)))
 
@@ -331,26 +334,67 @@ def entry_html(e, level=2):
     return f'<article class="news-entry"><h{level}>{inline(e["heading"])}</h{level}><p class="chips">{tags}</p>{paras}</article>'
 
 
+FILTER_SCRIPT = """<script>
+/* The reader picks the areas they want; the choice is kept in this browser. */
+(function () {
+  var bar = document.getElementById("areas");
+  if (!bar) return;
+  var key = "aiai.news.areas", picked = {};
+  try { (JSON.parse(localStorage.getItem(key) || "[]")).forEach(function (a) { picked[a] = true; }); } catch (e) {}
+  function apply() {
+    var any = Object.keys(picked).some(function (a) { return picked[a]; });
+    bar.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", picked[b.dataset.area] ? "true" : "false"); });
+    document.querySelectorAll("[data-area]").forEach(function (el) {
+      if (el.tagName === "BUTTON") return;
+      el.hidden = any && !picked[el.dataset.area];
+    });
+    document.querySelectorAll(".news-day").forEach(function (d) {
+      d.hidden = !Array.prototype.some.call(d.querySelectorAll("li"), function (li) { return !li.hidden; });
+    });
+    try { localStorage.setItem(key, JSON.stringify(Object.keys(picked).filter(function (a) { return picked[a]; }))); } catch (e) {}
+  }
+  bar.addEventListener("click", function (ev) {
+    var b = ev.target.closest("button");
+    if (!b) return;
+    picked[b.dataset.area] = !picked[b.dataset.area];
+    apply();
+  });
+  apply();
+})();
+</script>"""
+
+
 def news_pages(days):
-    """{path: html} of the news list and one page per day."""
+    """{path: html} of the news list and one page per day. The list can be
+    narrowed to the areas the reader picks."""
     pages = {}
-    rows = []
+    rows, areas = [], []
     for date, title, entries in days:
-        items = "".join(f"<li>{inline(e['heading'])}</li>" for e in entries)
-        rows.append(f'<section class="news-day"><h2><a href="/news/{date}.html">{html.escape(date)}</a></h2><ul>{items}</ul></section>')
+        items = []
+        for e in entries:
+            area = e["attrs"].get("分野", "")
+            if area and area not in areas:
+                areas.append(area)
+            items.append(f'<li data-area="{html.escape(area)}"><span class="chip">{html.escape(area)}</span>{inline(e["heading"])}</li>')
+        rows.append(f'<section class="news-day"><h2><a href="/news/{date}.html">{html.escape(date)}</a></h2><ul>{"".join(items)}</ul></section>')
         body = "".join(entry_html(e) for e in entries)
         pages[f"news/{date}.html"] = page(title or f"aiai ニュース {date}", f"""<article>
 <p class="kicker"><a href="/news/">aiai ニュース</a></p>
 <h1>{html.escape(title or date)}</h1>
 <div class="prose">{body}</div>
 </article>""")
+    buttons = "".join(f'<button type="button" data-area="{html.escape(a)}" aria-pressed="false">{html.escape(a)}</button>' for a in areas)
+    picker = f'<p class="areas-head">読みたい分野だけにする</p><div class="areas" id="areas">{buttons}</div>' if areas else ""
     pages["news/index.html"] = page("aiai ニュース", f"""<article>
 <p class="kicker">ニュース</p>
 <h1>aiai ニュース</h1>
 <p class="lead">VLM(画像や動画を読む AI)、スマートドア、スマートロック、鳥獣対策のニュースです。AI が下書きを作り、
 人が元の記事を読んで確かめてから載せます。出典と確かめた日を付けています。</p>
+<p class="own-news">自分の分野のニュースは、自分の AI に作らせることができます。<a href="/skills/news.html">ニュースを作る手引き</a></p>
+{picker}
 <div class="prose">{"".join(rows) or "<p>まだありません。</p>"}</div>
-</article>""", "VLM、スマートドア、スマートロック、鳥獣対策のニュース")
+</article>
+{FILTER_SCRIPT}""", "VLM、スマートドア、スマートロック、鳥獣対策のニュース")
     return pages
 
 

@@ -149,7 +149,7 @@ aiai は「AI 時代の学び方」です。個人が、自分の AI と一緒�
 | `soudan/` | セカンドオピニオンのサーバー(`server.py`)。募集に応じた人だけが、招待の番号で使う。当面は無料の研究サービスで、効果が確かめられたら、低額の会費で運営する(費用は主に API の利用料)。サインインは `moushikomi/server.py` の物を使う。確かめる観点は `観点/*.md` |
 | `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
 | `site/` | aiai のサイトとアプリ。考え方と使い方、スキル、ニュースは Web のページで見せる。トップページ(`index.html`、`top.css`)は手で書いた HTML と CSS で、`make_site.py` がスキルごとのページ、考え方、ニュース(`news/*.adoc`)のページを `public/` に作る。`/app/` は Flet の画面(`app/main.py`)で、記録と相談のような道具の側に使い、そのまま `flet build` でアプリにできる形にする。`make_assets.py` が各 `SKILL.md` を `app/assets/skills/` に写す。`server.py` が両方を出す。https://aiai.aiseed.dev/ で出している(Compute Engine の VM、Caddy は同じ VM のほかの Web と共有し、aiai の分は `/etc/caddy/aiai.caddy`) |
-| `news/` | aiai ニュース。VLM、スマートドア、スマートロック、鳥獣対策のニュースを、1 日 1 つの adoc にまとめる |
+| `news/` | ニュース。`SKILL.md`(手引き)と `好み.adoc`(分野、地域、件数、扱わない物)で、誰でも自分の分野のニュースを自分の AI に作らせられる。`tsukuru.py` が Claude Code、Gemini CLI、Codex の CLI を動かして今日の adoc を書かせる。aiai のニュース(VLM、スマートドア、スマートロック、鳥獣対策)はその見本で、1 日 1 つの adoc。人が読んで直してからコミットし、サイトに載る |
 
 ## 残っていること(2026-10-02 時点)
 
@@ -218,7 +218,8 @@ aiai は「AI 時代の学び方」です。個人が、自分の AI と一緒�
 - `tenshoku/`、`gakusei/`、`genba/` のスキル(2026-10-02 に書いた)は、まだ実際に人と AI で通して
   使っていない。`genba/` にはプログラムを置いていない。動く例を置くかは、試してから決める
 - aiai ニュース(`news/`): 毎朝 7 時の定時の作業(Claude のデスクトップアプリの「Scheduled」の
-  aiai-news-daily)が下書きを作る。コミットは発注者が読んで直してから
+  aiai-news-daily)が下書きを作る。コミットは発注者が読んで直してから。`news/tsukuru.py --ai claude` で
+  手元からも作れる(2026-10-04 に動かして確かめた)。Gemini CLI と Codex は資料で確かめただけで、まだ動かしていない
 - `office/` のボタンは macOS で、外からの run_macro でだけ確かめた。Linux と Windows、文書の画面のタブは未確認
 - 農地法第 3 条の許可申請書の項目、勤め先を辞めて就農するときの年金や保険の手続き。
   自然農法の経営計画ができてから作る

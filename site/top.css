@@ -722,6 +722,26 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 .prose th, .prose td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
 .prose th { background: var(--bg-2); }
 
+.own-news { padding: 12px 16px; border-radius: 12px; background: var(--bg-2); font-size: 0.95rem; }
+.own-news a { font-weight: 700; }
+.areas-head { margin: 24px 0 8px; font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+.areas { display: flex; flex-wrap: wrap; gap: 8px; }
+.areas button {
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+}
+.areas button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.news-day li { display: flex; gap: 10px; align-items: baseline; margin: 6px 0; }
+.news-day li .chip { flex: none; }
+.news-day[hidden], .news-day li[hidden] { display: none; }
+
 .news-entry { padding: 8px 0 20px; border-bottom: 1px solid var(--line); }
 .news-entry h2 { margin-top: 28px; }
 .news-entry .src { font-size: 0.85rem; color: var(--muted); }
