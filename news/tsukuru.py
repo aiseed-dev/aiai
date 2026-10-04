@@ -17,6 +17,7 @@ import argparse
 import datetime
 import os
 import re
+import shutil
 import subprocess
 import sys
 import zoneinfo
@@ -133,6 +134,9 @@ def main():
     target = os.path.join(HERE, f"{today.isoformat()}.adoc")
     if os.path.exists(target):
         print(f"{os.path.relpath(target, ROOT)} はもうあります。消すか、--date で別の日にしてください")
+        return 1
+    if not shutil.which(CLIS[a.ai][0]):
+        print(f"{CLIS[a.ai][0]} が見つかりません。その CLI を入れるか、--prompt-only で頼み文を出して、ほかの AI に貼ってください")
         return 1
     print(f"{a.ai} に、{today.isoformat()} の下書きを頼みます(数分かかります)")
     r = run(a.ai, prompt, a.model)
