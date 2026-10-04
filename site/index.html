@@ -47,82 +47,219 @@
       <div class="frame">
         <svg viewBox="0 0 480 300" role="img" aria-label="カメラの 1 コマ">
           <defs>
-            <linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1d15"/><stop offset="1" stop-color="#1d3d2c"/></linearGradient>
-            <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3020"/><stop offset="1" stop-color="#5a4729"/></linearGradient>
-            <linearGradient id="day" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfc8b8"/><stop offset="1" stop-color="#a9a291"/></linearGradient>
-            <radialGradient id="lens" cx="0.5" cy="0.5" r="0.75"><stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.55"/></radialGradient>
-            <linearGradient id="scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5eead4" stop-opacity="0"/><stop offset="1" stop-color="#5eead4" stop-opacity="0.45"/></linearGradient>
-            <filter id="blur"><feGaussianBlur stdDeviation="5"/></filter>
-            <g id="fence">
-              <g fill="#0a120e" opacity="0.9"><rect x="38" y="128" width="7" height="124"/><rect x="148" y="128" width="7" height="124"/><rect x="258" y="128" width="7" height="124"/><rect x="368" y="128" width="7" height="124"/><rect x="458" y="128" width="7" height="124"/></g>
-              <g stroke="#0a120e" stroke-width="1.6" opacity="0.75"><path d="M0 140H480M0 162H480M0 184H480M0 206H480M0 228H480M0 248H480"/></g>
-              <g stroke="#0a120e" stroke-width="1" opacity="0.4"><path d="M20 135V250M60 135V250M80 135V250M100 135V250M120 135V250M170 135V250M190 135V250M210 135V250M230 135V250M280 135V250M300 135V250M320 135V250M340 135V250M390 135V250M410 135V250M430 135V250"/></g>
+            <linearGradient id="sunset" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3a06a"/><stop offset="1" stop-color="#ffe3ba"/></linearGradient>
+            <linearGradient id="dawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe6f3"/><stop offset="1" stop-color="#fff2d8"/></linearGradient>
+            <linearGradient id="day" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe0ee"/><stop offset="1" stop-color="#e6f0d6"/></linearGradient>
+            <radialGradient id="lens" cx="0.5" cy="0.5" r="0.75"><stop offset="0.65" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.32"/></radialGradient>
+            <linearGradient id="scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f766e" stop-opacity="0"/><stop offset="1" stop-color="#0f766e" stop-opacity="0.4"/></linearGradient>
+            <g id="lowfence" fill="currentColor" stroke="currentColor">
+              <g stroke="none"><rect x="10" y="226" width="6" height="48"/><rect x="128" y="226" width="6" height="48"/><rect x="248" y="226" width="6" height="48"/><rect x="366" y="226" width="6" height="48"/><rect x="466" y="226" width="6" height="48"/></g>
+              <g fill="none" stroke-width="1.6" opacity="0.8"><path d="M0 238H480M0 250H480M0 262H480"/></g>
+              <g fill="none" stroke-width="1" opacity="0.4"><path d="M30 232V270 M50 232V270 M70 232V270 M90 232V270 M110 232V270 M150 232V270 M170 232V270 M190 232V270 M210 232V270 M230 232V270 M270 232V270 M290 232V270 M310 232V270 M330 232V270 M350 232V270 M390 232V270 M410 232V270 M430 232V270 M450 232V270 M470 232V270"/></g>
+            </g>
+            <g id="deer" transform="translate(-279,-101)">
+              <g fill="#a87d52" stroke="#a87d52" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M284 178 C286 168 300 163 318 164 C330 165 338 166 344 164 C348 156 352 146 356 136 C358 130 362 127 368 128 L372 125 L375 131 C379 134 383 137 385 141 C384 145 379 146 373 145 C369 150 365 160 361 172 C359 182 355 190 349 194 C341 197 321 198 303 196 C293 195 286 190 284 178 Z"/>
+                <path fill="none" stroke-width="4" d="M346 192 L349 236 M338 194 L335 236 M300 194 Q295 212 302 236 M311 195 L309 236"/>
+                <path fill="none" stroke-width="3" d="M285 176 L279 172"/>
+                <path fill="none" stroke-width="2.5" d="M362 128 L356 108 M358 116 L350 110 M357 112 L362 101 M368 127 L373 106 M371 114 L379 108"/>
+              </g>
+              <circle cx="375" cy="135" r="2.4" fill="#2a1a10"/>
+            </g>
+            <g id="fawn" transform="translate(-279,-101)">
+              <g fill="#c49a68" stroke="#c49a68" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M284 178 C286 168 300 163 318 164 C330 165 338 166 344 164 C348 156 352 146 356 136 C358 130 362 127 368 128 L372 125 L375 131 C379 134 383 137 385 141 C384 145 379 146 373 145 C369 150 365 160 361 172 C359 182 355 190 349 194 C341 197 321 198 303 196 C293 195 286 190 284 178 Z"/>
+                <path fill="none" stroke-width="4" d="M346 192 L349 236 M338 194 L335 236 M300 194 Q295 212 302 236 M311 195 L309 236"/>
+                <path fill="none" stroke-width="3" d="M285 176 L279 172"/>
+              </g>
+              <g fill="#fff3d6" opacity="0.9"><circle cx="302" cy="178" r="2.6"/><circle cx="316" cy="172" r="2.6"/><circle cx="330" cy="176" r="2.6"/><circle cx="338" cy="185" r="2.4"/><circle cx="310" cy="188" r="2.4"/></g>
+              <circle cx="375" cy="135" r="2.4" fill="#2a1a10"/>
+            </g>
+            <g id="rabbit" fill="#e6dfcc">
+              <ellipse cx="16" cy="22" rx="13" ry="8"/>
+              <ellipse cx="10" cy="27" rx="5" ry="2.6" fill="#d2c9b2"/>
+              <circle cx="28" cy="16" r="6"/>
+              <path d="M26 11 l-2 -11 l4 1 l1 10z M30 11 l1 -11 l3 2 l-2 9z"/>
+              <circle cx="4" cy="20" r="3" fill="#fff"/>
+              <circle cx="30" cy="15" r="0.9" fill="#1a1a1a"/>
+            </g>
+            <g id="piglet">
+              <path d="M-14 10 V22 M-6 12 V22 M8 12 V22 M16 10 V22" stroke="#5a3a22" stroke-width="4" stroke-linecap="round"/>
+              <path d="M-24 -4 q-7 -4 -5 2 q-4 3 1 4" stroke="#96663f" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <ellipse cx="0" cy="0" rx="24" ry="15" fill="#96663f"/>
+              <path d="M-20 -7 q20 -4 40 0 M-22 0 q22 -3 44 0 M-20 7 q20 -3 40 0" stroke="#efd39a" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.95"/>
+              <circle cx="26" cy="-2" r="10" fill="#96663f"/>
+              <path d="M20 -10 l-2 -8 l7 4z" fill="#96663f"/>
+              <ellipse cx="35" cy="1" rx="5" ry="4" fill="#c99a7a"/>
+              <circle cx="34" cy="1" r="0.8" fill="#4a2a18"/><circle cx="37" cy="1" r="0.8" fill="#4a2a18"/>
+              <circle cx="29" cy="-5" r="1.3" fill="#1a1a1a"/>
+            </g>
+            <g id="crow">
+              <path d="M-9 -10 l-11 -3 l-2 5z" fill="#1f1f1f"/>
+              <ellipse cx="0" cy="-10" rx="10" ry="7" fill="#1f1f1f"/>
+              <circle cx="9" cy="-16" r="5" fill="#1f1f1f"/>
+              <path d="M13 -16 l7 1 l-7 2z" fill="#8a8a8a"/>
+              <path d="M-2 -4 L-3 0 M3 -4 L3 0" stroke="#8a8a8a" stroke-width="1.5"/>
+              <circle cx="10.5" cy="-17" r="1" fill="#e6e6e6"/>
+            </g>
+            <g id="monkey-hang">
+              <path d="M0 0 L5 20" stroke="#7a4b2a" stroke-width="4" stroke-linecap="round"/>
+              <path d="M-2 54 q-18 6 -10 26" stroke="#7a4b2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M2 58 L-6 70 M14 58 L20 70" stroke="#7a4b2a" stroke-width="4" stroke-linecap="round"/>
+              <ellipse cx="8" cy="48" rx="11" ry="13" fill="#8b5e3c"/>
+              <path d="M14 44 L26 36" stroke="#7a4b2a" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="28" cy="34" r="5" fill="#f28c28"/>
+              <circle cx="-1" cy="26" r="3" fill="#8b5e3c"/><circle cx="17" cy="26" r="3" fill="#8b5e3c"/>
+              <circle cx="8" cy="28" r="9" fill="#8b5e3c"/>
+              <ellipse cx="9" cy="30" rx="6" ry="5.5" fill="#e8c39e"/>
+              <circle cx="7" cy="28" r="1" fill="#1a1a1a"/><circle cx="11" cy="28" r="1" fill="#1a1a1a"/>
+              <path d="M7 33 q2 1.5 4 0" stroke="#5a3a22" stroke-width="0.8" fill="none"/>
+            </g>
+            <g id="monkey-sit">
+              <path d="M9 -6 q16 10 8 30" stroke="#7a4b2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M-6 -4 L-14 4 M6 -4 L12 6" stroke="#7a4b2a" stroke-width="4" stroke-linecap="round"/>
+              <ellipse cx="0" cy="-14" rx="11" ry="13" fill="#8b5e3c"/>
+              <path d="M8 -18 L16 -28" stroke="#7a4b2a" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="18" cy="-31" r="5" fill="#f28c28"/>
+              <circle cx="-9" cy="-34" r="3" fill="#8b5e3c"/><circle cx="9" cy="-34" r="3" fill="#8b5e3c"/>
+              <circle cx="0" cy="-32" r="9" fill="#8b5e3c"/>
+              <ellipse cx="1" cy="-30" rx="6" ry="5.5" fill="#e8c39e"/>
+              <circle cx="-1" cy="-32" r="1" fill="#1a1a1a"/><circle cx="3" cy="-32" r="1" fill="#1a1a1a"/>
+              <path d="M-1 -27 q2 1.5 4 0" stroke="#5a3a22" stroke-width="0.8" fill="none"/>
             </g>
           </defs>
 
-          <!-- 1: a deer outside the field's fence, at night -->
+          <!-- 1: evening. A deer family and a rabbit at play outside the fence; a parent and child watch from the field -->
           <g class="scene on" data-scene="0">
-            <rect width="480" height="300" fill="url(#night)"/>
-            <path d="M0 120 Q40 92 80 110 T160 100 T250 108 T340 96 T420 106 T480 98 V300 H0Z" fill="#0f2419"/>
-            <rect y="236" width="480" height="64" fill="#122a1e"/>
-            <g fill="#4a8a69" stroke="#4a8a69" stroke-linecap="round" stroke-linejoin="round">
-              <path stroke="none" d="M284 178 C286 168 300 163 318 164 C330 165 338 166 344 164 C348 156 352 146 356 136 C358 130 362 127 368 128 L372 125 L375 131 C379 134 383 137 385 141 C384 145 379 146 373 145 C369 150 365 160 361 172 C359 182 355 190 349 194 C341 197 321 198 303 196 C293 195 286 190 284 178 Z"/>
-              <path fill="none" stroke-width="4" d="M346 192 L349 236 M338 194 L335 236 M300 194 Q295 212 302 236 M311 195 L309 236"/>
-              <path fill="none" stroke-width="2.5" d="M362 128 L356 108 M358 116 L350 110 M357 112 L362 101 M368 127 L373 106 M371 114 L379 108"/>
-              <path fill="none" stroke-width="3" d="M285 176 L279 172"/>
+            <rect width="480" height="300" fill="url(#sunset)"/>
+            <circle cx="430" cy="112" r="40" fill="#ffd890" opacity="0.3"/>
+            <circle cx="430" cy="112" r="22" fill="#ffd890"/>
+            <g fill="#ffd9c9" opacity="0.85"><ellipse cx="120" cy="62" rx="36" ry="10"/><ellipse cx="146" cy="56" rx="22" ry="9"/><ellipse cx="300" cy="48" rx="30" ry="8"/></g>
+            <path d="M0 150 Q60 118 130 136 T260 126 T390 134 T480 122 V300 H0Z" fill="#7fa65a"/>
+            <rect y="206" width="480" height="94" fill="#93b86c"/>
+            <path d="M0 212 Q120 200 240 210 T480 206 V222 H0Z" fill="#a4c77a" opacity="0.7"/>
+            <g stroke="#6f9a4e" stroke-width="2" stroke-linecap="round" fill="none"><path d="M40 246 l-3 -12 M46 246 l2 -12 M52 246 l-1 -9 M250 252 l-3 -12 M256 252 l2 -12"/></g>
+            <g transform="translate(286,104)"><use href="#deer"/></g>
+            <g transform="translate(196,166)"><g class="bob d1"><use href="#fawn" transform="scale(0.55)"/></g></g>
+            <g transform="translate(128,176)"><g class="bob d2"><use href="#fawn" transform="scale(0.5) scale(-1,1) translate(-106,0)"/></g></g>
+            <g transform="translate(60,214)"><g class="hop"><use href="#rabbit"/></g></g>
+            <use href="#lowfence" color="#6b4a2e"/>
+            <!-- the parent and child, seen from behind, inside the fence -->
+            <g transform="translate(418,296)">
+              <path d="M-6 0 V-28 M6 0 V-28" stroke="#2f4858" stroke-width="7" stroke-linecap="round"/>
+              <rect x="-13" y="-58" width="26" height="32" rx="10" fill="#3d6b8a"/>
+              <path d="M-13 -50 l-4 18 M13 -50 l6 16" stroke="#3d6b8a" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="0" cy="-68" r="9" fill="#3a2a22"/>
             </g>
-            <circle cx="375" cy="135" r="2.4" fill="#e9fff4"/>
-            <use href="#fence"/>
+            <g transform="translate(452,296)">
+              <path d="M-4 0 V-18 M4 0 V-18" stroke="#6b4e3a" stroke-width="5" stroke-linecap="round"/>
+              <rect x="-9" y="-40" width="18" height="24" rx="8" fill="#e07a5f"/>
+              <path d="M-9 -34 l-3 12 M9 -36 l-10 -16" stroke="#e07a5f" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="0" cy="-48" r="7.5" fill="#3a2a22"/>
+            </g>
           </g>
 
-          <!-- 2: soil dug up under the fence, at dusk -->
+          <!-- 2: morning. Three wild boar piglets roll in the mud at the field's edge; a crow on the post; the farmer stops to watch -->
           <g class="scene" data-scene="1">
-            <rect width="480" height="300" fill="url(#dusk)"/>
-            <path d="M0 118 Q60 100 120 112 T240 104 T360 114 T480 102 V300 H0Z" fill="#46381f"/>
-            <rect y="236" width="480" height="64" fill="#4b3b22"/>
-            <path d="M176 246 q10 -18 30 -12 q14 -14 30 -2 q18 -6 24 10 q8 10 -4 18 q-30 10 -70 4 q-16 -6 -10 -18z" fill="#24190e"/>
-            <g fill="#2e2213"><circle cx="172" cy="262" r="5"/><circle cx="266" cy="258" r="6"/><circle cx="250" cy="270" r="4"/><circle cx="190" cy="272" r="4"/></g>
-            <use href="#fence"/>
+            <rect width="480" height="300" fill="url(#dawn)"/>
+            <circle cx="400" cy="70" r="26" fill="#ffe08a" opacity="0.95"/>
+            <path d="M0 140 Q70 112 150 130 T300 118 T480 128 V300 H0Z" fill="#8db36a"/>
+            <rect y="200" width="480" height="100" fill="#b3925f"/>
+            <path d="M0 206 Q120 196 240 204 T480 200 V214 H0Z" fill="#c4a46e" opacity="0.7"/>
+            <!-- the farmer, inside the field, leaning on a hoe -->
+            <g transform="translate(96,200)">
+              <path d="M-5 0 V-26 M5 0 V-26" stroke="#4a5a6a" stroke-width="6" stroke-linecap="round"/>
+              <rect x="-11" y="-54" width="22" height="30" rx="8" fill="#6b8fb5"/>
+              <path d="M-11 -46 l-4 14 M11 -46 l10 10" stroke="#6b8fb5" stroke-width="5" stroke-linecap="round"/>
+              <path d="M24 -40 L18 0" stroke="#8a6a3a" stroke-width="3" stroke-linecap="round"/>
+              <path d="M16 0 l11 -2 l1 4z" fill="#777"/>
+              <circle cx="0" cy="-64" r="8" fill="#e8c39e"/>
+              <circle cx="-3" cy="-65" r="0.9" fill="#2a1a10"/>
+              <path d="M-5 -61 q3 2 6 0" stroke="#5a3a22" stroke-width="0.9" fill="none"/>
+              <ellipse cx="0" cy="-70" rx="17" ry="4" fill="#d9b86a"/>
+              <path d="M-9 -70 q9 -14 18 0z" fill="#e2c67a"/>
+            </g>
+            <use href="#lowfence" transform="translate(0,-74)" color="#6b4a2e"/>
+            <ellipse cx="236" cy="248" rx="100" ry="22" fill="#5a3d26"/>
+            <ellipse cx="236" cy="246" rx="82" ry="15" fill="#6e4a2c"/>
+            <g transform="translate(178,236)"><g class="rock d1"><use href="#piglet"/></g></g>
+            <g transform="translate(252,222)"><g class="bob d2"><use href="#piglet" transform="scale(0.9)"/></g></g>
+            <g transform="translate(316,240) rotate(165)"><g class="wiggle"><use href="#piglet" transform="scale(0.9)"/></g></g>
+            <g transform="translate(369,154)"><g class="nod"><use href="#crow"/></g></g>
           </g>
 
-          <!-- 3: the entrance camera; a visitor, and a pot by the door -->
+          <!-- 3: afternoon. Two monkeys eat persimmons in the tree; a person on the veranda with tea, and a cat, watch -->
           <g class="scene" data-scene="2">
             <rect width="480" height="300" fill="url(#day)"/>
-            <rect y="252" width="480" height="48" fill="#8f897a"/>
-            <rect x="196" y="36" width="124" height="216" rx="4" fill="#6e5440"/>
-            <rect x="206" y="48" width="104" height="92" rx="3" fill="#7b5f49"/>
-            <rect x="206" y="150" width="104" height="92" rx="3" fill="#7b5f49"/>
-            <rect x="294" y="140" width="12" height="30" rx="3" fill="#1d1f1e"/>
-            <circle cx="300" cy="148" r="2.2" fill="#5eead4"/>
-            <g class="person"><circle cx="118" cy="104" r="20" fill="#5b4a3d" filter="url(#blur)"/><path d="M84 252 v-70 q0 -40 34 -48 q34 8 34 48 v70z" fill="#3c4a5a"/></g>
-            <path d="M338 250 h34 l-5 -28 h-24z" fill="#9a5b3a"/>
-            <path d="M355 222 q-14 -20 -4 -36 M355 222 q4 -26 18 -32 M355 222 q-2 -18 -18 -24" stroke="#4d7a3f" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <rect y="236" width="480" height="64" fill="#7fa456"/>
+            <path d="M0 240 Q120 232 240 240 T480 236 V250 H0Z" fill="#92b866" opacity="0.7"/>
+            <!-- the house: a wall, a paper door and the veranda -->
+            <rect x="0" y="34" width="196" height="166" fill="#efe6d2"/>
+            <rect x="0" y="30" width="206" height="10" fill="#6b4a2e"/>
+            <rect x="34" y="66" width="118" height="134" fill="#faf6ec" stroke="#a08a6a" stroke-width="2"/>
+            <path d="M34 100H152M34 134H152M34 168H152M74 66V200M112 66V200" stroke="#a08a6a" stroke-width="1.2"/>
+            <rect x="0" y="198" width="196" height="12" fill="#b08d58"/>
+            <rect x="0" y="210" width="196" height="26" fill="#8a6a3a"/>
+            <!-- the person sitting on the veranda's edge -->
+            <g transform="translate(110,198)">
+              <path d="M-6 0 V18 M6 0 V18" stroke="#7a6a5a" stroke-width="6" stroke-linecap="round"/>
+              <rect x="-12" y="-32" width="24" height="34" rx="8" fill="#8a7a9a"/>
+              <path d="M12 -24 l8 8" stroke="#8a7a9a" stroke-width="5" stroke-linecap="round"/>
+              <rect x="18" y="-20" width="8" height="8" rx="1.5" fill="#fff" stroke="#8a7a9a" stroke-width="0.8"/>
+              <circle cx="0" cy="-42" r="9" fill="#e8c39e"/>
+              <path d="M-9 -44 a9 9 0 0 1 18 0 z" fill="#d6d6d6"/>
+              <circle cx="-3" cy="-42" r="0.9" fill="#2a1a10"/><circle cx="3" cy="-42" r="0.9" fill="#2a1a10"/>
+              <path d="M-3 -38 q3 2 6 0" stroke="#5a3a22" stroke-width="0.9" fill="none"/>
+            </g>
+            <!-- the cat beside them -->
+            <g transform="translate(160,198) scale(0.78)">
+              <g class="tail"><path d="M14 -4 q14 -8 10 -22" stroke="#6d6d6d" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+              <path d="M-13 0 Q-16 -26 -2 -32 Q10 -36 14 -22 Q18 -10 15 0 Z" fill="#6d6d6d"/>
+              <circle cx="0" cy="-36" r="9" fill="#6d6d6d"/>
+              <path d="M-8 -42 L-10 -52 L-2 -46 Z M8 -42 L10 -52 L2 -46 Z" fill="#6d6d6d"/>
+              <ellipse cx="-3" cy="-37" rx="1.2" ry="1.8" fill="#d8e8a0"/><ellipse cx="3" cy="-37" rx="1.2" ry="1.8" fill="#d8e8a0"/>
+              <circle cx="0" cy="-33" r="0.9" fill="#3a3a3a"/>
+            </g>
+            <!-- the persimmon tree -->
+            <path d="M352 252 q-4 -60 6 -116 l22 0 q8 56 4 116z" fill="#6b4a2e"/>
+            <path d="M362 138 q-50 -24 -124 -12" stroke="#6b4a2e" stroke-width="8" stroke-linecap="round" fill="none"/>
+            <g fill="#4f8a3d"><circle cx="372" cy="86" r="46"/><circle cx="328" cy="108" r="36"/><circle cx="412" cy="112" r="34"/><circle cx="350" cy="64" r="26"/></g>
+            <g fill="#5f9a4a"><circle cx="384" cy="96" r="30"/><circle cx="300" cy="122" r="22"/><circle cx="262" cy="120" r="16"/></g>
+            <g fill="#f28c28"><circle cx="352" cy="94" r="6"/><circle cx="390" cy="78" r="6"/><circle cx="406" cy="120" r="6"/><circle cx="332" cy="126" r="6"/><circle cx="372" cy="122" r="6"/><circle cx="296" cy="128" r="5"/></g>
+            <g transform="translate(262,126)"><g class="swing"><use href="#monkey-hang"/></g></g>
+            <g transform="translate(318,124)"><g class="nod d2"><use href="#monkey-sit"/></g></g>
+            <g transform="translate(220,170)"><g class="flutter"><ellipse cx="-5" cy="0" rx="5" ry="3.5" fill="#f7d774"/><ellipse cx="5" cy="0" rx="5" ry="3.5" fill="#f7d774"/><rect x="-0.8" y="-4" width="1.6" height="8" fill="#5a4a2a"/></g></g>
           </g>
 
           <rect width="480" height="300" fill="url(#lens)" pointer-events="none"/>
           <rect class="scanline" x="0" y="-60" width="480" height="60" fill="url(#scan)"/>
 
-          <g class="hud" font-family="ui-monospace, Menlo, monospace" font-size="12" fill="#e6f4ef">
-            <text x="14" y="22" id="cam-label">CAM 1 畑の柵 02:13</text>
-            <circle class="rec" cx="456" cy="18" r="5" fill="#f87171"/>
+          <g class="hud" font-family="ui-monospace, Menlo, monospace" font-size="12" fill="#f4faf7">
+            <rect x="8" y="7" width="150" height="21" rx="5" fill="#000" opacity="0.42"/>
+            <text x="14" y="22" id="cam-label">CAM 1 畑 17:30</text>
+            <circle class="rec" cx="456" cy="18" r="5" fill="#ef4444"/>
           </g>
 
           <g class="boxes" font-size="12" font-weight="700">
-            <g class="box on" data-scene="0"><rect x="272" y="96" width="122" height="146" rx="6"/><rect class="tag" x="272" y="76" width="134" height="20" rx="4"/><text x="279" y="91">シカ 確からしさ 高</text></g>
-            <g class="box" data-scene="1"><rect x="160" y="222" width="124" height="58" rx="6"/><rect class="tag" x="160" y="202" width="158" height="20" rx="4"/><text x="167" y="217">掘り返し 確からしさ 中</text></g>
-            <g class="box" data-scene="2"><rect x="80" y="76" width="76" height="178" rx="6"/><rect class="tag" x="80" y="56" width="124" height="20" rx="4"/><text x="87" y="71">人 顔はぼかします</text></g>
-            <g class="box warn" data-scene="2"><rect x="330" y="182" width="52" height="72" rx="6"/><rect class="tag" x="300" y="162" width="134" height="20" rx="4"/><text x="307" y="177">荷物 確からしさ 中</text></g>
+            <g class="box on" data-scene="0"><rect x="118" y="98" width="280" height="150" rx="6"/><rect class="tag" x="118" y="78" width="160" height="20" rx="4"/><text x="125" y="93">シカの親子 確からしさ 高</text></g>
+            <g class="box on" data-scene="0"><rect x="52" y="206" width="48" height="44" rx="6"/><rect class="tag" x="52" y="186" width="124" height="20" rx="4"/><text x="59" y="201">ウサギ 確からしさ 高</text></g>
+            <g class="box on" data-scene="0"><rect x="398" y="216" width="72" height="82" rx="6"/><rect class="tag" x="346" y="196" width="124" height="20" rx="4"/><text x="353" y="211">人 2 人 確からしさ 高</text></g>
+            <g class="box" data-scene="1"><rect x="146" y="196" width="204" height="70" rx="6"/><rect class="tag" x="146" y="176" width="172" height="20" rx="4"/><text x="153" y="191">うり坊 3 匹 確からしさ 高</text></g>
+            <g class="box" data-scene="1"><rect x="346" y="128" width="46" height="30" rx="6"/><rect class="tag" x="346" y="108" width="134" height="20" rx="4"/><text x="353" y="123">カラス 確からしさ 中</text></g>
+            <g class="box" data-scene="1"><rect x="70" y="122" width="58" height="82" rx="6"/><rect class="tag" x="70" y="102" width="110" height="20" rx="4"/><text x="77" y="117">人 確からしさ 高</text></g>
+            <g class="box" data-scene="2"><rect x="236" y="78" width="112" height="138" rx="6"/><rect class="tag" x="236" y="58" width="150" height="20" rx="4"/><text x="243" y="73">サル 2 匹 確からしさ 高</text></g>
+            <g class="box warn" data-scene="2"><rect x="142" y="150" width="48" height="54" rx="6"/><rect class="tag" x="142" y="130" width="122" height="20" rx="4"/><text x="149" y="145">イヌ 確からしさ 中</text></g>
           </g>
         </svg>
       </div>
       <div class="reading" id="vlm-reading" aria-live="polite">
         <p class="reading-head"><span class="dot" aria-hidden="true"></span>AI の答え</p>
-        <p class="reading-text" id="vlm-text">柵の外に、シカが 1 頭います。柵の破れは見えません。</p>
-        <div class="check" id="vlm-check">
+        <p class="reading-text on" id="vlm-text">シカの親子が 3 頭、柵の外の草地で跳ねています。ウサギも 1 羽います。畑の中から、人が 2 人見ています。</p>
+        <div class="check on" id="vlm-check">
           <span>人が確かめる</span>
           <button type="button" tabindex="-1" class="yes on">合っていた</button>
           <button type="button" tabindex="-1" class="no">違っていた</button>
-          <em id="vlm-note">記録しました</em>
+          <em class="on" id="vlm-note">記録しました</em>
         </div>
       </div>
       <figcaption>画像を読む AI(VLM)の使い方の例です。絵と内容は架空です。</figcaption>
@@ -314,9 +451,9 @@
    the page already shows in full. */
 (function () {
   var scenes = [
-    {cam: "CAM 1 畑の柵 02:13", text: "柵の外に、シカが 1 頭います。柵の破れは見えません。", ok: true, note: "記録しました"},
-    {cam: "CAM 2 畑 17:48", text: "柵の下の土が、掘り返されています。イノシシの跡かもしれませんが、姿は写っていません。", ok: true, note: "記録しました"},
-    {cam: "CAM 3 玄関 10:05", text: "人が来ました。顔はぼかして記録します。ドアの横に、置き配の荷物があります。", ok: false, note: "植木鉢でした。違っていたことも記録します"}
+    {cam: "CAM 1 畑 17:30", text: "シカの親子が 3 頭、柵の外の草地で跳ねています。ウサギも 1 羽います。畑の中から、人が 2 人見ています。", ok: true, note: "記録しました"},
+    {cam: "CAM 2 畑 06:20", text: "うり坊が 3 匹、泥で転げ回っています。柵の上にカラスが 1 羽、畑の中に人が 1 人います。親のイノシシは写っていません。", ok: true, note: "記録しました"},
+    {cam: "CAM 3 庭 14:05", text: "サルが 2 匹、柿の木の実を食べています。縁側に、人が 1 人と犬が 1 匹います。", ok: false, note: "縁側にいたのは猫でした。違っていたことも記録します"}
   ];
   var frame = document.querySelector(".vlm .frame");
   if (!frame || !window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -337,10 +474,9 @@
     setTimeout(function () { check.classList.add("on"); }, 3400);
     setTimeout(function () { (s.ok ? yes : no).classList.add("on"); }, 4600);
     setTimeout(function () { note.textContent = s.note; note.classList.add("on"); }, 5000);
-    setTimeout(function () { show((i + 1) % scenes.length); }, 9500);
+    setTimeout(function () { show((i + 1) % scenes.length); }, 11000);
   }
-  text.classList.add("on"); check.classList.add("on"); note.classList.add("on");
-  setTimeout(function () { show(1); }, 6000);
+  setTimeout(function () { show(1); }, 7000);
 })();
 
 /* The hero's example dialogue: the four steps in turn, one message at a time.
