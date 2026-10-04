@@ -212,7 +212,7 @@ h1 {
   color: var(--muted);
 }
 
-/* the camera panel in the hero: a frame, what the AI found, the person's check */
+/* the camera panel in the hero: a frame, what the AI found, and its answer */
 
 .vlm {
   margin: 0;
@@ -255,9 +255,6 @@ h1 {
 .box.on rect:first-child { stroke-dashoffset: 0; }
 .box .tag { fill: #0f766e; }
 .box text { fill: #fff; }
-.box.warn rect:first-child { stroke: #d97706; fill: rgba(217, 119, 6, 0.1); }
-.box.warn .tag { fill: #d97706; }
-.box.warn text { fill: #fff; }
 
 /* the animals' play, only in the frame that shows */
 .scene .bob, .scene .hop, .scene .rock, .scene .wiggle, .scene .swing, .scene .nod, .scene .tail, .scene .flutter {
@@ -287,27 +284,17 @@ h1 {
 .reading { padding: 4px 8px 2px; }
 .reading-head { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 0.82rem; font-weight: 700; color: var(--muted); }
 .reading-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-.reading-text { margin: 0 0 10px; min-height: 3.4em; font-size: 0.95rem; opacity: 0; transform: translateY(6px); transition: opacity 0.4s ease, transform 0.4s ease; }
+.reading-text { margin: 0 0 6px; min-height: 3.4em; font-size: 0.95rem; opacity: 0; transform: translateY(6px); transition: opacity 0.4s ease, transform 0.4s ease; }
 .reading-text.on { opacity: 1; transform: none; }
 
-.check { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.85rem; opacity: 0; transition: opacity 0.4s ease; }
-.check.on { opacity: 1; }
-.check > span { color: var(--muted); font-weight: 700; margin-right: 2px; }
-.check button {
-  font: inherit;
-  font-weight: 700;
-  padding: 4px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--muted);
-  pointer-events: none;
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
-}
-.check .yes.on { background: var(--accent); border-color: var(--accent); color: var(--bg); transform: scale(1.06); }
-.check .no.on { background: #f59e0b; border-color: #f59e0b; color: #1f1403; transform: scale(1.06); }
-.check em { font-style: normal; color: var(--accent-deep); font-weight: 700; opacity: 0; transition: opacity 0.4s ease; }
-.check em.on { opacity: 1; }
+.log { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.log-head { margin: 0 0 2px; font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+.log-head span { font-weight: 400; margin-left: 4px; }
+.log ul { list-style: none; margin: 0; padding: 0; font-size: 0.84rem; color: var(--muted); }
+.log li { display: flex; gap: 10px; padding: 2px 0; }
+.log li.enter { animation: rise 0.45s ease both; }
+.log .when { color: var(--fg); font-weight: 700; font-variant-numeric: tabular-nums; }
+
 .vlm figcaption { font-size: 0.75rem; color: var(--muted); text-align: right; padding: 0 6px 2px; }
 
 /* ---- the dialogue section --------------------------------------------- */

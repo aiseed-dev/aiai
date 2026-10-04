@@ -248,21 +248,21 @@
             <g class="box" data-scene="1"><rect x="346" y="128" width="46" height="30" rx="6"/><rect class="tag" x="346" y="108" width="134" height="20" rx="4"/><text x="353" y="123">カラス 確からしさ 中</text></g>
             <g class="box" data-scene="1"><rect x="70" y="122" width="58" height="82" rx="6"/><rect class="tag" x="70" y="102" width="110" height="20" rx="4"/><text x="77" y="117">人 確からしさ 高</text></g>
             <g class="box" data-scene="2"><rect x="236" y="78" width="112" height="138" rx="6"/><rect class="tag" x="236" y="58" width="150" height="20" rx="4"/><text x="243" y="73">サル 2 匹 確からしさ 高</text></g>
-            <g class="box warn" data-scene="2"><rect x="142" y="150" width="48" height="54" rx="6"/><rect class="tag" x="142" y="130" width="122" height="20" rx="4"/><text x="149" y="145">イヌ 確からしさ 中</text></g>
+            <g class="box" data-scene="2"><rect x="142" y="150" width="48" height="54" rx="6"/><rect class="tag" x="142" y="130" width="122" height="20" rx="4"/><text x="149" y="145">ネコ 確からしさ 高</text></g>
           </g>
         </svg>
       </div>
       <div class="reading" id="vlm-reading" aria-live="polite">
         <p class="reading-head"><span class="dot" aria-hidden="true"></span>AI の答え</p>
         <p class="reading-text on" id="vlm-text">シカの親子が 3 頭、柵の外の草地で跳ねています。ウサギも 1 羽います。畑の中から、人が 2 人見ています。</p>
-        <div class="check on" id="vlm-check">
-          <span>人が確かめる</span>
-          <button type="button" tabindex="-1" class="yes on">合っていた</button>
-          <button type="button" tabindex="-1" class="no">違っていた</button>
-          <em class="on" id="vlm-note">記録しました</em>
+        <div class="log">
+          <p class="log-head">記録 <span>言葉で残るので、後から確かめたり、「シカ」で探したりできます</span></p>
+          <ul id="vlm-log">
+            <li data-scene="0"><span class="when">17:30</span>シカの親子 3 頭、ウサギ 1 羽、人 2 人</li>
+          </ul>
         </div>
       </div>
-      <figcaption>画像を読む AI(VLM)の使い方の例です。絵と内容は架空です。</figcaption>
+      <figcaption>画像を読む AI(VLM)の使い方の例です。記録がたまると、それをもとにアプリを直していけます。絵と内容は架空です。</figcaption>
     </figure>
   </section>
 
@@ -446,35 +446,47 @@
 </footer>
 <script>
 /* The hero's camera panel: three frames in turn. The AI's reading sweeps
-   down, boxes mark what it found, its answer shows, and a person marks it
-   right or wrong. With reduced motion it stays on the first frame, which
-   the page already shows in full. */
+   down, boxes mark what it found, its answer shows, and a line goes into the
+   record. With reduced motion it stays on the first frame, which the page
+   already shows in full. */
 (function () {
   var scenes = [
-    {cam: "CAM 1 畑 17:30", text: "シカの親子が 3 頭、柵の外の草地で跳ねています。ウサギも 1 羽います。畑の中から、人が 2 人見ています。", ok: true, note: "記録しました"},
-    {cam: "CAM 2 畑 06:20", text: "うり坊が 3 匹、泥で転げ回っています。柵の上にカラスが 1 羽、畑の中に人が 1 人います。親のイノシシは写っていません。", ok: true, note: "記録しました"},
-    {cam: "CAM 3 庭 14:05", text: "サルが 2 匹、柿の木の実を食べています。縁側に、人が 1 人と犬が 1 匹います。", ok: false, note: "縁側にいたのは猫でした。違っていたことも記録します"}
+    {cam: "CAM 1 畑 17:30", when: "17:30", text: "シカの親子が 3 頭、柵の外の草地で跳ねています。ウサギも 1 羽います。畑の中から、人が 2 人見ています。",
+     log: "シカの親子 3 頭、ウサギ 1 羽、人 2 人"},
+    {cam: "CAM 2 畑 06:20", when: "06:20", text: "うり坊が 3 匹、泥で転げ回っています。柵の上にカラスが 1 羽、畑の中に人が 1 人います。親のイノシシは写っていません。",
+     log: "うり坊 3 匹、カラス 1 羽、人 1 人"},
+    {cam: "CAM 3 庭 14:05", when: "14:05", text: "サルが 2 匹、柿の木の実を食べています。縁側に、人が 1 人と猫が 1 匹います。",
+     log: "サル 2 匹、人 1 人、猫 1 匹"}
   ];
   var frame = document.querySelector(".vlm .frame");
   if (!frame || !window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  var text = document.getElementById("vlm-text"), check = document.getElementById("vlm-check"),
-      note = document.getElementById("vlm-note"), cam = document.getElementById("cam-label"),
-      yes = check.querySelector(".yes"), no = check.querySelector(".no");
+  var text = document.getElementById("vlm-text"), cam = document.getElementById("cam-label"),
+      log = document.getElementById("vlm-log");
+  function record(i) {
+    var old = log.querySelector('[data-scene="' + i + '"]');
+    if (old) old.remove();
+    var li = document.createElement("li"), when = document.createElement("span");
+    li.dataset.scene = i;
+    li.className = "enter";
+    when.className = "when";
+    when.textContent = scenes[i].when;
+    li.appendChild(when);
+    li.appendChild(document.createTextNode(scenes[i].log));
+    log.appendChild(li);
+    while (log.children.length > 3) log.removeChild(log.firstChild);
+  }
   function each(sel, fn) { Array.prototype.forEach.call(frame.querySelectorAll(sel), fn); }
   function show(i) {
     var s = scenes[i];
     each(".scene", function (g) { g.classList.toggle("on", +g.dataset.scene === i); });
     each(".box", function (g) { g.classList.remove("on"); });
     cam.textContent = s.cam;
-    text.classList.remove("on"); check.classList.remove("on"); note.classList.remove("on");
-    yes.classList.remove("on"); no.classList.remove("on");
+    text.classList.remove("on");
     frame.classList.remove("scanning"); void frame.offsetWidth; frame.classList.add("scanning");
     setTimeout(function () { each('.box[data-scene="' + i + '"]', function (g) { g.classList.add("on"); }); }, 1500);
     setTimeout(function () { text.textContent = s.text; text.classList.add("on"); }, 2300);
-    setTimeout(function () { check.classList.add("on"); }, 3400);
-    setTimeout(function () { (s.ok ? yes : no).classList.add("on"); }, 4600);
-    setTimeout(function () { note.textContent = s.note; note.classList.add("on"); }, 5000);
-    setTimeout(function () { show((i + 1) % scenes.length); }, 11000);
+    setTimeout(function () { record(i); }, 3900);
+    setTimeout(function () { show((i + 1) % scenes.length); }, 10000);
   }
   setTimeout(function () { show(1); }, 7000);
 })();
