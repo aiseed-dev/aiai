@@ -539,7 +539,7 @@ h1 {
 .steps { padding: 48px 0; }
 .steps h2 { text-align: center; margin-bottom: 36px; }
 
-.steps ol {
+.steps > ol {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -549,7 +549,7 @@ h1 {
   position: relative;
 }
 
-.steps ol::before {
+.steps > ol::before {
   content: "";
   position: absolute;
   top: 46px;
@@ -559,7 +559,7 @@ h1 {
   z-index: 0;
 }
 
-.steps ol > li {
+.steps > ol > li {
   position: relative;
   z-index: 1;
   background: var(--card);
@@ -853,10 +853,11 @@ footer strong { color: var(--fg); }
   .hero { grid-template-columns: 1fr; padding: 48px 0 40px; }
   .vlm, .chat { max-width: 560px; width: 100%; justify-self: center; }
   .dialog { grid-template-columns: 1fr; }
-  .steps ol, .grid, .pair, .howto, .promise, .example, .load ul { grid-template-columns: 1fr; }
+  .steps > ol, .grid, .pair, .howto, .promise, .example, .load ul { grid-template-columns: 1fr; }
   .path-steps { grid-template-columns: 1fr 1fr; }
   .step:nth-child(2)::after { display: none; }
-  .steps ol::before { display: none; }
+  .steps > ol::before { display: none; }
+  .chat-steps { grid-template-columns: 1fr 1fr; }
   .bar { flex-wrap: wrap; row-gap: 6px; }
   .menu { order: 3; width: 100%; margin-left: 0; gap: 18px; overflow-x: auto; }
   .open { margin-left: auto; }
