@@ -3,3 +3,5 @@
 # Copied from each folder's SKILL.md by make_assets.py
 app/assets/skills/
 __pycache__/
+# Built from the repository by make_site.py
+public/

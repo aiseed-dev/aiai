@@ -2,14 +2,16 @@
 
 | ファイル | 中身 |
 |---|---|
-| `index.html`、`top.css` | トップページ。手で書いた HTML と CSS だけで、外の書体や部品は読み込みません |
+| `index.html`、`top.css` | トップページと、全部のページの見た目。手で書いた HTML と CSS だけで、外の書体や部品は読み込みません。トップページの `<!-- news -->` の所に、`make_site.py` が新しいニュースを入れます |
+| `make_site.py` | Web のページを `public/` に作ります。トップページ、スキルごとのページ(中身、「写す」、ZIP)、考え方(`app/assets/kangaekata.md`)、ニュース(`news/*.adoc`)。`public/` はリポジトリに入れません。標準ライブラリだけ |
+| `test_site.py` | `make_site.py` の確かめ |
 | `app/main.py` | Flet の画面。スキルの一覧(開いて「写す」で写し、自分の AI に貼る)、考え方、お知らせ、相談の 4 つのタブ。同じコードを `flet build` で iPhone と Android のアプリにする予定です |
 | `app/soudan_view.py` | 相談のタブ。`soudan/server.py` と話します |
 | `app/kiroku.py`、`app/kiroku_view.py` | 記録のタブ。PC の AI の道具の記録や、書き出したファイルから、本人の発言だけを機械的に読み、識別情報に見える物を伏せて、報告書の AI エージェントに渡します。本人の PC で動かすとき(`AIAI_LOCAL=1`)だけ出ます。標準ライブラリだけ |
 | `test_kiroku.py` | 記録の読み方の確かめ |
 | `app/assets/` | アプリが持ち歩く物。`kangaekata.md`(考え方)、`news/*.adoc`(お知らせ)、`skills/`(各フォルダーの `SKILL.md` の写し。`make_assets.py` が作り、リポジトリには入れません) |
 | `make_assets.py` | 各フォルダーの `SKILL.md` を `app/assets/skills/` に写します。標準ライブラリだけ |
-| `server.py` | `/` でトップページ、`/app/` で Flet の画面、`SOUDAN_MODELS` があれば `/soudan/` でセカンドオピニオンのサーバーを出します |
+| `server.py` | `/` で `public/` のページ、`/skills/<名前>.zip` でスキルの ZIP、`/app/` で Flet の画面、`SOUDAN_MODELS` があれば `/soudan/` でセカンドオピニオンのサーバーを出します |
 | `try.py` | 偽の Apple と Google と、偽のモデル 2 つで、全部を手元で立てます。試すためだけの物です |
 
 ## 動かす
@@ -19,8 +21,12 @@
 
 ```
 python site/make_assets.py
+python site/make_site.py
 python site/try.py
 ```
+
+考え方と使い方、スキル、ニュースは Web のページで読みます。Flet のアプリは、記録(本人の PC で
+動かすとき)と相談のような、道具の側に使います。
 
 `http://127.0.0.1:8020/` を開きます。ほかの機械で立てて SSH で転送して見るときは、
 `--fake-port 8021` のように、偽の Apple と Google のポートも決めておくと、転送する先が変わりません。相談のタブでは、偽の Apple か Google でサインインし、

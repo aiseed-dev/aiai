@@ -148,7 +148,7 @@ aiai は「AI 時代の学び方」です。個人が、自分の AI と一緒�
 | `moushikomi/` | Apple ID か Google ID でサインインした人から申し込みを受ける仕組み(`server.py`)。項目は `.koumoku.adoc`、見本はパンの取り置き |
 | `soudan/` | セカンドオピニオンのサーバー(`server.py`)。募集に応じた人だけが、招待の番号で使う。当面は無料の研究サービスで、効果が確かめられたら、低額の会費で運営する(費用は主に API の利用料)。サインインは `moushikomi/server.py` の物を使う。確かめる観点は `観点/*.md` |
 | `office/` | officework の簡易版。リボンの設定ファイル(`ribbon.toml`)と Python のボタンだけ |
-| `site/` | aiai のサイトとアプリ。トップページ(`index.html`、`top.css`)は手で書いた HTML と CSS、`/app/` は Flet の画面(`app/main.py`)で、そのまま `flet build` でアプリにできる形にする。`make_assets.py` が各 `SKILL.md` を `app/assets/skills/` に写す。`server.py` が両方を出す。https://aiai.aiseed.dev/ で出している(Compute Engine の VM、Caddy は同じ VM のほかの Web と共有し、aiai の分は `/etc/caddy/aiai.caddy`) |
+| `site/` | aiai のサイトとアプリ。考え方と使い方、スキル、ニュースは Web のページで見せる。トップページ(`index.html`、`top.css`)は手で書いた HTML と CSS で、`make_site.py` がスキルごとのページ、考え方、ニュース(`news/*.adoc`)のページを `public/` に作る。`/app/` は Flet の画面(`app/main.py`)で、記録と相談のような道具の側に使い、そのまま `flet build` でアプリにできる形にする。`make_assets.py` が各 `SKILL.md` を `app/assets/skills/` に写す。`server.py` が両方を出す。https://aiai.aiseed.dev/ で出している(Compute Engine の VM、Caddy は同じ VM のほかの Web と共有し、aiai の分は `/etc/caddy/aiai.caddy`) |
 | `news/` | aiai ニュース。VLM、スマートドア、スマートロック、鳥獣対策のニュースを、1 日 1 つの adoc にまとめる |
 
 ## 残っていること(2026-10-02 時点)

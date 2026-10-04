@@ -11,11 +11,12 @@
 <header class="bar">
   <a class="logo" href="./"><span class="mark" aria-hidden="true"></span>aiai</a>
   <nav class="menu">
+    <a href="#skills">スキル</a>
     <a href="#how">使い方</a>
-    <a href="#skills">できること</a>
-    <a href="#why">考え方</a>
+    <a href="/news/">ニュース</a>
+    <a href="/kangaekata.html">考え方</a>
   </nav>
-  <a class="open" href="app/">アプリを開く</a>
+  <a class="open" href="/app/">アプリ</a>
 </header>
 
 <main>
@@ -29,7 +30,7 @@
         学んだことを仕事にするための履歴書、企画書、開業の届出、Web サイトまで。
       </p>
       <div class="actions">
-        <a class="button primary" href="app/">スキルを見る</a>
+        <a class="button primary" href="#skills">スキルを見る</a>
         <a class="button" href="#how">使い方を読む</a>
       </div>
       <p class="fine">スキルと知識は無料です。見本の人、店、数字は、すべて架空です。</p>
@@ -81,18 +82,67 @@
     </figure>
   </section>
 
+  <section id="skills" class="skills">
+    <h2>知る、考える、作る、始める</h2>
+    <p class="section-lead">どれも、あなたの AI に読ませて使うスキルです。開くと、中身を読めて、写したり ZIP で取ったりできます。</p>
+    <div class="grid">
+      <a class="card" href="/skills/rireki.html">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg></span>
+        <p class="tag">1 知る</p>
+        <h3>チャットの履歴から自分を知る</h3>
+        <p>AI とのチャットの履歴から、長所、得意な分野、大事にしている考え方、過去の AI で足りなかったやり取りの改善の提案、次に学ぶことなど 12 の項目を、あなたの AI が根拠付きで作ります。</p>
+      </a>
+      <a class="card" href="/skills/tenshoku.html">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4z"/></svg></span>
+        <p class="tag">2 考える</p>
+        <h3>転職を考える</h3>
+        <p>これまでのチャットから自分の長所を AI に探してもらい、ソフトウェアの外の仕事に活かす道を考えます。</p>
+      </a>
+      <a class="card" href="/skills/gakusei.html">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h7a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h7z"/></svg></span>
+        <p class="tag">2 考える</p>
+        <h3>AI の時代、何を学ぶか</h3>
+        <p>高校生と大学の 1 回生向け。長所を探し、小さなアプリを作ってみてから、何を学ぶかを決めます。</p>
+      </a>
+      <a class="card" href="/skills/genba.html">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+        <p class="tag">3 作る</p>
+        <h3>現場で写真を読む</h3>
+        <p>畑、工場、店、民泊で撮った写真を VLM に見せて、仕事の判断を助ける小さなアプリを作ります。答えは人が確かめます。</p>
+      </a>
+      <a class="card" href="/skills/website.html">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
+        <p class="tag">4 始める</p>
+        <h3>事業の Web サイト</h3>
+        <p>公開してよい事実だけを写して、静的なページを作り、公開します。</p>
+      </a>
+      <a class="card" href="/skills/moushikomi.html">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg></span>
+        <p class="tag">4 始める</p>
+        <h3>申し込みを受ける</h3>
+        <p>Apple ID か Google ID でサインインした人から、取り置き、予約、注文を受けます。</p>
+      </a>
+      <a class="card" href="/skills/keikaku.html">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21V11M12 11c0-4 3-7 7-7 0 4-3 7-7 7zM12 14c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/></svg></span>
+        <p class="tag">4 始める</p>
+        <h3>自然農法の経営計画</h3>
+        <p>自然農法で農業を始める人が、土にたまったりん酸をどう使うかから、自分の経営計画を作ります。</p>
+      </a>
+    </div>
+  </section>
+
   <section id="how" class="steps">
     <h2>使い方は、3 つだけ</h2>
     <ol>
       <li>
         <span class="num">1</span>
         <h3>スキルを選ぶ</h3>
-        <p>アプリで、やりたいことのスキルを開きます。</p>
+        <p>上の一覧から、やりたいことのスキルを開きます。</p>
       </li>
       <li>
         <span class="num">2</span>
-        <h3>あなたの AI に貼る</h3>
-        <p>「写す」で写して、ふだん使っている AI に貼ります。</p>
+        <h3>あなたの AI に読ませる</h3>
+        <p>「写す」で写して貼るか、ZIP をスキルとして上げます。</p>
       </li>
       <li>
         <span class="num">3</span>
@@ -100,55 +150,32 @@
         <p>AI は答えを先に出さず、あなたに聞きながら進めます。決めるのは、あなたです。</p>
       </li>
     </ol>
-  </section>
-
-  <section id="skills" class="skills">
-    <h2>できること</h2>
-    <p class="section-lead">どれも、あなたの AI に読ませて使うスキルです。ChatGPT、Claude、Gemini では、スキルとして上げて使えます。</p>
-    <div class="grid">
+    <div class="howto">
       <article>
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg></span>
-        <p class="tag">知る</p>
-        <h3>チャットの履歴から自分を知る</h3>
-        <p>AI とのチャットの履歴から、長所、得意な分野、大事にしている考え方、過去の AI で足りなかったやり取りの改善の提案、次に学ぶことなど 12 の項目を、あなたの AI が根拠付きで作ります。</p>
+        <h3>AI ごとの読ませ方</h3>
+        <ul>
+          <li><strong>Claude</strong>: ZIP を、スキルとして上げます。コードの実行を有効にしておきます</li>
+          <li><strong>Gemini</strong>: SKILL.md か ZIP を、スキルとして上げます。18 歳以上で、個人の Google アカウントの人が使えます</li>
+          <li><strong>ChatGPT</strong>: スキルが使えるワークスペースで入れます。使えないときは、写して貼ります</li>
+          <li><strong>Microsoft 365 Copilot</strong>: 企業用の場合は、管理者に言ってもらってください</li>
+        </ul>
       </article>
       <article>
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4z"/></svg></span>
-        <p class="tag">考える</p>
-        <h3>転職を考える</h3>
-        <p>これまでのチャットから自分の長所を AI に探してもらい、ソフトウェアの外の仕事に活かす道を考えます。</p>
-      </article>
-      <article>
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h7a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h7z"/></svg></span>
-        <p class="tag">考える</p>
-        <h3>AI の時代、何を学ぶか</h3>
-        <p>高校生と大学の 1 回生向け。長所を探し、小さなアプリを作ってみてから、何を学ぶかを決めます。</p>
-      </article>
-      <article>
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
-        <p class="tag">作る</p>
-        <h3>現場で写真を読む</h3>
-        <p>畑、工場、店、民泊で撮った写真を VLM に見せて、仕事の判断を助けます。答えは人が確かめます。</p>
-      </article>
-      <article>
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
-        <p class="tag">作る</p>
-        <h3>事業の Web サイト</h3>
-        <p>公開してよい事実だけを写して、静的なページを作り、公開します。</p>
-      </article>
-      <article>
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg></span>
-        <p class="tag">作る</p>
-        <h3>申し込みを受ける</h3>
-        <p>Apple ID か Google ID でサインインした人から、取り置き、予約、注文を受けます。</p>
-      </article>
-      <article>
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg></span>
-        <p class="tag">作る</p>
-        <h3>書類を整える</h3>
-        <p>履歴書、開業届、青色申告、就農の計画。様式と、決まりとして知られていることを置いています。</p>
+        <h3>勤めている人の使い方</h3>
+        <ul>
+          <li>試作は、家で自分の AI と作ります。どう作るとうまくいくかを、自分で覚えておきます</li>
+          <li>社外の会議のことは、スマートフォンの自分の AI に、とりあえず入れておきます。後で家の PC の AI に続きを頼めます</li>
+          <li>会社では、覚えたことを使って、会社の仕組みの中で作るか、人に頼みます</li>
+        </ul>
       </article>
     </div>
+  </section>
+
+  <section id="news" class="news">
+    <h2>ニュース</h2>
+    <p class="section-lead">VLM、スマートドア、スマートロック、鳥獣対策のニュースです。人が元の記事を読んで確かめてから載せます。</p>
+    <!-- news --><!-- /news -->
+    <p><a class="more-link" href="/news/">ニュースをすべて見る →</a></p>
   </section>
 
   <section id="why" class="belief">
@@ -156,7 +183,7 @@
       <p class="kicker light">考え方</p>
       <h2>力になるのは、確かめられた中身と、現場の知識</h2>
       <p>狭義のソフトウェア開発は、汎用の LLM がとても安くできるようになりました。人は検索ではなく AI に聞くようになり、AI が読んで正しく使える確かな中身と、あなたしか持っていない現場の知識が力になります。aiai は、AI を使い込んだ経験を、ものづくり、サービス、店、農業、空き家や民泊の運営のような、ソフトウェアの外の仕事に活かすことを考えます。</p>
-      <a class="more" href="app/">考え方を読む →</a>
+      <a class="more" href="/kangaekata.html">考え方を読む →</a>
     </div>
   </section>
 
@@ -174,7 +201,7 @@
 
   <section class="cta">
     <h2>あなたの AI と、始めましょう</h2>
-    <a class="button primary" href="app/">スキルを見る</a>
+    <a class="button primary" href="#skills">スキルを見る</a>
   </section>
 </main>
 

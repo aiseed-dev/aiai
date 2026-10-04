@@ -111,7 +111,9 @@ h1, h2, h3 { line-height: 1.35; letter-spacing: 0.01em; }
 
 /* ---- layout -------------------------------------------------------- */
 
-main { padding: 0 16px; }
+/* clip, not hidden, so nothing inside becomes a scrolling box; the hero's
+   soft shape reaches past the right edge and must not widen the page */
+main { padding: 0 16px; overflow-x: clip; }
 
 section {
   max-width: 1080px;
@@ -280,7 +282,7 @@ h1 {
   z-index: 0;
 }
 
-.steps li {
+.steps ol > li {
   position: relative;
   z-index: 1;
   background: var(--card);
@@ -304,7 +306,7 @@ h1 {
 
 h3 { margin: 14px 0 6px; font-size: 1.15rem; }
 
-.steps p, .skills article p { margin: 0; color: var(--muted); }
+.steps p, .skills .card p { margin: 0; color: var(--muted); }
 
 /* ---- skills --------------------------------------------------------- */
 
@@ -316,7 +318,10 @@ h3 { margin: 14px 0 6px; font-size: 1.15rem; }
   gap: 18px;
 }
 
-.skills article {
+.skills .card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -324,7 +329,7 @@ h3 { margin: 14px 0 6px; font-size: 1.15rem; }
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.skills article:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.skills .card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 
 .icon {
   display: inline-grid;
@@ -356,6 +361,88 @@ h3 { margin: 14px 0 6px; font-size: 1.15rem; }
 }
 
 .skills h3 { margin: 4px 0 8px; }
+
+/* ---- how to load, at work ------------------------------------------- */
+
+.howto {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.howto article {
+  background: var(--bg-2);
+  border-radius: var(--radius);
+  padding: 24px 26px;
+}
+
+.howto h3 { margin-top: 0; }
+.howto ul { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.howto li { margin: 4px 0; }
+
+/* ---- news ------------------------------------------------------------ */
+
+.news { padding: 16px 0 56px; }
+
+.news-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+
+.news-list a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--line);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.news-list a:hover { color: var(--accent); }
+.date { color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+.chip {
+  display: inline-block;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.chips { margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.more-link { font-weight: 700; text-decoration: none; }
+
+/* ---- generated pages (skills, thinking, news) ------------------------ */
+
+main.doc { padding: 40px 16px 64px; }
+main.doc > article { max-width: 760px; margin: 0 auto; }
+main.doc h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 4px 0 12px; }
+main.doc .lead { font-size: 1.05rem; }
+main.doc .actions { margin: 20px 0 10px; }
+main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
+.kicker a { color: inherit; text-decoration: none; }
+
+.prose { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 8px; }
+.prose h2 { font-size: 1.4rem; margin: 40px 0 12px; }
+.prose h3 { font-size: 1.1rem; margin: 28px 0 8px; }
+.prose p, .prose li { overflow-wrap: anywhere; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose li { margin: 6px 0; }
+.prose code { font-size: 0.9em; background: var(--bg-2); padding: 1px 6px; border-radius: 6px; }
+.prose pre { background: var(--bg-2); padding: 14px 16px; border-radius: 12px; overflow-x: auto; }
+.prose pre code { background: none; padding: 0; }
+.table { overflow-x: auto; margin: 16px 0; }
+.prose table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+.prose th, .prose td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.prose th { background: var(--bg-2); }
+
+.news-entry { padding: 8px 0 20px; border-bottom: 1px solid var(--line); }
+.news-entry h2 { margin-top: 28px; }
+.news-entry .src { font-size: 0.85rem; color: var(--muted); }
+.news-day ul { margin: 0; }
 
 /* ---- belief band ---------------------------------------------------- */
 
@@ -426,9 +513,11 @@ footer strong { color: var(--fg); }
 @media (max-width: 880px) {
   .hero { grid-template-columns: 1fr; padding: 48px 0 40px; }
   .hero-figure { max-width: 520px; justify-self: center; }
-  .steps ol, .grid, .pair { grid-template-columns: 1fr; }
+  .steps ol, .grid, .pair, .howto { grid-template-columns: 1fr; }
   .steps ol::before { display: none; }
-  .menu { display: none; }
+  .bar { flex-wrap: wrap; row-gap: 6px; }
+  .menu { order: 3; width: 100%; margin-left: 0; gap: 18px; overflow-x: auto; }
+  .open { margin-left: auto; }
 }
 
 @media (max-width: 480px) {

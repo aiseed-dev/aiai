@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Serves the aiai site: the hand-written top page at /, the Flet app
-(app/main.py) at /app/, and, when SOUDAN_MODELS is set, the second-opinion
-server (soudan/server.py) at /soudan/.
+"""Serves the aiai site: the pages built into public/ by make_site.py (the
+top page, the skills, the thinking, the news) at /, each skill's ZIP at
+/skills/<name>.zip, the Flet app (app/main.py) at /app/, and, when
+SOUDAN_MODELS is set, the second-opinion server (soudan/server.py) at /soudan/.
 
     python site/make_assets.py
+    python site/make_site.py
     python site/server.py [--host 127.0.0.1] [--port 8020]
 
 For the second opinion, set its settings as in soudan/README.md, with
@@ -18,7 +20,8 @@ import os
 import sys
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import Response
+from fastapi.staticfiles import StaticFiles
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -55,17 +58,6 @@ def create_app(soudan=None):
 
     app = FastAPI(title="aiai", docs_url=None, redoc_url=None, openapi_url=None)
 
-    # The browser asks again each time, so a changed page or style shows at once
-    fresh = {"Cache-Control": "no-cache"}
-
-    @app.get("/")
-    def top():
-        return FileResponse(os.path.join(HERE, "index.html"), media_type="text/html; charset=utf-8", headers=fresh)
-
-    @app.get("/top.css")
-    def css():
-        return FileResponse(os.path.join(HERE, "top.css"), media_type="text/css; charset=utf-8", headers=fresh)
-
     @app.get("/skills/{name}.zip")
     def skill(name: str, request: Request):
         data = skill_zip(name, root=request.query_params.get("for") == "m365")
@@ -77,7 +69,18 @@ def create_app(soudan=None):
     if soudan is not None:
         app.mount("/soudan", soudan)
     app.mount("/app", ft.run(screen, export_asgi_app=True, assets_dir=os.path.join(HERE, "app", "assets")))
+    app.mount("/", Pages(directory=os.path.join(HERE, "public"), html=True))
     return app
+
+
+class Pages(StaticFiles):
+    """The built pages; the browser asks again each time, so a changed page or
+    style shows at once (it still gets "not modified" when nothing changed)."""
+
+    def file_response(self, *args, **kwargs):
+        r = super().file_response(*args, **kwargs)
+        r.headers["Cache-Control"] = "no-cache"
+        return r
 
 
 if __name__ == "__main__":
