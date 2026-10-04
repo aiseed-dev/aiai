@@ -10,12 +10,18 @@ run as root. Only the standard library is used.
     sudo python3 tools/kougeki.py [--hours 24] [--json]
     sudo python3 tools/kougeki.py --out /home/dev/aiai-server [--ai gemini]   # the daily record, run just after midnight
 
-With --ai gemini, Gemini reads the day's counts next to the earlier days'
-and writes a short note (anything unusual, anything to act on) into the
-record; it reads and writes nothing else. On Google Cloud it is called
-with the machine's service account (no key on the server); elsewhere with
-GOOGLE_API_KEY. The aiai app's サーバー tab reads the folder (over SSH, or
-on the server itself) and shows the days side by side.
+With --ai, an AI reads the day's counts next to the earlier days' and
+writes a short note (anything unusual, anything to act on) into the
+record; it reads and writes nothing else. --ai gemini calls Gemini: on
+Google Cloud with the machine's service account (no key on the server),
+elsewhere with GOOGLE_API_KEY. --ai claude runs the Claude Code CLI
+(claude -p), so it costs nothing beyond the person's plan; it needs the CLI
+where it runs, which is usually the person's PC rather than the server:
+
+    python3 tools/kougeki.py --note ~/aiai-server/2026-10-04.json --ai claude   # add the note to a fetched record
+
+The aiai app's サーバー tab reads the folder (over SSH, or on the server
+itself) and shows the days side by side.
 """
 import argparse
 import collections
@@ -23,6 +29,7 @@ import datetime
 import json
 import os
 import re
+import shutil
 import subprocess
 import urllib.error
 import urllib.request
@@ -173,6 +180,21 @@ def ask_gemini(prompt, model):
     return "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
 
 
+def ask_claude(prompt, model):
+    """Claude Code's answer to one prompt, through its CLI, with no tools."""
+    if not shutil.which("claude"):
+        raise OSError("claude が見つかりません")
+    env = dict(os.environ)
+    env.pop("CLAUDECODE", None)  # so it runs even from inside a Claude Code session
+    cmd = ["claude", "-p", prompt, "--permission-mode", "dontAsk", "--allowedTools", ""]
+    if model:
+        cmd += ["--model", model]
+    r = subprocess.run(cmd, text=True, capture_output=True, timeout=300, env=env)
+    if r.returncode != 0:
+        raise OSError((r.stderr or r.stdout).strip()[-300:])
+    return r.stdout.strip()
+
+
 def earlier_days(folder, today):
     """One line per earlier day's record in the folder, newest first, at most 14."""
     lines = []
@@ -190,7 +212,7 @@ def earlier_days(folder, today):
     return lines
 
 
-def ai_note(r, folder, model):
+def ai_note(r, folder, ai, model):
     before = earlier_days(folder, r["day"])
     prompt = ("あなたは、個人が持つ小さなサーバーの、1 日分の攻撃の記録を読む係です。サーバーには何もできず、読んで短く書くだけです。\n"
               "次の今日の記録と、前の日の数を見て、日本語の「です・ます」の説明文で、8 行以内で書いてください。\n"
@@ -198,12 +220,13 @@ def ai_note(r, folder, model):
               "2. 人が手を打った方がよいこと。無ければ「手を打つことはありません」と書きます\n"
               "推測で書かず、記録にある数だけを使います。パスワードでの認証が切ってあれば、SSH の試みは入れないので、回数が多くても手を打つ物ではありません。\n\n"
               f"<今日の記録>\n{r['adoc']}\n</今日の記録>\n\n<前の日>\n" + ("\n".join(before) or "(まだありません)") + "\n</前の日>\n")
+    name = model or ("gemini-3.5-flash" if ai == "gemini" else "claude")
     try:
-        text = ask_gemini(prompt, model)
-        return {"model": model, "text": text or "(答えがありませんでした)"}
-    except (OSError, ValueError, KeyError, urllib.error.URLError) as e:
+        text = ask_gemini(prompt, name) if ai == "gemini" else ask_claude(prompt, model)
+        return {"model": name, "text": text or "(答えがありませんでした)"}
+    except (OSError, ValueError, KeyError, urllib.error.URLError, subprocess.TimeoutExpired) as e:
         detail = getattr(e, "read", lambda: b"")()
-        return {"model": model, "text": "", "error": (detail.decode("utf-8", errors="replace") if detail else str(e))[:300]}
+        return {"model": name, "text": "", "error": (detail.decode("utf-8", errors="replace") if detail else str(e))[:300]}
 
 
 def adoc(r):
@@ -242,13 +265,27 @@ def main():
     ap.add_argument("--hours", type=int, default=24)
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--out", help="この日の記録(adoc と json)を書くフォルダー。日付は、数えた範囲の終わりの 1 時間前の日")
-    ap.add_argument("--ai", choices=["gemini"], help="数えた物を AI に読ませて、所見を記録に足す")
-    ap.add_argument("--model", default="gemini-3.5-flash")
+    ap.add_argument("--ai", choices=["gemini", "claude"], help="数えた物を AI に読ませて、所見を記録に足す")
+    ap.add_argument("--model", help="その AI のモデルの名前(既定は gemini-3.5-flash、claude はその CLI の既定)")
+    ap.add_argument("--note", help="数えずに、この記録(json)に所見を付けて書き直す。--ai と一緒に使う")
     a = ap.parse_args()
+    if a.note:
+        if not a.ai:
+            ap.error("--note には --ai が要ります")
+        with open(a.note, encoding="utf-8") as f:
+            r = json.load(f)
+        r["ai"] = ai_note(r, os.path.dirname(a.note), a.ai, a.model)
+        r["adoc"] = adoc(r)
+        with open(a.note, "w", encoding="utf-8") as f:
+            json.dump(r, f, ensure_ascii=False)
+        with open(a.note[:-5] + ".adoc", "w", encoding="utf-8") as f:
+            f.write(r["adoc"])
+        print(r["ai"]["text"] or f"(読めませんでした: {r['ai'].get('error', '')})")
+        return
     r = report(a.hours)
     r["adoc"] = adoc(r)
     if a.ai:
-        r["ai"] = ai_note(r, a.out, a.model)
+        r["ai"] = ai_note(r, a.out, a.ai, a.model)
         r["adoc"] = adoc(r)
     if a.out:
         day = r["day"]
