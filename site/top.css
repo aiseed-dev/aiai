@@ -296,6 +296,72 @@ h1 {
 
 .chat figcaption { font-size: 0.75rem; color: var(--muted); text-align: right; }
 
+/* the four steps above the dialogue; the shown one is filled */
+.chat-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.chat-steps button {
+  width: 100%;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.chat-steps b { margin-right: 4px; }
+
+.chat-steps button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.chat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 330px;
+}
+
+.msg.enter { animation: rise 0.45s ease both; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.msg.typing { display: flex; gap: 5px; padding: 14px 16px; animation: rise 0.3s ease both; }
+
+.msg.typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: blink 1s infinite ease-in-out;
+}
+
+.msg.typing i:nth-child(2) { animation-delay: 0.15s; }
+.msg.typing i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+.note { margin: -4px 0 12px; color: var(--muted); font-size: 0.9rem; }
+
 /* ---- the path: know, think, make, start ------------------------------- */
 
 .path { padding: 48px 0 56px; }
@@ -655,6 +721,7 @@ footer strong { color: var(--fg); }
 }
 
 @media (max-width: 600px) {
+  .chat-body { min-height: 380px; }
   .path-steps { grid-template-columns: 1fr; }
   .step::after { display: none; }
 }

@@ -257,7 +257,7 @@ def page(title, body, description=""):
 HEADER = """<header class="bar">
   <a class="logo" href="/"><span class="mark" aria-hidden="true"></span>aiai</a>
   <nav class="menu">
-    <a href="/#skills">スキル</a>
+    <a href="/#skills">手引き</a>
     <a href="/#how">使い方</a>
     <a href="/news/">ニュース</a>
     <a href="/kangaekata.html">考え方</a>
@@ -283,8 +283,8 @@ document.querySelectorAll("[data-copy]").forEach(function (b) {
 });
 </script>"""
 
-HOW_TO_LOAD = ("「写す」で写して、ふだん使っている AI のチャットに貼ります。Claude は ZIP を、Gemini は SKILL.md か ZIP を、"
-               "スキルとして上げられます。ChatGPT は、スキルが使えるワークスペースで入れます。"
+HOW_TO_LOAD = ("「写す」で写して、ふだん使っている AI のチャットに貼ります。貼るほかに、AI に「スキル」として登録しておくこともできます。"
+               "Claude は ZIP を、Gemini は SKILL.md か ZIP を上げます。ChatGPT は、スキルが使えるワークスペースで入れます。"
                "Microsoft 365 Copilot は、企業用の場合は、管理者に言ってもらってください。")
 
 
@@ -309,11 +309,11 @@ def load_skills():
 
 def skill_page(name, step, title, description, raw, body):
     return page(title, f"""<article>
-<p class="kicker">{html.escape(step) or "スキル"}</p>
+<p class="kicker">{html.escape(step) or "手引き"}</p>
 <h1>{html.escape(title)}</h1>
 <p class="lead">{inline(description)}</p>
 <div class="actions">
-  <button class="button primary" type="button" data-copy="skill-src">スキルを写す</button>
+  <button class="button primary" type="button" data-copy="skill-src">手引きを写す</button>
   <a class="button" href="/skills/{name}.zip" download>ZIP をダウンロード</a>
 </div>
 <p class="fine">{HOW_TO_LOAD}</p>

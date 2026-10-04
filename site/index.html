@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>aiai — AI 時代の学び方</title>
-<meta name="description" content="AI 時代の学び方。ふだん使っている AI にスキルを読ませて、対話しながら、自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。">
+<meta name="description" content="AI 時代の学び方。ふだん使っている AI に手引きを読ませて、対話しながら、自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://aiai.aiseed.dev/">
 <meta property="og:title" content="aiai — AI 時代の学び方">
-<meta property="og:description" content="ふだん使っている AI にスキルを読ませて、対話しながら、自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。">
+<meta property="og:description" content="ふだん使っている AI に手引きを読ませて、対話しながら、自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。">
 <meta property="og:locale" content="ja_JP">
 <meta name="theme-color" content="#0f766e">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%230f766e'/%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%230f766e' stroke-opacity='.3' stroke-width='3'/%3E%3C/svg%3E">
@@ -18,7 +18,7 @@
 <header class="bar">
   <a class="logo" href="/"><span class="mark" aria-hidden="true"></span>aiai</a>
   <nav class="menu">
-    <a href="#skills">スキル</a>
+    <a href="#skills">手引き</a>
     <a href="#how">使い方</a>
     <a href="/news/">ニュース</a>
     <a href="/kangaekata.html">考え方</a>
@@ -32,38 +32,46 @@
       <p class="kicker">AI 時代の学び方</p>
       <h1>主役は、<br>あなたの AI。</h1>
       <p class="lead">
-        ふだん使っている AI にスキルを読ませて、対話しながら、
+        ふだん使っている AI に手引きを読ませて、対話しながら、
         自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。
       </p>
       <div class="actions">
-        <a class="button primary" href="#skills">スキルを見る</a>
+        <a class="button primary" href="#skills">手引きを見る</a>
         <a class="button" href="#how">使い方を読む</a>
       </div>
-      <p class="fine">スキルは無料です。ChatGPT、Claude、Gemini で使えます。</p>
+      <p class="fine">手引きは無料です。ChatGPT、Claude、Gemini で使えます。</p>
     </div>
 
-    <figure class="chat" aria-label="スキルを読ませた AI との対話の例">
+    <figure class="chat" aria-label="手引きを読ませた AI との対話の例">
+      <ol class="chat-steps" aria-label="4 つの段">
+        <li><button type="button" data-step="0" aria-pressed="true"><b>1</b>知る</button></li>
+        <li><button type="button" data-step="1" aria-pressed="false"><b>2</b>考える</button></li>
+        <li><button type="button" data-step="2" aria-pressed="false"><b>3</b>作る</button></li>
+        <li><button type="button" data-step="3" aria-pressed="false"><b>4</b>始める</button></li>
+      </ol>
       <div class="chat-head">
         <span class="dot" aria-hidden="true"></span>
         <span>あなたの AI</span>
-        <span class="skill-chip">スキル: 自分を知る</span>
+        <span class="skill-chip" id="chat-guide">手引き: 自分を知る</span>
       </div>
-      <div class="msg you">これまでのチャットから、私の長所を探してください。</div>
-      <div class="msg ai">
-        <p class="msg-label">「長所」の下書きです。違っていたら直してください。</p>
-        <div class="finding">
-          <p class="finding-title">AI の案をそのまま使わず、確かめてから進める</p>
-          <p class="finding-why"><span>根拠</span>9 月ごろの、畑の写真のアプリのやり取り。AI が「写真を千枚集める」と勧めたとき、手元の 30 枚で人が確かめる形に変えています。</p>
+      <div class="chat-body" id="chat-body" aria-live="polite">
+        <div class="msg you">これまでのチャットから、私の長所を探してください。</div>
+        <div class="msg ai">
+          <p class="msg-label">「長所」の下書きです。違っていたら直してください。</p>
+          <div class="finding">
+            <p class="finding-title">AI の案をそのまま使わず、確かめてから進める</p>
+            <p class="finding-why"><span>根拠</span>9 月ごろの、畑の写真のアプリのやり取り。手元の 30 枚で、人が確かめる形に変えています。</p>
+          </div>
         </div>
+        <div class="msg you">合っています。この長所が生きる仕事も考えたいです。</div>
       </div>
-      <div class="msg you">合っています。この長所が生きる仕事も考えたいです。</div>
       <figcaption>対話の例です。人と内容は架空です。</figcaption>
     </figure>
   </section>
 
   <section id="skills" class="path">
     <h2>知る、考える、作る、始める</h2>
-    <p class="section-lead">どれも、あなたの AI に読ませて使うスキルです。開くと中身を読めて、写したり ZIP で取ったりできます。</p>
+    <p class="section-lead">どれも、あなたの AI に読ませる手引きです。開くと中身を読めて、写してそのまま使えます。</p>
     <ol class="path-steps">
       <li class="step">
         <p class="step-num">1</p>
@@ -121,13 +129,13 @@
     <ol>
       <li>
         <span class="num">1</span>
-        <h3>スキルを選ぶ</h3>
-        <p>やりたいことのスキルを開きます。</p>
+        <h3>手引きを選ぶ</h3>
+        <p>やりたいことの手引きを開きます。</p>
       </li>
       <li>
         <span class="num">2</span>
         <h3>あなたの AI に読ませる</h3>
-        <p>「写す」で写して貼るか、ZIP をスキルとして上げます。</p>
+        <p>「写す」で写して、AI のチャットに貼ります。</p>
       </li>
       <li>
         <span class="num">3</span>
@@ -138,6 +146,7 @@
     <div class="howto">
       <article>
         <h3>AI ごとの読ませ方</h3>
+        <p class="note">貼るほかに、手引きを AI に「スキル」として登録しておくこともできます。</p>
         <dl>
           <dt>Claude</dt><dd>ZIP を、スキルとして上げます。コードの実行を有効にしておきます</dd>
           <dt>Gemini</dt><dd>SKILL.md か ZIP を、スキルとして上げます。18 歳以上で、個人の Google アカウントの人が使えます</dd>
@@ -196,14 +205,86 @@
 
   <section class="cta">
     <h2>あなたの AI と、始めましょう</h2>
-    <a class="button primary" href="#skills">スキルを見る</a>
+    <a class="button primary" href="#skills">手引きを見る</a>
   </section>
 </main>
 
 <footer>
   <p><strong>aiai</strong> AI 時代の学び方</p>
-  <p class="small"><a href="#skills">スキル</a> ・ <a href="/news/">ニュース</a> ・ <a href="/kangaekata.html">考え方</a></p>
+  <p class="small"><a href="#skills">手引き</a> ・ <a href="/news/">ニュース</a> ・ <a href="/kangaekata.html">考え方</a></p>
   <p class="small">文書は CC BY 4.0、コードは AGPL-3.0-or-later です。見本の人、店、数字は、すべて架空です。このサイトは、国や役所が作った物ではありません。</p>
 </footer>
+<script>
+/* The hero's example dialogue: the four steps in turn, one message at a time.
+   With reduced motion it stays on the first step, which the page already shows. */
+(function () {
+  var scenes = [
+    {guide: "自分を知る", msgs: [
+      {you: "これまでのチャットから、私の長所を探してください。"},
+      {label: "「長所」の下書きです。違っていたら直してください。", title: "AI の案をそのまま使わず、確かめてから進める",
+       why: "9 月ごろの、畑の写真のアプリのやり取り。手元の 30 枚で、人が確かめる形に変えています。"},
+      {you: "合っています。この長所が生きる仕事も考えたいです。"}]},
+    {guide: "転職を考える", msgs: [
+      {you: "この長所が生きる仕事を考えたいです。"},
+      {label: "候補の下書きです。選ぶのは、あなたです。", title: "農業法人で、畑の見回りと記録を受け持つ仕事",
+       why: "確かめてから進める長所が、作物の様子を記録して判断する所で生きます。"},
+      {you: "これがいいです。実際に試してみたいです。"}]},
+    {guide: "現場で写真を読む", msgs: [
+      {you: "畑の見回りに使う、小さなアプリを作ってみたいです。"},
+      {label: "まず、ここから作りましょう。", title: "写真を撮る、AI が答える、人が「合っていた」を押す",
+       why: "AI は見間違えます。答えを人が確かめて記録すると、どこで信じてよいかが分かります。"},
+      {you: "10 枚撮って、試してみます。"}]},
+    {guide: "申し込みを受ける", msgs: [
+      {you: "野菜の取り置きを、Web で受けたいです。"},
+      {label: "申し込みの項目の下書きです。", title: "品物と数、取りに来る日、呼び名",
+       why: "Apple ID か Google ID でサインインした人から受けます。取りに来る日が過ぎたら消します。"},
+      {you: "これで始めます。"}]}
+  ];
+  var body = document.getElementById("chat-body"), guide = document.getElementById("chat-guide");
+  var buttons = document.querySelectorAll(".chat-steps button");
+  if (!body || !window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var timers = [], current = 0;
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text) e.textContent = text;
+    return e;
+  }
+  function message(m) {
+    if (m.you) return el("div", "msg you enter", m.you);
+    var box = el("div", "msg ai enter"), f = el("div", "finding"), why = el("p", "finding-why");
+    box.appendChild(el("p", "msg-label", m.label));
+    f.appendChild(el("p", "finding-title", m.title));
+    why.appendChild(el("span", "", "根拠"));
+    why.appendChild(document.createTextNode(m.why));
+    f.appendChild(why);
+    box.appendChild(f);
+    return box;
+  }
+  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+  function show(i) {
+    timers.forEach(clearTimeout);
+    timers = [];
+    current = i;
+    buttons.forEach(function (b, j) { b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+    guide.textContent = "手引き: " + scenes[i].guide;
+    body.innerHTML = "";
+    var t = 300;
+    scenes[i].msgs.forEach(function (m) {
+      if (!m.you) {
+        later(function () { body.appendChild(el("div", "msg ai typing", "")).innerHTML = "<i></i><i></i><i></i>"; }, t);
+        t += 1100;
+        later(function () { var d = body.querySelector(".typing"); if (d) d.remove(); }, t);
+      }
+      later(function () { body.appendChild(message(m)); }, t);
+      t += m.you ? 1400 : 4000;
+    });
+    later(function () { show((i + 1) % scenes.length); }, t + 3600);
+  }
+  buttons.forEach(function (b) { b.addEventListener("click", function () { show(+b.dataset.step); }); });
+  later(function () { show(0); }, 2500);
+})();
+</script>
 </body>
 </html>
