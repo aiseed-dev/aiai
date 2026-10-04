@@ -212,50 +212,163 @@ h1 {
   color: var(--muted);
 }
 
-.hero-figure { margin: 0; width: 100%; }
+/* the example dialogue in the hero */
 
-.hero-figure svg {
-  width: 100%;
-  height: auto;
-  display: block;
+.chat {
+  margin: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 18px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.node rect, .node circle {
-  fill: var(--card);
-  stroke: var(--line);
-  stroke-width: 1.5;
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 0 4px 10px;
+  border-bottom: 1px solid var(--line);
 }
 
-.node.core circle {
-  fill: var(--accent);
-  stroke: none;
+.chat-head .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+
+.skill-chip {
+  margin-left: auto;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 0.78rem;
 }
 
-.node.you rect {
-  fill: var(--accent-soft);
-  stroke: none;
+.msg {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 0.93rem;
+  line-height: 1.7;
 }
 
-.node text {
-  text-anchor: middle;
-  font-family: inherit;
-  fill: var(--fg);
+.msg.you {
+  align-self: flex-end;
+  background: var(--accent);
+  color: var(--bg);
+  border-bottom-right-radius: 4px;
 }
 
-.node-title { font-size: 17px; font-weight: 700; }
-.node-sub { font-size: 13px; fill: var(--muted) !important; }
-.core-title { font-size: 18px; font-weight: 700; fill: var(--bg) !important; }
-.core-title.big { font-size: 34px; }
-.tag { font-size: 12px; fill: var(--muted); text-anchor: middle; font-family: inherit; }
-
-.flow {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2.5;
-  stroke-linecap: round;
+.msg.ai {
+  align-self: flex-start;
+  background: var(--bg-2);
+  border-bottom-left-radius: 4px;
 }
 
-.flow.dialogue { stroke-width: 2; }
+.msg p { margin: 0; }
+.msg-label { color: var(--muted); font-size: 0.85rem; }
+
+.finding {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  border-radius: 8px;
+}
+
+.finding-title { font-weight: 700; }
+.finding-why { font-size: 0.85rem; color: var(--muted); margin-top: 4px !important; }
+
+.finding-why span {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.chat figcaption { font-size: 0.75rem; color: var(--muted); text-align: right; }
+
+/* ---- the path: know, think, make, start ------------------------------- */
+
+.path { padding: 48px 0 56px; }
+
+.path-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  counter-reset: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 18px;
+  background: var(--bg-2);
+  border-radius: var(--radius);
+  position: relative;
+}
+
+.step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 38px;
+  right: -13px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+.step-num {
+  margin: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 800;
+}
+
+.step h3 { margin: 0; font-size: 1.3rem; }
+.step-what { margin: 0 0 4px; color: var(--muted); font-size: 0.92rem; }
+
+.skill {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 4px 10px;
+  align-items: center;
+  padding: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--fg);
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.skill:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--accent); }
+/* the icon sits beside the title; the one-line note runs under both */
+.skill .icon { width: 26px; height: 26px; border-radius: 7px; }
+.skill .icon svg { width: 16px; height: 16px; }
+.skill > span:last-child { display: contents; }
+.skill strong { font-size: 0.97rem; line-height: 1.5; }
+.skill small { grid-column: 1 / -1; color: var(--muted); font-size: 0.82rem; line-height: 1.6; }
 
 /* ---- steps ---------------------------------------------------------- */
 
@@ -378,12 +491,18 @@ h3 { margin: 14px 0 6px; font-size: 1.15rem; }
 }
 
 .howto h3 { margin-top: 0; }
+.howto dl { margin: 0; }
+.howto dt { font-weight: 700; margin-top: 10px; }
+.howto dt:first-child { margin-top: 0; }
+.howto dd { margin: 0; color: var(--muted); }
 .howto ul { margin: 0; padding-left: 1.2em; color: var(--muted); }
 .howto li { margin: 4px 0; }
 
 /* ---- news ------------------------------------------------------------ */
 
 .news { padding: 16px 0 56px; }
+.news-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.news-head h2 { margin-bottom: 8px; }
 
 .news-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
 
@@ -450,7 +569,8 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
   max-width: none;
   margin: 0 -16px;
   padding: 72px 16px;
-  background: linear-gradient(135deg, var(--accent-deep), var(--accent));
+  /* fixed deep teal in both themes, so the white text stays readable */
+  background: linear-gradient(135deg, #0b4f4a, #0f766e);
   color: #fff;
 }
 
@@ -471,7 +591,19 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
   border-bottom: 2px solid rgba(255, 255, 255, 0.5);
 }
 
-/* ---- pair, cta ------------------------------------------------------ */
+/* ---- promises, cta --------------------------------------------------- */
+
+.promise {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 64px 0;
+}
+
+.promise article { padding: 4px 4px 0; }
+.promise h3 { margin: 12px 0 6px; }
+.promise p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
 
 .pair {
   display: grid;
@@ -512,12 +644,19 @@ footer strong { color: var(--fg); }
 
 @media (max-width: 880px) {
   .hero { grid-template-columns: 1fr; padding: 48px 0 40px; }
-  .hero-figure { max-width: 520px; justify-self: center; }
-  .steps ol, .grid, .pair, .howto { grid-template-columns: 1fr; }
+  .chat { max-width: 520px; width: 100%; justify-self: center; }
+  .steps ol, .grid, .pair, .howto, .promise { grid-template-columns: 1fr; }
+  .path-steps { grid-template-columns: 1fr 1fr; }
+  .step:nth-child(2)::after { display: none; }
   .steps ol::before { display: none; }
   .bar { flex-wrap: wrap; row-gap: 6px; }
   .menu { order: 3; width: 100%; margin-left: 0; gap: 18px; overflow-x: auto; }
   .open { margin-left: auto; }
+}
+
+@media (max-width: 600px) {
+  .path-steps { grid-template-columns: 1fr; }
+  .step::after { display: none; }
 }
 
 @media (max-width: 480px) {

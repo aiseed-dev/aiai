@@ -4,12 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>aiai — AI 時代の学び方</title>
-<meta name="description" content="AI 時代の学び方。あなたがふだん使っている AI にスキルを読ませ、対話しながら、長所を探し、何を学ぶかを決め、小さなアプリを作ってみて、仕事を始めます。">
-<link rel="stylesheet" href="top.css">
+<meta name="description" content="AI 時代の学び方。ふだん使っている AI にスキルを読ませて、対話しながら、自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aiai.aiseed.dev/">
+<meta property="og:title" content="aiai — AI 時代の学び方">
+<meta property="og:description" content="ふだん使っている AI にスキルを読ませて、対話しながら、自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。">
+<meta property="og:locale" content="ja_JP">
+<meta name="theme-color" content="#0f766e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%230f766e'/%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%230f766e' stroke-opacity='.3' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/top.css">
 </head>
 <body>
 <header class="bar">
-  <a class="logo" href="./"><span class="mark" aria-hidden="true"></span>aiai</a>
+  <a class="logo" href="/"><span class="mark" aria-hidden="true"></span>aiai</a>
   <nav class="menu">
     <a href="#skills">スキル</a>
     <a href="#how">使い方</a>
@@ -26,109 +33,87 @@
       <h1>主役は、<br>あなたの AI。</h1>
       <p class="lead">
         ふだん使っている AI にスキルを読ませて、対話しながら、
-        自分の長所を探し、何を学ぶかを決め、小さなアプリを作ってみます。
-        学んだことを仕事にするための履歴書、企画書、開業の届出、Web サイトまで。
+        自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。
       </p>
       <div class="actions">
         <a class="button primary" href="#skills">スキルを見る</a>
         <a class="button" href="#how">使い方を読む</a>
       </div>
-      <p class="fine">スキルと知識は無料です。見本の人、店、数字は、すべて架空です。</p>
+      <p class="fine">スキルは無料です。ChatGPT、Claude、Gemini で使えます。</p>
     </div>
 
-    <figure class="hero-figure" aria-label="スキルを、あなたの AI に読ませ、対話しながら、考えや書類や仕組みができる流れの図">
-      <svg viewBox="0 0 560 360" role="img">
-        <defs>
-          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0 0L10 5 0 10z" fill="var(--accent)"/>
-          </marker>
-        </defs>
-        <!-- skill card -->
-        <g class="node">
-          <rect x="24" y="118" width="150" height="124" rx="18"/>
-          <text x="99" y="160" class="node-title">スキル</text>
-          <text x="99" y="186" class="node-sub">何を作るか</text>
-          <text x="99" y="206" class="node-sub">何を守るか</text>
-          <text x="99" y="226" class="node-sub">どう確かめるか</text>
-        </g>
-        <!-- arrow skill -> AI -->
-        <path class="flow" d="M176 180 H214" marker-end="url(#arrow)"/>
-        <!-- your AI, the centre -->
-        <g class="node core">
-          <circle cx="300" cy="180" r="78"/>
-          <text x="300" y="172" class="core-title">あなたの</text>
-          <text x="300" y="204" class="core-title big">AI</text>
-        </g>
-        <!-- you, below, in dialogue -->
-        <g class="node you">
-          <rect x="236" y="296" width="128" height="44" rx="22"/>
-          <text x="300" y="324" class="node-title">あなた</text>
-        </g>
-        <path class="flow dialogue" d="M276 294 C262 272 262 266 272 258" marker-end="url(#arrow)"/>
-        <path class="flow dialogue" d="M324 258 C338 266 338 272 324 294" marker-end="url(#arrow)"/>
-        <text x="300" y="282" class="tag">対話</text>
-        <!-- arrow AI -> result -->
-        <path class="flow" d="M380 180 H418" marker-end="url(#arrow)"/>
-        <!-- results -->
-        <g class="node">
-          <rect x="420" y="104" width="116" height="152" rx="18"/>
-          <text x="478" y="136" class="node-title">できあがる</text>
-          <text x="478" y="166" class="node-sub">考え</text>
-          <text x="478" y="190" class="node-sub">書類</text>
-          <text x="478" y="214" class="node-sub">Web サイト</text>
-          <text x="478" y="238" class="node-sub">アプリ</text>
-        </g>
-      </svg>
+    <figure class="chat" aria-label="スキルを読ませた AI との対話の例">
+      <div class="chat-head">
+        <span class="dot" aria-hidden="true"></span>
+        <span>あなたの AI</span>
+        <span class="skill-chip">スキル: 自分を知る</span>
+      </div>
+      <div class="msg you">これまでのチャットから、私の長所を探してください。</div>
+      <div class="msg ai">
+        <p class="msg-label">「長所」の下書きです。違っていたら直してください。</p>
+        <div class="finding">
+          <p class="finding-title">AI の案をそのまま使わず、確かめてから進める</p>
+          <p class="finding-why"><span>根拠</span>9 月ごろの、畑の写真のアプリのやり取り。AI が「写真を千枚集める」と勧めたとき、手元の 30 枚で人が確かめる形に変えています。</p>
+        </div>
+      </div>
+      <div class="msg you">合っています。この長所が生きる仕事も考えたいです。</div>
+      <figcaption>対話の例です。人と内容は架空です。</figcaption>
     </figure>
   </section>
 
-  <section id="skills" class="skills">
+  <section id="skills" class="path">
     <h2>知る、考える、作る、始める</h2>
-    <p class="section-lead">どれも、あなたの AI に読ませて使うスキルです。開くと、中身を読めて、写したり ZIP で取ったりできます。</p>
-    <div class="grid">
-      <a class="card" href="/skills/rireki.html">
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg></span>
-        <p class="tag">1 知る</p>
-        <h3>チャットの履歴から自分を知る</h3>
-        <p>AI とのチャットの履歴から、長所、得意な分野、大事にしている考え方、過去の AI で足りなかったやり取りの改善の提案、次に学ぶことなど 12 の項目を、あなたの AI が根拠付きで作ります。</p>
-      </a>
-      <a class="card" href="/skills/tenshoku.html">
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4z"/></svg></span>
-        <p class="tag">2 考える</p>
-        <h3>転職を考える</h3>
-        <p>これまでのチャットから自分の長所を AI に探してもらい、ソフトウェアの外の仕事に活かす道を考えます。</p>
-      </a>
-      <a class="card" href="/skills/gakusei.html">
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h7a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h7z"/></svg></span>
-        <p class="tag">2 考える</p>
-        <h3>AI の時代、何を学ぶか</h3>
-        <p>高校生と大学の 1 回生向け。長所を探し、小さなアプリを作ってみてから、何を学ぶかを決めます。</p>
-      </a>
-      <a class="card" href="/skills/genba.html">
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
-        <p class="tag">3 作る</p>
-        <h3>現場で写真を読む</h3>
-        <p>畑、工場、店、民泊で撮った写真を VLM に見せて、仕事の判断を助ける小さなアプリを作ります。答えは人が確かめます。</p>
-      </a>
-      <a class="card" href="/skills/website.html">
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
-        <p class="tag">4 始める</p>
-        <h3>事業の Web サイト</h3>
-        <p>公開してよい事実だけを写して、静的なページを作り、公開します。</p>
-      </a>
-      <a class="card" href="/skills/moushikomi.html">
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg></span>
-        <p class="tag">4 始める</p>
-        <h3>申し込みを受ける</h3>
-        <p>Apple ID か Google ID でサインインした人から、取り置き、予約、注文を受けます。</p>
-      </a>
-      <a class="card" href="/skills/keikaku.html">
-        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21V11M12 11c0-4 3-7 7-7 0 4-3 7-7 7zM12 14c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/></svg></span>
-        <p class="tag">4 始める</p>
-        <h3>自然農法の経営計画</h3>
-        <p>自然農法で農業を始める人が、土にたまったりん酸をどう使うかから、自分の経営計画を作ります。</p>
-      </a>
-    </div>
+    <p class="section-lead">どれも、あなたの AI に読ませて使うスキルです。開くと中身を読めて、写したり ZIP で取ったりできます。</p>
+    <ol class="path-steps">
+      <li class="step">
+        <p class="step-num">1</p>
+        <h3>知る</h3>
+        <p class="step-what">AI とのチャットの記録から、自分の長所を知ります</p>
+        <a class="skill" href="/skills/rireki.html">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg></span>
+          <span><strong>チャットの履歴から自分を知る</strong><small>長所や次に学ぶことなど 12 の項目を、根拠付きで</small></span>
+        </a>
+      </li>
+      <li class="step">
+        <p class="step-num">2</p>
+        <h3>考える</h3>
+        <p class="step-what">長所が生きる仕事と、学ぶことを考えます</p>
+        <a class="skill" href="/skills/tenshoku.html">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4z"/></svg></span>
+          <span><strong>転職を考える</strong><small>長所を、ソフトウェアの外の仕事に活かす</small></span>
+        </a>
+        <a class="skill" href="/skills/gakusei.html">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h7a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h7z"/></svg></span>
+          <span><strong>AI の時代、何を学ぶか</strong><small>高校生と大学の 1 回生向け</small></span>
+        </a>
+      </li>
+      <li class="step">
+        <p class="step-num">3</p>
+        <h3>作る</h3>
+        <p class="step-what">小さなアプリを作って、自分の手で試します</p>
+        <a class="skill" href="/skills/genba.html">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+          <span><strong>現場で写真を読む</strong><small>VLM の答えを、人が確かめて記録する</small></span>
+        </a>
+      </li>
+      <li class="step">
+        <p class="step-num">4</p>
+        <h3>始める</h3>
+        <p class="step-what">学んだことを、仕事にします</p>
+        <a class="skill" href="/skills/website.html">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
+          <span><strong>事業の Web サイト</strong><small>公開してよい事実だけで、静的なページを</small></span>
+        </a>
+        <a class="skill" href="/skills/moushikomi.html">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg></span>
+          <span><strong>申し込みを受ける</strong><small>Apple ID か Google ID で、取り置きや予約を</small></span>
+        </a>
+        <a class="skill" href="/skills/keikaku.html">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21V11M12 11c0-4 3-7 7-7 0 4-3 7-7 7zM12 14c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/></svg></span>
+          <span><strong>自然農法の経営計画</strong><small>土にたまったりん酸の使い方から</small></span>
+        </a>
+      </li>
+    </ol>
   </section>
 
   <section id="how" class="steps">
@@ -137,7 +122,7 @@
       <li>
         <span class="num">1</span>
         <h3>スキルを選ぶ</h3>
-        <p>上の一覧から、やりたいことのスキルを開きます。</p>
+        <p>やりたいことのスキルを開きます。</p>
       </li>
       <li>
         <span class="num">2</span>
@@ -147,55 +132,65 @@
       <li>
         <span class="num">3</span>
         <h3>対話しながら作る</h3>
-        <p>AI は答えを先に出さず、あなたに聞きながら進めます。決めるのは、あなたです。</p>
+        <p>AI は答えを先に出さず、あなたに聞きながら進めます。</p>
       </li>
     </ol>
     <div class="howto">
       <article>
         <h3>AI ごとの読ませ方</h3>
-        <ul>
-          <li><strong>Claude</strong>: ZIP を、スキルとして上げます。コードの実行を有効にしておきます</li>
-          <li><strong>Gemini</strong>: SKILL.md か ZIP を、スキルとして上げます。18 歳以上で、個人の Google アカウントの人が使えます</li>
-          <li><strong>ChatGPT</strong>: スキルが使えるワークスペースで入れます。使えないときは、写して貼ります</li>
-          <li><strong>Microsoft 365 Copilot</strong>: 企業用の場合は、管理者に言ってもらってください</li>
-        </ul>
+        <dl>
+          <dt>Claude</dt><dd>ZIP を、スキルとして上げます。コードの実行を有効にしておきます</dd>
+          <dt>Gemini</dt><dd>SKILL.md か ZIP を、スキルとして上げます。18 歳以上で、個人の Google アカウントの人が使えます</dd>
+          <dt>ChatGPT</dt><dd>スキルが使えるワークスペースで入れます。使えないときは、写して貼ります</dd>
+          <dt>Microsoft 365 Copilot</dt><dd>企業用の場合は、管理者に言ってもらってください</dd>
+        </dl>
       </article>
       <article>
         <h3>勤めている人の使い方</h3>
         <ul>
           <li>試作は、家で自分の AI と作ります。どう作るとうまくいくかを、自分で覚えておきます</li>
-          <li>社外の会議のことは、スマートフォンの自分の AI に、とりあえず入れておきます。後で家の PC の AI に続きを頼めます</li>
+          <li>社外の会議のことは、スマートフォンの自分の AI に、とりあえず入れておきます</li>
           <li>会社では、覚えたことを使って、会社の仕組みの中で作るか、人に頼みます</li>
         </ul>
       </article>
     </div>
   </section>
 
+  <!-- news-section -->
   <section id="news" class="news">
-    <h2>ニュース</h2>
-    <p class="section-lead">VLM、スマートドア、スマートロック、鳥獣対策のニュースです。人が元の記事を読んで確かめてから載せます。</p>
+    <div class="news-head">
+      <h2>ニュース</h2>
+      <a class="more-link" href="/news/">すべて見る →</a>
+    </div>
+    <p class="section-lead">VLM、スマートドア、スマートロック、鳥獣対策。人が元の記事を読んで確かめてから載せます。</p>
     <!-- news --><!-- /news -->
-    <p><a class="more-link" href="/news/">ニュースをすべて見る →</a></p>
   </section>
+  <!-- /news-section -->
 
   <section id="why" class="belief">
     <div class="belief-inner">
       <p class="kicker light">考え方</p>
       <h2>力になるのは、確かめられた中身と、現場の知識</h2>
-      <p>狭義のソフトウェア開発は、汎用の LLM がとても安くできるようになりました。人は検索ではなく AI に聞くようになり、AI が読んで正しく使える確かな中身と、あなたしか持っていない現場の知識が力になります。aiai は、AI を使い込んだ経験を、ものづくり、サービス、店、農業、空き家や民泊の運営のような、ソフトウェアの外の仕事に活かすことを考えます。</p>
+      <p>人は検索ではなく AI に聞くようになりました。AI が読んで正しく使える確かな中身と、あなたしか持っていない現場の知識が力になります。aiai は、AI を使い込んだ経験を、ものづくり、サービス、店、農業のような、ソフトウェアの外の仕事に活かすことを考えます。</p>
       <a class="more" href="/kangaekata.html">考え方を読む →</a>
     </div>
   </section>
 
-  <section class="pair">
+  <section class="promise">
     <article>
-      <h2>確かめる</h2>
-      <p>制度や金額は変わります。aiai に書いてある事実には、出典と確かめた日を付け、古くなった物は確かめ直します。</p>
-      <p>1 つの AI だけに頼らないように、ほかの会社の AI に見てもらうセカンドオピニオンも、研究として、募集に応じた人に使ってもらう形で準備しています。</p>
+      <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></span>
+      <h3>決めるのは、あなた</h3>
+      <p>AI は答えを先に出さず、何のための項目か、選ぶと何が変わるかを伝えます。</p>
     </article>
     <article>
-      <h2>識別情報は、あなたが決める</h2>
-      <p>氏名、住所、電話、生年月日、個人番号、メールアドレスのように、誰のことか分かる情報を、aiai では識別情報と呼びます。どこまで出すか、AI に渡すかは、あなたが決めます。個人番号だけは、AI に渡しません。</p>
+      <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13l2 2 4-4"/></svg></span>
+      <h3>出典と、確かめた日</h3>
+      <p>制度や金額は変わります。事実には出典と確かめた日を付け、古くなった物は確かめ直します。</p>
+    </article>
+    <article>
+      <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+      <h3>識別情報は、あなたが決める</h3>
+      <p>氏名や住所をどこまで出すか、AI に渡すかは、あなたが決めます。個人番号は AI に渡しません。</p>
     </article>
   </section>
 
@@ -207,6 +202,7 @@
 
 <footer>
   <p><strong>aiai</strong> AI 時代の学び方</p>
+  <p class="small"><a href="#skills">スキル</a> ・ <a href="/news/">ニュース</a> ・ <a href="/kangaekata.html">考え方</a></p>
   <p class="small">文書は CC BY 4.0、コードは AGPL-3.0-or-later です。見本の人、店、数字は、すべて架空です。このサイトは、国や役所が作った物ではありません。</p>
 </footer>
 </body>

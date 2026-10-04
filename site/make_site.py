@@ -225,16 +225,23 @@ def write(path, text):
         f.write(text)
 
 
+ICON = re.search(r'<link rel="icon"[^>]*>', read(os.path.join(HERE, "index.html")))[0]
+
+
 def page(title, body, description=""):
-    """One page with the site's header and footer."""
-    desc = f'<meta name="description" content="{html.escape(description)}">\n' if description else ""
+    """One page with the site's header, footer and icon (the top page's)."""
+    desc = (f'<meta name="description" content="{html.escape(description)}">\n'
+            f'<meta property="og:description" content="{html.escape(description)}">\n') if description else ""
     return f"""<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)} — aiai</title>
-{desc}<link rel="stylesheet" href="/top.css">
+<meta property="og:title" content="{html.escape(title)} — aiai">
+<meta property="og:locale" content="ja_JP">
+{desc}{ICON}
+<link rel="stylesheet" href="/top.css">
 </head>
 <body>
 {HEADER}
@@ -364,7 +371,10 @@ def main():
         shutil.rmtree(OUT)
     days = load_news()
     top = read(os.path.join(HERE, "index.html"))
-    top = re.sub(r"<!-- news -->.*?<!-- /news -->", lambda m: f"<!-- news -->{latest_news(days)}<!-- /news -->", top, flags=re.S)
+    if days:
+        top = re.sub(r"<!-- news -->.*?<!-- /news -->", lambda m: f"<!-- news -->{latest_news(days)}<!-- /news -->", top, flags=re.S)
+    else:  # no news yet: no empty section on the top page
+        top = re.sub(r"\s*<!-- news-section -->.*?<!-- /news-section -->", "", top, flags=re.S)
     write(os.path.join(OUT, "index.html"), top)
     shutil.copyfile(os.path.join(HERE, "top.css"), os.path.join(OUT, "top.css"))
     skills = load_skills()
