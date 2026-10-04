@@ -34,6 +34,7 @@
       <p class="lead">
         ふだん使っている AI に手引きを読ませて、対話しながら、
         自分の長所を知り、何を学ぶかを考え、小さなアプリを作り、仕事を始めます。
+        写真や映像を読む AI で、畑や店の現場の判断も助けます。
       </p>
       <div class="actions">
         <a class="button primary" href="#skills">手引きを見る</a>
@@ -42,30 +43,89 @@
       <p class="fine">手引きは無料です。ChatGPT、Claude、Gemini で使えます。</p>
     </div>
 
-    <figure class="chat" aria-label="手引きを読ませた AI との対話の例">
-      <ol class="chat-steps" aria-label="4 つの段">
-        <li><button type="button" data-step="0" aria-pressed="true"><b>1</b>知る</button></li>
-        <li><button type="button" data-step="1" aria-pressed="false"><b>2</b>考える</button></li>
-        <li><button type="button" data-step="2" aria-pressed="false"><b>3</b>作る</button></li>
-        <li><button type="button" data-step="3" aria-pressed="false"><b>4</b>始める</button></li>
-      </ol>
-      <div class="chat-head">
-        <span class="dot" aria-hidden="true"></span>
-        <span>あなたの AI</span>
-        <span class="skill-chip" id="chat-guide">手引き: 自分を知る</span>
+    <figure class="vlm" aria-label="カメラの画像を AI が読み、人が確かめる様子の例">
+      <div class="frame">
+        <svg viewBox="0 0 480 300" role="img" aria-label="カメラの 1 コマ">
+          <defs>
+            <linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1d15"/><stop offset="1" stop-color="#1d3d2c"/></linearGradient>
+            <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3020"/><stop offset="1" stop-color="#5a4729"/></linearGradient>
+            <linearGradient id="day" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfc8b8"/><stop offset="1" stop-color="#a9a291"/></linearGradient>
+            <radialGradient id="lens" cx="0.5" cy="0.5" r="0.75"><stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.55"/></radialGradient>
+            <linearGradient id="scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5eead4" stop-opacity="0"/><stop offset="1" stop-color="#5eead4" stop-opacity="0.45"/></linearGradient>
+            <filter id="blur"><feGaussianBlur stdDeviation="5"/></filter>
+            <g id="fence">
+              <g fill="#0a120e" opacity="0.9"><rect x="38" y="128" width="7" height="124"/><rect x="148" y="128" width="7" height="124"/><rect x="258" y="128" width="7" height="124"/><rect x="368" y="128" width="7" height="124"/><rect x="458" y="128" width="7" height="124"/></g>
+              <g stroke="#0a120e" stroke-width="1.6" opacity="0.75"><path d="M0 140H480M0 162H480M0 184H480M0 206H480M0 228H480M0 248H480"/></g>
+              <g stroke="#0a120e" stroke-width="1" opacity="0.4"><path d="M20 135V250M60 135V250M80 135V250M100 135V250M120 135V250M170 135V250M190 135V250M210 135V250M230 135V250M280 135V250M300 135V250M320 135V250M340 135V250M390 135V250M410 135V250M430 135V250"/></g>
+            </g>
+          </defs>
+
+          <!-- 1: a deer outside the field's fence, at night -->
+          <g class="scene on" data-scene="0">
+            <rect width="480" height="300" fill="url(#night)"/>
+            <path d="M0 120 Q40 92 80 110 T160 100 T250 108 T340 96 T420 106 T480 98 V300 H0Z" fill="#0f2419"/>
+            <rect y="236" width="480" height="64" fill="#122a1e"/>
+            <g fill="#4a8a69" stroke="#4a8a69" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M284 178 C286 168 300 163 318 164 C330 165 338 166 344 164 C348 156 352 146 356 136 C358 130 362 127 368 128 L372 125 L375 131 C379 134 383 137 385 141 C384 145 379 146 373 145 C369 150 365 160 361 172 C359 182 355 190 349 194 C341 197 321 198 303 196 C293 195 286 190 284 178 Z"/>
+              <path fill="none" stroke-width="4" d="M346 192 L349 236 M338 194 L335 236 M300 194 Q295 212 302 236 M311 195 L309 236"/>
+              <path fill="none" stroke-width="2.5" d="M362 128 L356 108 M358 116 L350 110 M357 112 L362 101 M368 127 L373 106 M371 114 L379 108"/>
+              <path fill="none" stroke-width="3" d="M285 176 L279 172"/>
+            </g>
+            <circle cx="375" cy="135" r="2.4" fill="#e9fff4"/>
+            <use href="#fence"/>
+          </g>
+
+          <!-- 2: soil dug up under the fence, at dusk -->
+          <g class="scene" data-scene="1">
+            <rect width="480" height="300" fill="url(#dusk)"/>
+            <path d="M0 118 Q60 100 120 112 T240 104 T360 114 T480 102 V300 H0Z" fill="#46381f"/>
+            <rect y="236" width="480" height="64" fill="#4b3b22"/>
+            <path d="M176 246 q10 -18 30 -12 q14 -14 30 -2 q18 -6 24 10 q8 10 -4 18 q-30 10 -70 4 q-16 -6 -10 -18z" fill="#24190e"/>
+            <g fill="#2e2213"><circle cx="172" cy="262" r="5"/><circle cx="266" cy="258" r="6"/><circle cx="250" cy="270" r="4"/><circle cx="190" cy="272" r="4"/></g>
+            <use href="#fence"/>
+          </g>
+
+          <!-- 3: the entrance camera; a visitor, and a pot by the door -->
+          <g class="scene" data-scene="2">
+            <rect width="480" height="300" fill="url(#day)"/>
+            <rect y="252" width="480" height="48" fill="#8f897a"/>
+            <rect x="196" y="36" width="124" height="216" rx="4" fill="#6e5440"/>
+            <rect x="206" y="48" width="104" height="92" rx="3" fill="#7b5f49"/>
+            <rect x="206" y="150" width="104" height="92" rx="3" fill="#7b5f49"/>
+            <rect x="294" y="140" width="12" height="30" rx="3" fill="#1d1f1e"/>
+            <circle cx="300" cy="148" r="2.2" fill="#5eead4"/>
+            <g class="person"><circle cx="118" cy="104" r="20" fill="#5b4a3d" filter="url(#blur)"/><path d="M84 252 v-70 q0 -40 34 -48 q34 8 34 48 v70z" fill="#3c4a5a"/></g>
+            <path d="M338 250 h34 l-5 -28 h-24z" fill="#9a5b3a"/>
+            <path d="M355 222 q-14 -20 -4 -36 M355 222 q4 -26 18 -32 M355 222 q-2 -18 -18 -24" stroke="#4d7a3f" stroke-width="4" fill="none" stroke-linecap="round"/>
+          </g>
+
+          <rect width="480" height="300" fill="url(#lens)" pointer-events="none"/>
+          <rect class="scanline" x="0" y="-60" width="480" height="60" fill="url(#scan)"/>
+
+          <g class="hud" font-family="ui-monospace, Menlo, monospace" font-size="12" fill="#e6f4ef">
+            <text x="14" y="22" id="cam-label">CAM 1 畑の柵 02:13</text>
+            <circle class="rec" cx="456" cy="18" r="5" fill="#f87171"/>
+          </g>
+
+          <g class="boxes" font-size="12" font-weight="700">
+            <g class="box on" data-scene="0"><rect x="272" y="96" width="122" height="146" rx="6"/><rect class="tag" x="272" y="76" width="134" height="20" rx="4"/><text x="279" y="91">シカ 確からしさ 高</text></g>
+            <g class="box" data-scene="1"><rect x="160" y="222" width="124" height="58" rx="6"/><rect class="tag" x="160" y="202" width="158" height="20" rx="4"/><text x="167" y="217">掘り返し 確からしさ 中</text></g>
+            <g class="box" data-scene="2"><rect x="80" y="76" width="76" height="178" rx="6"/><rect class="tag" x="80" y="56" width="124" height="20" rx="4"/><text x="87" y="71">人 顔はぼかします</text></g>
+            <g class="box warn" data-scene="2"><rect x="330" y="182" width="52" height="72" rx="6"/><rect class="tag" x="300" y="162" width="134" height="20" rx="4"/><text x="307" y="177">荷物 確からしさ 中</text></g>
+          </g>
+        </svg>
       </div>
-      <div class="chat-body" id="chat-body" aria-live="polite">
-        <div class="msg you">これまでのチャットから、私の長所を探してください。</div>
-        <div class="msg ai">
-          <p class="msg-label">「長所」の下書きです。違っていたら直してください。</p>
-          <div class="finding">
-            <p class="finding-title">AI の案をそのまま使わず、確かめてから進める</p>
-            <p class="finding-why"><span>根拠</span>9 月ごろの、畑の写真のアプリのやり取り。手元の 30 枚で、人が確かめる形に変えています。</p>
-          </div>
+      <div class="reading" id="vlm-reading" aria-live="polite">
+        <p class="reading-head"><span class="dot" aria-hidden="true"></span>AI の答え</p>
+        <p class="reading-text" id="vlm-text">柵の外に、シカが 1 頭います。柵の破れは見えません。</p>
+        <div class="check" id="vlm-check">
+          <span>人が確かめる</span>
+          <button type="button" tabindex="-1" class="yes on">合っていた</button>
+          <button type="button" tabindex="-1" class="no">違っていた</button>
+          <em id="vlm-note">記録しました</em>
         </div>
-        <div class="msg you">合っています。この長所が生きる仕事も考えたいです。</div>
       </div>
-      <figcaption>対話の例です。人と内容は架空です。</figcaption>
+      <figcaption>画像を読む AI(VLM)の使い方の例です。絵と内容は架空です。</figcaption>
     </figure>
   </section>
 
@@ -122,6 +182,39 @@
         </a>
       </li>
     </ol>
+  </section>
+
+  <section class="dialog">
+    <div class="dialog-text">
+      <p class="kicker">対話しながら作る</p>
+      <h2>AI は、あなたに聞きながら進めます</h2>
+      <p>手引きを読ませた AI は、答えを先に出しません。何のための項目か、選ぶと何が変わるかを伝え、下書きには根拠を付けます。合っているかを決めるのは、あなたです。</p>
+    </div>
+    <figure class="chat" aria-label="手引きを読ませた AI との対話の例">
+      <ol class="chat-steps" aria-label="4 つの段">
+        <li><button type="button" data-step="0" aria-pressed="true"><b>1</b>知る</button></li>
+        <li><button type="button" data-step="1" aria-pressed="false"><b>2</b>考える</button></li>
+        <li><button type="button" data-step="2" aria-pressed="false"><b>3</b>作る</button></li>
+        <li><button type="button" data-step="3" aria-pressed="false"><b>4</b>始める</button></li>
+      </ol>
+      <div class="chat-head">
+        <span class="dot" aria-hidden="true"></span>
+        <span>あなたの AI</span>
+        <span class="skill-chip" id="chat-guide">手引き: 自分を知る</span>
+      </div>
+      <div class="chat-body" id="chat-body" aria-live="polite">
+        <div class="msg you">これまでのチャットから、私の長所を探してください。</div>
+        <div class="msg ai">
+          <p class="msg-label">「長所」の下書きです。違っていたら直してください。</p>
+          <div class="finding">
+            <p class="finding-title">AI の案をそのまま使わず、確かめてから進める</p>
+            <p class="finding-why"><span>根拠</span>9 月ごろの、畑の写真のアプリのやり取り。手元の 30 枚で、人が確かめる形に変えています。</p>
+          </div>
+        </div>
+        <div class="msg you">合っています。この長所が生きる仕事も考えたいです。</div>
+      </div>
+      <figcaption>対話の例です。人と内容は架空です。</figcaption>
+    </figure>
   </section>
 
   <section id="how" class="steps">
@@ -215,6 +308,41 @@
   <p class="small">文書は CC BY 4.0、コードは AGPL-3.0-or-later です。見本の人、店、数字は、すべて架空です。このサイトは、国や役所が作った物ではありません。</p>
 </footer>
 <script>
+/* The hero's camera panel: three frames in turn. The AI's reading sweeps
+   down, boxes mark what it found, its answer shows, and a person marks it
+   right or wrong. With reduced motion it stays on the first frame, which
+   the page already shows in full. */
+(function () {
+  var scenes = [
+    {cam: "CAM 1 畑の柵 02:13", text: "柵の外に、シカが 1 頭います。柵の破れは見えません。", ok: true, note: "記録しました"},
+    {cam: "CAM 2 畑 17:48", text: "柵の下の土が、掘り返されています。イノシシの跡かもしれませんが、姿は写っていません。", ok: true, note: "記録しました"},
+    {cam: "CAM 3 玄関 10:05", text: "人が来ました。顔はぼかして記録します。ドアの横に、置き配の荷物があります。", ok: false, note: "植木鉢でした。違っていたことも記録します"}
+  ];
+  var frame = document.querySelector(".vlm .frame");
+  if (!frame || !window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var text = document.getElementById("vlm-text"), check = document.getElementById("vlm-check"),
+      note = document.getElementById("vlm-note"), cam = document.getElementById("cam-label"),
+      yes = check.querySelector(".yes"), no = check.querySelector(".no");
+  function each(sel, fn) { Array.prototype.forEach.call(frame.querySelectorAll(sel), fn); }
+  function show(i) {
+    var s = scenes[i];
+    each(".scene", function (g) { g.classList.toggle("on", +g.dataset.scene === i); });
+    each(".box", function (g) { g.classList.remove("on"); });
+    cam.textContent = s.cam;
+    text.classList.remove("on"); check.classList.remove("on"); note.classList.remove("on");
+    yes.classList.remove("on"); no.classList.remove("on");
+    frame.classList.remove("scanning"); void frame.offsetWidth; frame.classList.add("scanning");
+    setTimeout(function () { each('.box[data-scene="' + i + '"]', function (g) { g.classList.add("on"); }); }, 1500);
+    setTimeout(function () { text.textContent = s.text; text.classList.add("on"); }, 2300);
+    setTimeout(function () { check.classList.add("on"); }, 3400);
+    setTimeout(function () { (s.ok ? yes : no).classList.add("on"); }, 4600);
+    setTimeout(function () { note.textContent = s.note; note.classList.add("on"); }, 5000);
+    setTimeout(function () { show((i + 1) % scenes.length); }, 9500);
+  }
+  text.classList.add("on"); check.classList.add("on"); note.classList.add("on");
+  setTimeout(function () { show(1); }, 6000);
+})();
+
 /* The hero's example dialogue: the four steps in turn, one message at a time.
    With reduced motion it stays on the first step, which the page already shows. */
 (function () {

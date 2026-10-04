@@ -212,7 +212,93 @@ h1 {
   color: var(--muted);
 }
 
-/* the example dialogue in the hero */
+/* the camera panel in the hero: a frame, what the AI found, the person's check */
+
+.vlm {
+  margin: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.frame { border-radius: 16px; overflow: hidden; background: #0b1d15; line-height: 0; }
+.frame svg { width: 100%; height: auto; display: block; }
+.scene { opacity: 0; transition: opacity 0.6s ease; }
+.scene.on { opacity: 1; }
+.scanline { opacity: 0; }
+.frame.scanning .scanline { animation: scan 1.4s ease-in-out; }
+
+@keyframes scan {
+  0% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(360px); }
+}
+
+.rec { animation: rec 1.6s steps(1) infinite; }
+@keyframes rec { 50% { opacity: 0.2; } }
+
+.box { opacity: 0; transition: opacity 0.3s ease; }
+.box.on { opacity: 1; }
+.box rect:first-child {
+  fill: rgba(94, 234, 212, 0.08);
+  stroke: #5eead4;
+  stroke-width: 2.5;
+  stroke-dasharray: 640;
+  stroke-dashoffset: 640;
+  transition: stroke-dashoffset 0.9s ease;
+}
+.box.on rect:first-child { stroke-dashoffset: 0; }
+.box .tag { fill: #5eead4; }
+.box text { fill: #052e2b; }
+.box.warn rect:first-child { stroke: #fbbf24; fill: rgba(251, 191, 36, 0.1); }
+.box.warn .tag { fill: #fbbf24; }
+.box.warn text { fill: #3b2a03; }
+
+.reading { padding: 4px 8px 2px; }
+.reading-head { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 0.82rem; font-weight: 700; color: var(--muted); }
+.reading-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.reading-text { margin: 0 0 10px; min-height: 3.4em; font-size: 0.95rem; opacity: 0; transform: translateY(6px); transition: opacity 0.4s ease, transform 0.4s ease; }
+.reading-text.on { opacity: 1; transform: none; }
+
+.check { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.85rem; opacity: 0; transition: opacity 0.4s ease; }
+.check.on { opacity: 1; }
+.check > span { color: var(--muted); font-weight: 700; margin-right: 2px; }
+.check button {
+  font: inherit;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  pointer-events: none;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+.check .yes.on { background: var(--accent); border-color: var(--accent); color: var(--bg); transform: scale(1.06); }
+.check .no.on { background: #f59e0b; border-color: #f59e0b; color: #1f1403; transform: scale(1.06); }
+.check em { font-style: normal; color: var(--accent-deep); font-weight: 700; opacity: 0; transition: opacity 0.4s ease; }
+.check em.on { opacity: 1; }
+.vlm figcaption { font-size: 0.75rem; color: var(--muted); text-align: right; padding: 0 6px 2px; }
+
+/* ---- the dialogue section --------------------------------------------- */
+
+.dialog {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 40px 0 56px;
+}
+
+.dialog h2 { margin-bottom: 12px; }
+.dialog-text p:not(.kicker) { color: var(--muted); }
+
+/* the example dialogue */
 
 .chat {
   margin: 0;
@@ -710,7 +796,8 @@ footer strong { color: var(--fg); }
 
 @media (max-width: 880px) {
   .hero { grid-template-columns: 1fr; padding: 48px 0 40px; }
-  .chat { max-width: 520px; width: 100%; justify-self: center; }
+  .vlm, .chat { max-width: 560px; width: 100%; justify-self: center; }
+  .dialog { grid-template-columns: 1fr; }
   .steps ol, .grid, .pair, .howto, .promise { grid-template-columns: 1fr; }
   .path-steps { grid-template-columns: 1fr 1fr; }
   .step:nth-child(2)::after { display: none; }
