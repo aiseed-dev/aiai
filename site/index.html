@@ -321,12 +321,31 @@
     </ol>
   </section>
 
-  <section class="dialog">
-    <div class="dialog-text">
-      <p class="kicker">対話しながら作る</p>
-      <h2>AI は、あなたに聞きながら進めます</h2>
-      <p>手引きを読ませた AI は、答えを先に出しません。何のための項目か、選ぶと何が変わるかを伝え、下書きには根拠を付けます。合っているかを決めるのは、あなたです。</p>
-    </div>
+  <section id="how" class="steps">
+    <h2>使い方は、3 つだけ</h2>
+    <ol>
+      <li>
+        <span class="num">1</span>
+        <h3>手引きを選ぶ</h3>
+        <p>やりたいことの手引きを開きます。</p>
+      </li>
+      <li>
+        <span class="num">2</span>
+        <h3>あなたの AI に読ませる</h3>
+        <p>「写す」で写して、AI のチャットに貼ります。</p>
+      </li>
+      <li>
+        <span class="num">3</span>
+        <h3>対話しながら作る</h3>
+        <p>AI は答えを先に出さず、あなたに聞きながら進めます。</p>
+      </li>
+    </ol>
+    <div class="example">
+      <div class="example-text">
+        <h3>3 の対話は、こう進みます</h3>
+        <p>AI は答えを先に出しません。何のための項目か、選ぶと何が変わるかを伝え、下書きには根拠を付けます。合っているかを決めるのは、あなたです。</p>
+        <p class="note">架空の例です。上の 1〜4 を押すと、段ごとの対話が見られます。</p>
+      </div>
     <figure class="chat" aria-label="手引きを読ませた AI との対話の例">
       <ol class="chat-steps" aria-label="4 つの段">
         <li><button type="button" data-step="0" aria-pressed="true"><b>1</b>知る</button></li>
@@ -352,46 +371,16 @@
       </div>
       <figcaption>対話の例です。人と内容は架空です。</figcaption>
     </figure>
-  </section>
-
-  <section id="how" class="steps">
-    <h2>使い方は、3 つだけ</h2>
-    <ol>
-      <li>
-        <span class="num">1</span>
-        <h3>手引きを選ぶ</h3>
-        <p>やりたいことの手引きを開きます。</p>
-      </li>
-      <li>
-        <span class="num">2</span>
-        <h3>あなたの AI に読ませる</h3>
-        <p>「写す」で写して、AI のチャットに貼ります。</p>
-      </li>
-      <li>
-        <span class="num">3</span>
-        <h3>対話しながら作る</h3>
-        <p>AI は答えを先に出さず、あなたに聞きながら進めます。</p>
-      </li>
-    </ol>
-    <div class="howto">
-      <article>
-        <h3>AI ごとの読ませ方</h3>
-        <p class="note">貼るほかに、手引きを AI に「スキル」として登録しておくこともできます。</p>
-        <dl>
-          <dt>Claude</dt><dd>ZIP を、スキルとして上げます。コードの実行を有効にしておきます</dd>
-          <dt>Gemini</dt><dd>SKILL.md か ZIP を、スキルとして上げます。18 歳以上で、個人の Google アカウントの人が使えます</dd>
-          <dt>ChatGPT</dt><dd>スキルが使えるワークスペースで入れます。使えないときは、写して貼ります</dd>
-          <dt>Microsoft 365 Copilot</dt><dd>企業用の場合は、管理者に言ってもらってください</dd>
-        </dl>
-      </article>
-      <article>
-        <h3>勤めている人の使い方</h3>
-        <ul>
-          <li>試作は、家で自分の AI と作ります。どう作るとうまくいくかを、自分で覚えておきます</li>
-          <li>社外の会議のことは、スマートフォンの自分の AI に、とりあえず入れておきます</li>
-          <li>会社では、覚えたことを使って、会社の仕組みの中で作るか、人に頼みます</li>
-        </ul>
-      </article>
+    </div>
+    <div class="load">
+      <h3>AI ごとの読ませ方</h3>
+      <ul>
+        <li><strong>Claude</strong> ZIP を、スキルとして上げます</li>
+        <li><strong>Gemini</strong> SKILL.md か ZIP を、スキルとして上げます</li>
+        <li><strong>ChatGPT</strong> 写して貼ります。スキルが使えるワークスペースなら、スキルとして入れます</li>
+        <li><strong>Microsoft 365 Copilot</strong> 企業用の場合は、管理者に言ってもらってください</li>
+      </ul>
+      <p class="note">勤めていても、使い方は同じです。試作は家で自分の AI と作り、会社では覚えたことを使います。<a href="/kangaekata.html#tsutome">くわしく →</a></p>
     </div>
   </section>
 
@@ -409,28 +398,15 @@
   <section id="why" class="belief">
     <div class="belief-inner">
       <p class="kicker light">考え方</p>
-      <h2>力になるのは、確かめられた中身と、現場の知識</h2>
-      <p>人は検索ではなく AI に聞くようになりました。AI が読んで正しく使える確かな中身と、あなたしか持っていない現場の知識が力になります。aiai は、AI を使い込んだ経験を、ものづくり、サービス、店、農業のような、ソフトウェアの外の仕事に活かすことを考えます。</p>
+      <h2>aiai が決めていること</h2>
+      <ul class="beliefs">
+        <li><strong>主役は、あなたの AI。</strong>答える AI は、出す側ではなく、質問する側に置きます。決めるのは、あなたです</li>
+        <li><strong>力になるのは、確かめられた中身と、現場の知識。</strong>事実には出典と確かめた日を付けます</li>
+        <li><strong>記録が大事。</strong>AI が何を見てどう答え、人がどう直したか。AI は、その記録から学びます</li>
+        <li><strong>識別情報は、あなたが決める。</strong>どこまで出すか、AI に渡すかは、あなたが決めます。個人番号は AI に渡しません</li>
+      </ul>
       <a class="more" href="/kangaekata.html">考え方を読む →</a>
     </div>
-  </section>
-
-  <section class="promise">
-    <article>
-      <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></span>
-      <h3>決めるのは、あなた</h3>
-      <p>AI は答えを先に出さず、何のための項目か、選ぶと何が変わるかを伝えます。</p>
-    </article>
-    <article>
-      <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13l2 2 4-4"/></svg></span>
-      <h3>出典と、確かめた日</h3>
-      <p>制度や金額は変わります。事実には出典と確かめた日を付け、古くなった物は確かめ直します。</p>
-    </article>
-    <article>
-      <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
-      <h3>識別情報は、あなたが決める</h3>
-      <p>氏名や住所をどこまで出すか、AI に渡すかは、あなたが決めます。個人番号は AI に渡しません。</p>
-    </article>
   </section>
 
   <section class="cta">

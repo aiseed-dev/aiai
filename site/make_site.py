@@ -131,8 +131,12 @@ def markdown(text):
             out.append("<pre><code>" + html.escape("\n".join(lines[i + 1:j])) + "</code></pre>")
             i = j + 1
         elif m := re.match(r"(#{1,6}) (.*)", line):
-            n = len(m[1])
-            out.append(f"<h{n}>{inline(m[2].strip())}</h{n}>")
+            n, text_ = len(m[1]), m[2].strip()
+            # a heading may end in {#name}, which becomes its id, for links to it
+            anchor = re.search(r"\s*\{#([\w-]+)\}$", text_)
+            if anchor:
+                text_ = text_[:anchor.start()]
+            out.append(f'<h{n} id="{anchor[1]}">{inline(text_)}</h{n}>' if anchor else f"<h{n}>{inline(text_)}</h{n}>")
             i += 1
         elif line.lstrip().startswith("|") and i + 1 < len(lines) and re.match(r"\s*\|[\s:|-]+\|\s*$", lines[i + 1]):
             j = i

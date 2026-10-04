@@ -639,6 +639,29 @@ h3 { margin: 14px 0 6px; font-size: 1.15rem; }
 
 .skills h3 { margin: 4px 0 8px; }
 
+/* ---- the example dialogue and how to load, inside 使い方 ------------ */
+
+.example {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 32px;
+  align-items: center;
+  margin-top: 40px;
+}
+
+.example h3 { margin-top: 0; font-size: 1.3rem; }
+.example-text p { color: var(--muted); }
+
+.load { margin-top: 32px; padding: 24px 26px; background: var(--bg-2); border-radius: var(--radius); }
+.load h3 { margin-top: 0; }
+.load ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; color: var(--muted); }
+.load li strong { display: inline-block; min-width: 7.5em; color: var(--fg); }
+.load .note { margin: 16px 0 0; }
+
+.beliefs { list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 14px; text-align: left; }
+.beliefs li { color: rgba(255, 255, 255, 0.9); font-size: 1.02rem; }
+.beliefs strong { color: #fff; }
+
 /* ---- how to load, at work ------------------------------------------- */
 
 .howto {
@@ -830,7 +853,7 @@ footer strong { color: var(--fg); }
   .hero { grid-template-columns: 1fr; padding: 48px 0 40px; }
   .vlm, .chat { max-width: 560px; width: 100%; justify-self: center; }
   .dialog { grid-template-columns: 1fr; }
-  .steps ol, .grid, .pair, .howto, .promise { grid-template-columns: 1fr; }
+  .steps ol, .grid, .pair, .howto, .promise, .example, .load ul { grid-template-columns: 1fr; }
   .path-steps { grid-template-columns: 1fr 1fr; }
   .step:nth-child(2)::after { display: none; }
   .steps ol::before { display: none; }
