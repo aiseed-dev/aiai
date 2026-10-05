@@ -332,7 +332,10 @@ def first_sentence_block(step):
         if not line.strip() or not line.startswith(" ") or re.match(r"\s+([-*]|\d+\.|```)", line):
             break
         keep.append(line)
-    return join_lines(keep)
+    text = join_lines(keep)
+    # the first sentence says what the step is; the rest is how, which is for the AI
+    m = re.match(r"(.*?。)", text)
+    return m[1] if m and len(text) > 60 else text
 
 
 def for_people(body):
