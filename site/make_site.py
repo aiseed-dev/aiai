@@ -323,6 +323,18 @@ def sections(body):
     return out
 
 
+def first_sentence_block(step):
+    """A step's own text: its first line and the wrapped lines under it, not the
+    sub-bullets, code or commands that follow (those are for the AI)."""
+    lines = step.splitlines()
+    keep = [lines[0]]
+    for line in lines[1:]:
+        if not line.strip() or not line.startswith(" ") or re.match(r"\s+([-*]|\d+\.|```)", line):
+            break
+        keep.append(line)
+    return join_lines(keep)
+
+
 def for_people(body):
     """The parts of a guide a person wants to see: the steps, and the names of the
     items when there is an item list. The rest is written for the AI."""
@@ -335,7 +347,7 @@ def for_people(body):
         elif "手順" in heading:
             steps = [m[1] for m in re.finditer(r"^\d+\. (.+?)(?=^\d+\. |\Z)", text, re.M | re.S)]
             if steps:
-                out.append("<h2>あなたの AI は、こう進めます</h2><ol class=\"flow\">" + "".join(f"<li>{inline(join_lines(s.splitlines()))}</li>" for s in steps) + "</ol>")
+                out.append("<h2>あなたの AI は、こう進めます</h2><ol class=\"flow\">" + "".join(f"<li>{inline(first_sentence_block(s))}</li>" for s in steps) + "</ol>")
     return "\n".join(out)
 
 
