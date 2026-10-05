@@ -778,6 +778,11 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 .news-day li .chip { flex: none; }
 .news-day[hidden], .news-day li[hidden] { display: none; }
 
+.toc { margin: 16px 0 0; padding: 16px 20px 16px 40px; background: var(--bg-2); border-radius: 14px; color: var(--muted); }
+.toc li { margin: 4px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
 /* a guide's page: the parts for people, then the full text folded away */
 .people .items { columns: 2; column-gap: 32px; padding-left: 1.4em; }
 .people .items li, .people .flow li { margin: 6px 0; break-inside: avoid; }

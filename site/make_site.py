@@ -475,9 +475,21 @@ def main():
     for name, s in skills.items():
         write(os.path.join(OUT, "skills", f"{name}.html"), skill_page(name, *s))
     kangaekata = read(os.path.join(HERE, "app", "assets", "kangaekata.md"))
+    # Every section gets an id, so the list at the top can jump to it (a long page on a phone)
+    heads = []
+    def with_id(m):
+        n = len(heads) + 1
+        anchor = re.search(r"\s*\{#([\w-]+)\}$", m[1])
+        name = anchor[1] if anchor else f"k{n}"
+        text_ = m[1][:anchor.start()] if anchor else m[1]
+        heads.append((name, text_.strip()))
+        return f"## {text_.strip()} {{#{name}}}"
+    kangaekata = re.sub(r"^## (.+)$", with_id, kangaekata, flags=re.M)
+    toc = "<ol class=\"toc\">" + "".join(f'<li><a href="#{name}">{inline(text_)}</a></li>' for name, text_ in heads) + "</ol>"
     write(os.path.join(OUT, "kangaekata.html"), page("考え方", f"""<article>
 <p class="kicker">考え方</p>
 <h1>aiai の考え方</h1>
+{toc}
 <div class="prose">{markdown(kangaekata)}</div>
 </article>""", "AI 時代に、AI を使い込んだ経験をどう活かすか"))
     for path, text in news_pages(days).items():
