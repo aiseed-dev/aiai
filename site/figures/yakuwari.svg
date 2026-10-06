@@ -1,0 +1,12 @@
+<svg viewBox="0 0 360 250" role="img" aria-label="Web は考え方を図で見せ、詳しいことは手引きを読ませた自分の AI に聞き、細かい作業は直して使えるアプリでする、という図">
+  <g class="fb"><rect x="10" y="10" width="340" height="62" rx="12"/></g>
+  <text class="ft strong" x="180" y="36">Web</text>
+  <text class="fm" x="180" y="58">考え方を、短く、図で</text>
+  <g class="fx"><rect x="10" y="88" width="340" height="62" rx="12"/></g>
+  <text class="ft strong" x="180" y="114">手引き</text>
+  <text class="fm" x="180" y="136">詳しいことは、読ませた自分の AI に聞く</text>
+  <g class="fb"><rect x="10" y="166" width="340" height="74" rx="12"/></g>
+  <text class="ft strong" x="180" y="192">アプリ</text>
+  <text class="fm" x="180" y="212">細かい作業をする。AGPL で公開しているので</text>
+  <text class="fm" x="180" y="230">自分の仕事に合わせて直せる</text>
+</svg>
