@@ -1,0 +1,48 @@
+= aiai ニュース 2026-10-06
+:日付: 2026-10-06
+
+== 個人情報保護委員会が、AI の開発を含む「統計作成等」に本人の同意なしで個人情報を使える条件を、規則でどう定めるかの考え方を示しました
+:分野: VLM
+:国・地域: 日本
+
+個人情報保護委員会の事務局は 2026 年 10 月 1 日、7 月に成立した改正個人情報保護法(令和 8 年法律第 56 号)の
+政令と規則の考え方をまとめた 2 回目の資料を出しました。改正法は、特定の個人との対応関係を排した統計情報や
+AI モデルを作る「統計作成等」にだけ使うなら、本人の同意なしで個人データを第三者に提供したり、公開されている
+要配慮個人情報を取得したりできるようにします。資料は、その条件として、目的外の利用と第三者提供を防ぐ措置、
+統計情報等からの復元を含む漏えいを防ぐ措置、要らなくなった個人情報を遅れずに消す措置を要件にする案を示しています。
+公表の方法は、自社の Web サイトの 1 つのページに公表事項を全部載せ、クローリングを防ぐ措置を取らず、検索で
+見つけやすい決まった語を含める案です。学習データを増やすために本人に働きかけて反応を集める手法は、制限する方向です。
+顔特徴データの規律は、改正の全体の一覧には載っていますが、今回の資料の検討項目には入っていません。委託先の義務と、漏えいの報告と本人への通知を一部緩める
+考え方も、同じ資料にあります。
+
+出典: 個人情報保護委員会「個人情報の保護に関する法律等の一部を改正する法律 政令・規則の整備に向けた基本的な考え方について②」(2026-10-01)、https://www.ppc.go.jp/files/pdf/261001_kihonntekinakanngaekatanitsuite_2.pdf 、2026-10-06 に確かめました +
+出典: 個人情報保護委員会「令和 8 年改正個人情報保護法について」、https://www.ppc.go.jp/personalinfo/legal/r8kaiseihogohou 、2026-10-06 に確かめました
+
+== Aliro が CEATEC 2026 で日本で初めて一般に展示され、ポケットの中のスマートフォンでドアを開ける実演が見られます
+:分野: スマートロック
+:国・地域: 日本
+
+Connectivity Standards Alliance の日本支部(Japan Interest Group)は、2026 年 10 月 13 日から 16 日に幕張メッセで
+開かれる CEATEC 2026 の「暮らしの DX パビリオン」に、23 社(前年は 19 社)と共同で出展します(団体の発表です)。
+スマートフォンをポケットやかばんに入れたまま近づくとドアが開く、Aliro のハンズフリーの解錠を実演します。Matter に
+対応した各社の機器がつながる様子も見せます。10 月 14 日の 16 時から 17 時 30 分には、Matter と Aliro を題にした
+コンファレンスがあり、団体の CEO と、パナソニック、HOMETACT、YKK AP の人が登壇します。出展する会社には、SwitchBot、
+美和ロック、NEC プラットフォームズ、Nordic Semiconductor、Silicon Labs、NXP ジャパン、YKK AP が入ります。発表は 9 月 1 日で、
+会期が来週に迫りました。
+
+出典: Connectivity Standards Alliance「Connectivity Standards Alliance 日本支部、『CEATEC 2026』への出展を発表 スマートキーの標準規格『Aliro』を日本で初めて一般展示」(2026-09-01)、https://csa-iot.org/newsroom/connectivity-standards-alliance-ceatec-2026-jp/ 、2026-10-06 に確かめました +
+出典: Connectivity Standards Alliance「Connectivity Standards Alliance Japan Interest Group Announces Participation in CEATEC 2026」(2026-09-01)、https://csa-iot.org/newsroom/connectivity-standards-alliance-japan-interest-group-announces-participation-in-ceatec-2026-first-public-exhibition-in-japan-of-aliro-the-standard-for-digital-access-credentials/ 、2026-10-06 に確かめました
+
+== インドのケララ州が、ゾウが近づくと AI のカメラが知らせて音で追い返す柵を、2 年の試験を経て本格的に設置しました
+:分野: 鳥獣対策
+:国・地域: インド
+
+ケララ州の森林局は、イドゥッキ県のムラリンガドに「AI スマート Ele-Fence」を設置し、2026 年 10 月 5 日に開所式を
+しました。ゾウの通り道の 200 m に、ぶつかるとたわむ高さ 13 フィート(約 4 m)のベルトの柵を張り、ほかの 500 m は
+普通の金網にしています。太陽光で動く AI のカメラが 100 m 以内に野生動物を見つけると知らせを出し、大きな音の
+警報を鳴らします。それでも近づくと、低い電圧の電気を流します。費用は 400 万ルピーで、Cochin Shipyard の
+社会貢献の資金で賄いました。ワヤナド県のイルラムで 2 年前に試した物を、州で初めて広げた形です。2024 年の
+記事によると、試験の柵は長さ 70 m、高さ 12 フィートで、住民と森林局の対応チームのスマートフォンに知らせていました。
+
+出典: Onmanorama「New-Gen fence and alarm system unveiled to safeguard against elephants: AI smart ele-fence installed」(2026-10-05)、https://www.onmanorama.com/news/kerala/2026/10/05/intelligent-fencing-combats-elephant-conflict.html 、2026-10-06 に確かめました +
+出典: The South First「Now, AI-powered fences bring new hope to Kerala's human-wildlife conflict zones」(2024-06-19)、https://thesouthfirst.com/keralam/now-ai-powered-fences-bring-new-hope-to-keralas-human-wildlife-conflict-zones/ 、2026-10-06 に確かめました
