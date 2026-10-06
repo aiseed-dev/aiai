@@ -438,8 +438,7 @@ def news_pages(days):
     pages["news/index.html"] = page("aiai ニュース", f"""<article>
 <p class="kicker">ニュース</p>
 <h1>aiai ニュース</h1>
-<p class="lead">VLM(画像や動画を読む AI)、スマートドア、スマートロック、鳥獣対策のニュースです。AI が下書きを作り、
-人が元の記事を読んで確かめてから載せます。出典と確かめた日を付けています。</p>
+<p class="lead">VLM(画像や動画を読む AI)、スマートドア、スマートロック、鳥獣対策のニュースです。</p>
 <p class="own-news">自分の分野のニュースは、自分の AI に作らせることができます。<a href="/skills/news.html">ニュースを作る手引き</a></p>
 {picker}
 <div class="prose">{"".join(rows) or "<p>まだありません。</p>"}</div>
