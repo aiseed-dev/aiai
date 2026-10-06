@@ -793,6 +793,12 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 .fig .fdash rect { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
 .fig .fno { stroke: #d9534f; stroke-width: 3; stroke-linecap: round; }
 .fig .fhit rect { fill: rgba(217, 83, 79, 0.16); stroke: #d9534f; stroke-width: 1.5; }
+.fig .fx2 rect { fill: var(--accent); stroke: none; }
+.fig .fx2 + text, .fig text.on-accent { fill: var(--bg); }
+.fig .fperson circle, .fig .fperson path { fill: var(--accent); }
+.fig .fperson-muted circle, .fig .fperson-muted path { fill: var(--muted); opacity: 0.6; }
+.fig .fno-mark { fill: #d9534f; font-size: 26px; font-weight: 700; }
+.fig .fok-mark { fill: var(--accent); font-size: 26px; font-weight: 700; }
 .fig .fa-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; }
 .fig .fa-head { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 

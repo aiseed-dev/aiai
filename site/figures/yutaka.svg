@@ -1,0 +1,27 @@
+<svg viewBox="0 0 360 270" role="img" aria-label="効率で測ると人の仕事を減らす物になり、豊かにする物として使うと一人でできることが増える、という対比の図">
+  <g class="fm-box"><rect x="10" y="10" width="165" height="250" rx="14"/></g>
+  <g class="fx"><rect x="185" y="10" width="165" height="250" rx="14"/></g>
+  <text class="fm" x="92" y="38">効率で測ると</text>
+  <text class="ft strong" x="267" y="38">豊かにする物として</text>
+  <g class="fperson-muted">
+    <circle cx="52" cy="82" r="11"/><path d="M38 116 q14 -22 28 0z"/>
+    <circle cx="92" cy="82" r="11"/><path d="M78 116 q14 -22 28 0z"/>
+    <circle cx="132" cy="82" r="11"/><path d="M118 116 q14 -22 28 0z"/>
+  </g>
+  <path class="fno" d="M80 70 L104 118 M104 70 L80 118"/>
+  <path class="fno" d="M120 70 L144 118 M144 70 L120 118"/>
+  <text class="ft" x="92" y="150">人の仕事を</text>
+  <text class="ft" x="92" y="172">減らす</text>
+  <text class="fm" x="92" y="214">値打ちは「誰の仕事を</text>
+  <text class="fm" x="92" y="234">減らしたか」</text>
+  <g class="fperson"><circle cx="232" cy="82" r="11"/><path d="M218 116 q14 -22 28 0z"/></g>
+  <g class="fb">
+    <rect x="262" y="66" width="34" height="22" rx="5"/><rect x="302" y="66" width="34" height="22" rx="5"/>
+    <rect x="262" y="94" width="34" height="22" rx="5"/><rect x="302" y="94" width="34" height="22" rx="5"/>
+  </g>
+  <g class="ft small"><text x="279" y="82">見る</text><text x="319" y="82">記録</text><text x="279" y="110">作る</text><text x="319" y="110">売る</text></g>
+  <text class="ft strong" x="267" y="150">一人でできることが</text>
+  <text class="ft strong" x="267" y="172">増える</text>
+  <text class="fm" x="267" y="214">誰も見張っていなかった</text>
+  <text class="fm" x="267" y="234">畑の夜が、記録に</text>
+</svg>
