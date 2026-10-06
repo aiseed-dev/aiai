@@ -16,7 +16,7 @@
 出典: GitHub「llama, server: add /v1/systemone API (models: laya, julia-1, lev, openjev, kev)」(ggml-org/llama.cpp PR #29818、2026-10-02 に取り込み)、https://github.com/ggml-org/llama.cpp/pull/29818 、2026-10-05 に確かめました
 
 == NTT e-Drone Technology とミラテクドローンが、高い所の鳥にレーザーを当てて追い払う、手で持つ棒を売り始めました
-:分野: 鳥獣対策
+:分野: VLM
 :国・地域: 日本
 
 NTT e-Drone Technology とミラテクドローンは、炭素繊維の棒の先に赤と緑の 2 色のレーザーを付け、

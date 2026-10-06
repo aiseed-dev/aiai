@@ -19,7 +19,7 @@ AI モデルを作る「統計作成等」にだけ使うなら、本人の同�
 出典: 個人情報保護委員会「令和 8 年改正個人情報保護法について」、https://www.ppc.go.jp/personalinfo/legal/r8kaiseihogohou 、2026-10-06 に確かめました
 
 == Aliro が CEATEC 2026 で日本で初めて一般に展示され、ポケットの中のスマートフォンでドアを開ける実演が見られます
-:分野: スマートロック
+:分野: VLM
 :国・地域: 日本
 
 Connectivity Standards Alliance の日本支部(Japan Interest Group)は、2026 年 10 月 13 日から 16 日に幕張メッセで
@@ -34,7 +34,7 @@ Connectivity Standards Alliance の日本支部(Japan Interest Group)は、2026 
 出典: Connectivity Standards Alliance「Connectivity Standards Alliance Japan Interest Group Announces Participation in CEATEC 2026」(2026-09-01)、https://csa-iot.org/newsroom/connectivity-standards-alliance-japan-interest-group-announces-participation-in-ceatec-2026-first-public-exhibition-in-japan-of-aliro-the-standard-for-digital-access-credentials/ 、2026-10-06 に確かめました
 
 == インドのケララ州が、ゾウが近づくと AI のカメラが知らせて音で追い返す柵を、2 年の試験を経て本格的に設置しました
-:分野: 鳥獣対策
+:分野: VLM
 :国・地域: インド
 
 ケララ州の森林局は、イドゥッキ県のムラリンガドに「AI スマート Ele-Fence」を設置し、2026 年 10 月 5 日に開所式を

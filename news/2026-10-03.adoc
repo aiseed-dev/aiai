@@ -32,7 +32,7 @@ Apple Machine Learning Research Model License で、研究に限られ、商用�
 出典: Local Model Watch「LensVLM-9B Vision-Language Model: 4GB+ VRAM, GGUF Builds」(2026-09-28)、https://localmodelwatch.tsuchitsuchi.com/en/2026/09/28/apple-lensvlm-9b-2 、2026-10-03 に確かめました
 
 == ULTRALOQ が、Aliro の認証を受けたスマートロックを米国で売り始めました
-:分野: スマートロック
+:分野: VLM
 :国・地域: 米国
 
 米国の ULTRALOQ は、スマートロックの共通規格 Aliro の認証を受けた「Bolt Pro」(269.99 米ドル)と
@@ -48,7 +48,7 @@ Apple、Google、Samsung が加わっています。
 出典: Matter Alpha「ULTRALOQ smart locks: Aliro digital keys, Matter…」、https://www.matteralpha.com/news/ultraloq-smart-locks-aliro-digital-keys-matter 、2026-10-03 に確かめました
 
 == 韓国の国立生物資源館が、カメラの映像からイノシシを AI で見つけて知らせる仕組みを北漢山で試しました
-:分野: 鳥獣対策
+:分野: VLM
 :国・地域: 韓国
 
 韓国の気候エネルギー環境部の国立生物資源館は、ドローン、CCTV、捕獲わなに付けた無人カメラの
@@ -63,7 +63,7 @@ Apple、Google、Samsung が加わっています。
 出典: SBS ニュース「인공지능으로 도심 출현 야생 멧돼지 포착…즉시 통보」(2026-10-01)、https://news.sbs.co.kr/news/endPage.do?news_id=N1008778882 、2026-10-03 に確かめました
 
 == 秋田県は、クマの出没警報を 10 月 1 日から注意報に切り替え、市街地への侵入口に電気マットと電気柵を試験的に置いています
-:分野: 鳥獣対策
+:分野: VLM
 :国・地域: 日本
 
 秋田県は、9 月 30 日まで出していたツキノワグマの出没警報を、10 月 1 日から 10 月 31 日までの
@@ -80,7 +80,7 @@ Apple、Google、Samsung が加わっています。
 出典: khb 東日本放送「宮城県全域にクマ出没注意報を発表 10月30日まで」(2026-10-01、Yahoo! ニュース)、https://news.yahoo.co.jp/articles/dd7914551a7efb16d5e40d14a7ff85a20d4bb6ab 、2026-10-03 に確かめました
 
 == 農林水産省が「鳥獣被害の現状と対策」の 2026 年 9 月版を出し、来年度の交付金の要求額を今年度の約 2 倍にしました
-:分野: 鳥獣対策
+:分野: VLM
 :国・地域: 日本
 
 農林水産省農村振興局の資料「鳥獣被害の現状と対策」(令和 8 年 9 月)によると、野生鳥獣による

@@ -446,16 +446,16 @@ def news_pages(days):
 <div class="prose">{body}</div>
 </article>""")
     buttons = "".join(f'<button type="button" data-area="{html.escape(a)}" aria-pressed="false">{html.escape(a)}</button>' for a in areas)
-    picker = f'<p class="areas-head">読みたい分野だけにする</p><div class="areas" id="areas">{buttons}</div>' if areas else ""
+    picker = f'<p class="areas-head">読みたい分野だけにする</p><div class="areas" id="areas">{buttons}</div>' if len(areas) > 1 else ""
     pages["news/index.html"] = page("aiai ニュース", f"""<article>
 <p class="kicker">ニュース</p>
 <h1>aiai ニュース</h1>
-<p class="lead">VLM(画像や動画を読む AI)、スマートドア、スマートロック、鳥獣対策のニュースです。</p>
+<p class="lead">VLM(画像や動画を読む AI)と、VLM をこれから使える建物の機器と鳥獣対策のニュースです。</p>
 <p class="own-news">自分の分野のニュースは、自分の AI に作らせることができます。<a href="/skills/news.html">ニュースを作る手引き</a></p>
 {picker}
 <div class="prose">{"".join(rows) or "<p>まだありません。</p>"}</div>
 </article>
-{FILTER_SCRIPT}""", "VLM、スマートドア、スマートロック、鳥獣対策のニュース")
+{FILTER_SCRIPT}""", "VLM と、VLM を使える建物の機器と鳥獣対策のニュース")
     return pages
 
 
