@@ -171,7 +171,8 @@ async def main(page: ft.Page):
               ft.Divider(), markdown(md)])
 
     def show_kangaekata():
-        show([heading("考え方"), markdown(read(os.path.join(ASSETS, "kangaekata.md")))])
+        text = re.sub(r"(?m)^\{\{fig:[\w-]+\}\}\n?", "", read(os.path.join(ASSETS, "kangaekata.md")))
+        show([heading("考え方"), markdown(text)])
 
     def show_news():
         controls = [heading("お知らせ")]

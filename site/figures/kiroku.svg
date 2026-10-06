@@ -1,0 +1,13 @@
+<svg viewBox="0 0 360 290" role="img" aria-label="AI が見て答え、人が直し、記録して見直す、という繰り返しの図">
+  <path class="fa-line" d="M250 74 Q300 92 300 128"/><path class="fa-head" d="M294 122 L300 131 L306 122"/>
+  <path class="fa-line" d="M294 186 Q290 236 280 246"/><path class="fa-head" d="M286 240 L278 248 L288 250"/>
+  <path class="fa-line" d="M84 250 Q66 236 64 186"/><path class="fa-head" d="M58 192 L63 183 L70 191"/>
+  <path class="fa-line" d="M64 128 Q66 86 98 66"/><path class="fa-head" d="M90 62 L100 64 L95 73"/>
+  <g class="fb"><rect x="95" y="30" width="170" height="44" rx="22"/><rect x="236" y="132" width="116" height="52" rx="22"/><rect x="85" y="226" width="190" height="44" rx="22"/></g>
+  <g class="fx"><rect x="8" y="132" width="116" height="52" rx="22"/></g>
+  <text class="ft" x="180" y="58">AI が見て、答える</text>
+  <text class="ft" x="294" y="163">人が直す</text>
+  <text class="ft" x="180" y="254">その後どうなったか</text>
+  <text class="ft strong" x="66" y="154">記録して</text><text class="ft strong" x="66" y="174">見直す</text>
+  <text class="fm" x="180" y="152">経過</text>
+</svg>

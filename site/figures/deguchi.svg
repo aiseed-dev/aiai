@@ -1,0 +1,17 @@
+<svg viewBox="0 0 360 330" role="img" aria-label="出す側は確かな中身を置き、答える AI は質問する側に置く、という図">
+  <g class="fb"><rect x="20" y="10" width="320" height="76" rx="12"/></g>
+  <text class="fm" x="180" y="34">出す側(役所、会社)</text>
+  <text class="ft strong" x="180" y="62">確かな中身を置く</text>
+  <text class="fm" x="180" y="80">決まり、様式、期限、出典</text>
+  <g class="fdash"><rect x="200" y="104" width="140" height="44" rx="12"/></g>
+  <text class="fm" x="270" y="131">答える AI</text>
+  <path class="fno" d="M222 112 L318 140 M318 112 L222 140"/>
+  <path class="fa-line" d="M110 88 V178"/><path class="fa-head" d="M104 172 L110 180 L116 172"/>
+  <text class="fm" x="60" y="140">読む</text>
+  <g class="fx"><rect x="20" y="182" width="320" height="56" rx="12"/></g>
+  <text class="ft strong" x="180" y="208">質問する側の AI が</text>
+  <text class="ft" x="180" y="230">読んで、考え、疑う</text>
+  <path class="fa-line" d="M180 240 V262"/><path class="fa-head" d="M174 256 L180 264 L186 256"/>
+  <g class="fb"><rect x="90" y="266" width="180" height="44" rx="22"/></g>
+  <text class="ft" x="180" y="294">質問する人</text>
+</svg>

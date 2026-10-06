@@ -1,0 +1,14 @@
+<svg viewBox="0 0 360 300" role="img" aria-label="手引きをあなたの AI に読ませ、下書きを別の会社の AI にも見てもらい、決めるのはあなた、という流れの図">
+  <g class="fb"><rect x="90" y="10" width="180" height="44" rx="12"/></g>
+  <text class="ft" x="180" y="38">手引き</text>
+  <path class="fa-line" d="M180 56 V80"/><path class="fa-head" d="M174 74 L180 82 L186 74"/>
+  <g class="fb"><rect x="30" y="84" width="300" height="56" rx="12"/></g>
+  <text class="ft" x="180" y="108">あなたの AI が、あなたに聞きながら</text>
+  <text class="ft" x="180" y="130">下書きを作る</text>
+  <path class="fa-line" d="M180 142 V166"/><path class="fa-head" d="M174 160 L180 168 L186 160"/>
+  <g class="fb"><rect x="30" y="170" width="300" height="44" rx="12"/></g>
+  <text class="ft" x="180" y="198">別の会社の AI にも見てもらう</text>
+  <path class="fa-line" d="M180 216 V240"/><path class="fa-head" d="M174 234 L180 242 L186 234"/>
+  <g class="fx"><rect x="70" y="244" width="220" height="46" rx="23"/></g>
+  <text class="ft strong" x="180" y="273">決めるのは、あなた</text>
+</svg>

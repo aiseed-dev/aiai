@@ -780,6 +780,22 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 .news-day li .chip { flex: none; }
 .news-day[hidden], .news-day li[hidden] { display: none; }
 
+/* diagrams on the thinking page: drawn tall, so they read on a phone */
+.fig { margin: 20px auto 8px; max-width: 420px; }
+.fig svg { width: 100%; height: auto; display: block; }
+.fig text { text-anchor: middle; font-family: inherit; font-size: 15px; fill: var(--fg); }
+.fig text.small { font-size: 13.5px; }
+.fig text.strong, .fig .strong text { font-weight: 700; }
+.fig .fm { fill: var(--muted); font-size: 13px; }
+.fig .fb rect { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+.fig .fx rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.fig .fm-box rect { fill: var(--bg-2); stroke: var(--line); stroke-width: 1.5; }
+.fig .fdash rect { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.fig .fno { stroke: #d9534f; stroke-width: 3; stroke-linecap: round; }
+.fig .fhit rect { fill: rgba(217, 83, 79, 0.16); stroke: #d9534f; stroke-width: 1.5; }
+.fig .fa-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; }
+.fig .fa-head { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
 .toc { margin: 16px 0 0; padding: 16px 20px 16px 40px; background: var(--bg-2); border-radius: 14px; color: var(--muted); }
 .toc li { margin: 4px 0; }
 .toc a { text-decoration: none; }

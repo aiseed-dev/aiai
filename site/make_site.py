@@ -117,12 +117,24 @@ def render_table(lines):
     return "".join(out + ["</tbody></table></div>"])
 
 
+FIGURES = os.path.join(HERE, "figures")
+
+
+def figure(name):
+    """A diagram from site/figures/<name>.svg, put in the page as it is (it uses the page's colours)."""
+    path = os.path.join(FIGURES, f"{name}.svg")
+    return f'<figure class="fig">{read(path)}</figure>' if os.path.exists(path) else ""
+
+
 def markdown(text):
-    """HTML of Markdown as aiai writes it."""
+    """HTML of Markdown as aiai writes it. A line {{fig:name}} puts in a diagram."""
     lines, out, i = text.splitlines(), [], 0
     while i < len(lines):
         line = lines[i]
         if not line.strip():
+            i += 1
+        elif m := re.fullmatch(r"\{\{fig:([\w-]+)\}\}", line.strip()):
+            out.append(figure(m[1]))
             i += 1
         elif line.startswith("```"):
             j = i + 1

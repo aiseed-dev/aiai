@@ -1,0 +1,17 @@
+<svg viewBox="0 0 360 260" role="img" aria-label="一般の ID が取られても壊れるのはその PC だけ、権限の大きい ID が取られると全部に届く、という図">
+  <g class="fb"><rect x="10" y="10" width="160" height="44" rx="12"/></g>
+  <text class="ft" x="90" y="38">一般の ID</text>
+  <g class="fm-box"><rect x="190" y="10" width="160" height="44" rx="12"/></g>
+  <text class="ft strong" x="270" y="38">権限の大きい ID</text>
+  <path class="fa-line" d="M90 56 V84"/><path class="fa-head" d="M84 78 L90 86 L96 78"/>
+  <path class="fa-line" d="M270 56 V84"/><path class="fa-head" d="M264 78 L270 86 L276 78"/>
+  <g class="fb"><rect x="55" y="90" width="70" height="50" rx="8"/></g>
+  <text class="ft small" x="90" y="120">その PC</text>
+  <text class="fm" x="90" y="164">そこまで</text>
+  <g class="fhit">
+    <rect x="196" y="90" width="44" height="36" rx="6"/><rect x="248" y="90" width="44" height="36" rx="6"/><rect x="300" y="90" width="44" height="36" rx="6"/>
+    <rect x="196" y="132" width="44" height="36" rx="6"/><rect x="248" y="132" width="44" height="36" rx="6"/><rect x="300" y="132" width="44" height="36" rx="6"/>
+  </g>
+  <text class="fm" x="270" y="192">サーバー、バックアップ、全部</text>
+  <text class="fm" x="180" y="244">守るのは、権限の大きい ID から</text>
+</svg>
