@@ -288,7 +288,7 @@ document.querySelectorAll("[data-copy]").forEach(function (b) {
 </script>"""
 
 # The guides that are tools of their own, not steps of the path
-TOOL_GUIDES = {"news": "ニュース"}
+TOOL_GUIDES = {"news": "ニュース", "kanri": "管理"}
 
 HOW_TO_LOAD = ("「写す」で写して、ふだん使っている AI のチャットに貼ります。貼るほかに、AI に「スキル」として登録しておくこともできます。"
                "Claude は ZIP を、Gemini は SKILL.md か ZIP を上げます。ChatGPT は、スキルが使えるワークスペースで入れます。"
