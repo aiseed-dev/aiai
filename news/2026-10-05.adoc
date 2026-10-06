@@ -1,0 +1,29 @@
+= aiai ニュース 2026-10-05
+:日付: 2026-10-05
+
+== llama.cpp のサーバーが、選択肢を採点する「決定モデル」を動かせるようになり、その 1 つは画像も読みます
+:分野: VLM
+:国・地域: 米国
+
+手元の機械で言語モデルを動かすソフトの llama.cpp に、文章を書く代わりに、決めた選択肢に点を付けて
+1 回の計算で答える「決定モデル」を動かす仕組みが入りました。2026 年 10 月 2 日に取り込まれた変更
+(PR #29818)で、サーバーに `/v1/systemone` という窓口が足され、Laya、Julia-1、Lev、OpenJev、Kev の
+5 つのモデルを動かせます。開発チームのブログによると、このうち OpenJev(270 億パラメーター)は、
+文書や画面の写しのような画像も読めます。OpenJev の利用の決まりは CC BY-NC 4.0 で、商用には使えません。
+ブログの速さの数字は、NVIDIA RTX PRO 6000 の 1 枚で測った物です。
+
+出典: Hugging Face ブログ「New in llama.cpp: Decision Models」(ggml-org、2026-10-02)、https://huggingface.co/blog/ggml-org/decision-models-in-llamacpp 、2026-10-05 に確かめました +
+出典: GitHub「llama, server: add /v1/systemone API (models: laya, julia-1, lev, openjev, kev)」(ggml-org/llama.cpp PR #29818、2026-10-02 に取り込み)、https://github.com/ggml-org/llama.cpp/pull/29818 、2026-10-05 に確かめました
+
+== NTT e-Drone Technology とミラテクドローンが、高い所の鳥にレーザーを当てて追い払う、手で持つ棒を売り始めました
+:分野: 鳥獣対策
+:国・地域: 日本
+
+NTT e-Drone Technology とミラテクドローンは、炭素繊維の棒の先に赤と緑の 2 色のレーザーを付け、
+地上から最大約 8 m の高さまで届かせる「たおれん棒(鳥獣害対策タイプ)」を、2026 年 9 月 30 日に
+売り始めました(会社の発表です)。棒はプロペラの力で立つのを助けるので、足場や高所作業車を使わずに
+1 人で扱えます。会社は、駅前や街路樹、公園、ビル、倉庫、寺社などに集まるムクドリやハトを対象に挙げています。
+値段は 99 万円(税別)です。レーザーはクラス 3R で、人に向けて当てないよう書いています。
+
+出典: NTT e-Drone Technology「忌避レーザー搭載の『たおれん棒(鳥獣害対策タイプ)』を発売」(2026-09-08)、https://www.nttedt.co.jp/post/repellentlaser-taorenbou-20260908 、2026-10-05 に確かめました +
+出典: 日本農業新聞「鳥類追い払うレーザー 手持ちで高所から照射 ＮＴＴイードローン」(2026-09-24)、https://www.agrinews.co.jp/farming/index/408396 、2026-10-05 に確かめました
