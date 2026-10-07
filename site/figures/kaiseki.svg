@@ -1,0 +1,14 @@
+<svg viewBox="0 0 360 300" role="img" aria-label="ページごとにどこまで読まれたかを AI が読み、直す所の一覧を作る、という流れの図">
+  <text class="fm" x="180" y="22">ページごとに、どこまで読まれたか</text>
+  <g class="fm-box"><rect x="96" y="36" width="240" height="22" rx="6"/><rect x="96" y="70" width="240" height="22" rx="6"/><rect x="96" y="104" width="240" height="22" rx="6"/></g>
+  <g class="fx2"><rect x="96" y="36" width="210" height="22" rx="6"/><rect x="96" y="70" width="84" height="22" rx="6"/><rect x="96" y="104" width="150" height="22" rx="6"/></g>
+  <text class="ft small" x="50" y="52">トップ</text>
+  <text class="ft small" x="50" y="86">考え方</text>
+  <text class="ft small" x="50" y="120">手引き</text>
+  <path class="fa-line" d="M180 140 V162"/><path class="fa-head" d="M174 156 L180 164 L186 156"/>
+  <g class="fb"><rect x="60" y="168" width="240" height="44" rx="12"/></g>
+  <text class="ft" x="180" y="196">AI が読む</text>
+  <path class="fa-line" d="M180 214 V236"/><path class="fa-head" d="M174 230 L180 238 L186 230"/>
+  <g class="fx"><rect x="60" y="242" width="240" height="46" rx="23"/></g>
+  <text class="ft strong" x="180" y="271">直す所の一覧</text>
+</svg>
