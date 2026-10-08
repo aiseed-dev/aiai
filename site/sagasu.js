@@ -25,6 +25,14 @@
       return ws.every(function (w) { return text.indexOf(w) >= 0; });
     }).slice(0, 10);
   }
+  // One line per page: a page's sections share its address
+  function once(list, shown) {
+    return list.filter(function (e) {
+      if (shown[e.u]) return false;
+      shown[e.u] = true;
+      return true;
+    });
+  }
   function show(q, mine, ai, waiting) {
     var html = "";
     if (ai && ai.length) html += '<h2>AI が選んだページ</h2><ol class="sagasu-list">' + ai.map(item).join("") + "</ol>";
@@ -38,14 +46,16 @@
     q = q.trim().slice(0, 100);
     if (!q) return;
     index.then(function (all) {
-      var mine = words(q, all);
+      var mine = once(words(q, all), {});
       show(q, mine, null, true);
       var ask = fetch("/api/sagasu", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: q }),
       }).then(function (r) { return r.ok ? r.json() : { hits: [] }; }).catch(function () { return { hits: [] }; });
       ask.then(function (res) {
-        var ai = (res.hits || []).map(function (i) { return all[i]; }).filter(Boolean);
-        var mineOnly = mine.filter(function (e) { return ai.indexOf(e) < 0; });
+        var ai = once((res.hits || []).map(function (i) { return all[i]; }).filter(Boolean), {});
+        var shown = {};
+        ai.forEach(function (e) { shown[e.u] = true; });
+        var mineOnly = once(mine, shown);
         show(q, mineOnly, ai, false);
         if (window.kaiseki) {
           kaiseki.event("search", { value: q });
