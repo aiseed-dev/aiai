@@ -13,6 +13,7 @@ paragraphs, lists, tables, code, bold, links and bare URLs. Links to files in
 the repository are shown as plain text, since the site does not carry them.
 """
 import html
+import json
 import os
 import re
 import shutil
@@ -265,6 +266,7 @@ def page(title, body, description=""):
 {body}
 </main>
 {FOOTER}
+{KAISEKI_TAGS}
 </body>
 </html>
 """
@@ -277,14 +279,21 @@ HEADER = """<header class="bar">
     <a href="/#how">使い方</a>
     <a href="/news/">ニュース</a>
     <a href="/kangaekata.html">考え方</a>
+    <a href="/sagasu.html">探す</a>
   </nav>
   <a class="open" href="/app/">アプリ</a>
 </header>"""
 
 FOOTER = """<footer>
   <p><strong>aiai</strong> AI 時代の学び方</p>
+  <p class="small"><a href="/sagasu.html">探す</a> ・ <a href="/kaiseki/">読まれ方の記録</a></p>
   <p class="small">文書は CC BY 4.0、コードは AGPL-3.0-or-later です。見本の人、店、数字は、すべて架空です。このサイトは、国や役所が作った物ではありません。</p>
 </footer>"""
+
+# The record of how the pages are read (kaiseki/): no cookie and no ID, sent to
+# this site's own server, with aiai's events (kaiseki-aiai.js) on top
+KAISEKI_TAGS = """<script src="/kaiseki.js" data-to="/kaiseki" data-ask="no" defer></script>
+<script src="/kaiseki-aiai.js" defer></script>"""
 
 COPY_SCRIPT = """<script>
 document.querySelectorAll("[data-copy]").forEach(function (b) {
@@ -471,6 +480,68 @@ def latest_news(days, n=NEWS_ON_TOP):
     return "<ul class=\"news-list\">" + "".join(items) + "</ul>" if items else "<p>まだありません。</p>"
 
 
+def plain(text, limit=160):
+    """Text of Markdown or HTML without its marks, cut to a short line, for the search index."""
+    text = re.sub(r"\{\{fig:[\w-]+\}\}|\s*\{#[\w-]+\}", "", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"<[^>]+>|[*`|#>]", "", text)
+    text = join_lines([x.strip(" -") for x in text.splitlines() if x.strip()])
+    return text[:limit]
+
+
+def search_index(skills, kangaekata, days):
+    """[{u, t, h, x}] (address, title, heading, text) of the pages and their
+    sections, which sagasu.js searches and the server's AI picks from."""
+    out = []
+    for name, (_, title, description, _, body) in skills.items():
+        url = f"/skills/{name}.html"
+        out.append({"u": url, "t": title, "h": "", "x": plain(description)})
+        out += [{"u": url, "t": title, "h": h, "x": plain(text)} for h, text in sections(body) if h]
+    for m in re.finditer(r"^## (.+?) \{#([\w-]+)\}\n(.*?)(?=^## |\Z)", kangaekata, re.M | re.S):
+        out.append({"u": f"/kangaekata.html#{m[2]}", "t": "考え方", "h": m[1], "x": plain(m[3])})
+    for date, _, entries in days:
+        for e in entries:
+            text = " ".join(body for src, body in e["paras"] if not src)
+            out.append({"u": f"/news/{date}.html", "t": f"ニュース {date}", "h": e["heading"], "x": plain(text)})
+    return out
+
+
+SEARCH_PAGE = """<article>
+<p class="kicker">探す</p>
+<h1>サイトの中を探す</h1>
+<form id="sagasu" class="sagasu" role="search">
+  <input type="search" name="q" maxlength="100" placeholder="例: 履歴書、鳥獣害、転職" aria-label="探す言葉">
+  <button class="button primary" type="submit">探す</button>
+</form>
+<div id="sagasu-out" class="prose" aria-live="polite"></div>
+</article>
+<script src="/sagasu.js" defer></script>"""
+
+NOT_FOUND = """<article>
+<div data-notfound hidden></div>
+<h1>このページは見つかりません</h1>
+<p><a href="/sagasu.html">サイトの中を探す</a>か、<a href="/">トップページ</a>から開いてください。</p>
+</article>"""
+
+KAISEKI_PAGE = """<article>
+<p class="kicker">読まれ方の記録</p>
+<h1>読まれ方の記録</h1>
+<div class="prose">
+<p>このサイトは、読む人がどこで読み、何を探しているかを記録します。その記録を AI に読ませ、ページを直し、足りないページを作ります。</p>
+<h2>記録する物</h2>
+<ul>
+<li>見たページと題、来た元のサイト、言語、時間帯、画面の大きさ、ブラウザー</li>
+<li>ページを見ていた時間と、どこまで下へ見たか</li>
+<li>読んだ見出し、開いた全文、押したリンク、写したりダウンロードしたりした手引き</li>
+<li>このサイトの中で探した言葉と、見つからなかったページ</li>
+</ul>
+<h2>送り先</h2>
+<p>このサイトのサーバー(<code>https://aiai.aiseed.dev/kaiseki/v1/</code>)です。Cookie に番号は置かず、IP アドレスは記録しません。探した言葉は、合うページを選ぶために、Google Cloud の Claude Haiku 5.5 にも渡します。</p>
+<p>仕組みのコードは、aiai のリポジトリの <code>kaiseki/</code> にあります(AGPL-3.0-or-later)。</p>
+</div>
+</article>"""
+
+
 def main():
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
@@ -480,8 +551,11 @@ def main():
         top = re.sub(r"<!-- news -->.*?<!-- /news -->", lambda m: f"<!-- news -->{latest_news(days)}<!-- /news -->", top, flags=re.S)
     else:  # no news yet: no empty section on the top page
         top = re.sub(r"\s*<!-- news-section -->.*?<!-- /news-section -->", "", top, flags=re.S)
-    write(os.path.join(OUT, "index.html"), top)
+    write(os.path.join(OUT, "index.html"), top.replace("</body>", KAISEKI_TAGS + "\n</body>"))
     shutil.copyfile(os.path.join(HERE, "top.css"), os.path.join(OUT, "top.css"))
+    for src, name in ((os.path.join(ROOT, "kaiseki", "kaiseki.js"), "kaiseki.js"),
+                      (os.path.join(HERE, "kaiseki-aiai.js"), "kaiseki-aiai.js"), (os.path.join(HERE, "sagasu.js"), "sagasu.js")):
+        shutil.copyfile(src, os.path.join(OUT, name))
     skills = load_skills()
     for name, s in skills.items():
         write(os.path.join(OUT, "skills", f"{name}.html"), skill_page(name, *s))
@@ -505,6 +579,10 @@ def main():
 </article>""", "AI 時代に、AI を使い込んだ経験をどう活かすか"))
     for path, text in news_pages(days).items():
         write(os.path.join(OUT, path), text)
+    write(os.path.join(OUT, "sagasu.html"), page("探す", SEARCH_PAGE, "aiai のサイトの中を探す"))
+    write(os.path.join(OUT, "404.html"), page("見つかりません", NOT_FOUND))
+    write(os.path.join(OUT, "kaiseki", "index.html"), page("読まれ方の記録", KAISEKI_PAGE, "aiai のサイトが記録する物と送り先"))
+    write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(skills, kangaekata, days), ensure_ascii=False))
     print(f"{OUT} に、スキル {len(skills)}、ニュース {len(days)} 日分のページを作りました")
 
 

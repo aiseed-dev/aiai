@@ -927,3 +927,13 @@ footer strong { color: var(--fg); }
   .lead { font-size: 1rem; }
   .belief { padding: 56px 16px; }
 }
+
+/* The site search (sagasu.html) */
+.sagasu { display: flex; gap: 8px; margin: 18px 0 8px; }
+.sagasu input { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+.sagasu-list { padding-left: 1.2em; }
+.sagasu-list li { margin: 10px 0; }
+.sagasu-list a { text-decoration: none; }
+.sagasu-h { display: block; color: var(--muted); font-size: 0.92em; }
+.sagasu-x { margin: 2px 0 0; color: var(--muted); font-size: 0.88em; }

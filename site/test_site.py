@@ -4,6 +4,7 @@ and a build of the whole site into a temporary folder.
 
     python site/test_site.py
 """
+import json
 import os
 import sys
 import tempfile
@@ -80,7 +81,8 @@ class BuildTest(unittest.TestCase):
             make_site.load_news = lambda folder=None: days
             make_site.main()
             for path in ("index.html", "top.css", "kangaekata.html", "news/index.html", "news/2026-09-30.html",
-                         "skills/rireki.html", "skills/keikaku.html"):
+                         "skills/rireki.html", "skills/keikaku.html", "sagasu.html", "sagasu.json", "404.html",
+                         "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js"):
                 self.assertTrue(os.path.exists(os.path.join(out, path)), path)
             with open(os.path.join(out, "index.html"), encoding="utf-8") as f:
                 top = f.read()
@@ -89,6 +91,15 @@ class BuildTest(unittest.TestCase):
                 skill = f.read()
             self.assertIn("/skills/rireki.zip", skill)
             self.assertIn("name: rireki", skill)  # the whole SKILL.md, for the copy button
+            # every page sends its record to this site's own server, with no cookie
+            for text in (top, skill):
+                self.assertIn('data-to="/kaiseki" data-ask="no"', text)
+            with open(os.path.join(out, "sagasu.json"), encoding="utf-8") as f:
+                index = json.load(f)
+            self.assertIn({"u": "/news/2026-09-30.html", "t": "ニュース 2026-09-30"},
+                          [{"u": e["u"], "t": e["t"]} for e in index])
+            self.assertTrue(any(e["u"].startswith("/kangaekata.html#") and e["h"] for e in index))
+            self.assertTrue(all(set(e) == {"u", "t", "h", "x"} for e in index))
 
 
 if __name__ == "__main__":

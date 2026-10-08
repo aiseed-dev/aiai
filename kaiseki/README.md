@@ -9,9 +9,21 @@
 | `server.py` | 受け口。標準ライブラリと SQLite。IP アドレスは記録しない |
 | `test_server.py` | 受け口の確かめ(`python kaiseki/test_server.py`) |
 
-3 つのファイルは、aiseed-dev/aiai-tools の `kaiseki/`(コミット f39a9a9。中身はコミット c43d86a と同じ)を
-そのまま写した物です。ページのスクリプトと受け口は aiai-tools で作るので、直すときは aiai-tools を
+3 つのファイルは、aiseed-dev/aiai-tools の `kaiseki/` をそのまま写した物です(`kaiseki.js` はコミット e3e2d58、
+`server.py` と `test_server.py` はコミット f39a9a9)。ページのスクリプトと受け口は aiai-tools で作るので、直すときは aiai-tools を
 直してから写します。
+
+## aiai.aiseed.dev での使い方
+
+各ページに、Cookie を置かず、受け入れるかも聞かない形(`data-ask="no"`)で置きます。`site/make_site.py` が
+入れます。aiai の出来事(読んだ見出し、開いた全文、写した手引き、押したリンク、見つからなかったページ)は
+`site/kaiseki-aiai.js`、サイトの中で探した言葉は `site/sagasu.js` が送ります。何を記録するかは
+https://aiai.aiseed.dev/kaiseki/ に書いてあります。
+
+```
+<script src="/kaiseki.js" data-to="/kaiseki" data-ask="no" defer></script>
+<script src="/kaiseki-aiai.js" defer></script>
+```
 
 ## aiai.aiseed.dev での置き方
 

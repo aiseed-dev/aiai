@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Serves the aiai site: the pages built into public/ by make_site.py (the
 top page, the skills, the thinking, the news) at /, each skill's ZIP at
-/skills/<name>.zip, the Flet app (app/main.py) at /app/, and, when
-SOUDAN_MODELS is set, the second-opinion server (soudan/server.py) at /soudan/.
+/skills/<name>.zip, the site search's AI at /api/sagasu (AIAI_SAGASU=vertex),
+the Flet app (app/main.py) at /app/, and, when SOUDAN_MODELS is set, the second-opinion server (soudan/server.py) at /soudan/.
 
     python site/make_assets.py
     python site/make_site.py
@@ -14,12 +14,17 @@ as in app/soudan_view.py. site/try.py runs it all with fake sign-in and models.
 """
 import importlib.util
 import io
+import json
 import re
+import threading
+import time
+import urllib.error
+import urllib.request
 import zipfile
 import os
 import sys
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 
@@ -40,6 +45,92 @@ def skill_zip(name, root=False):
                 z.write(os.path.join(dirpath, "SKILL.md"), "SKILL.md" if root else f"{name}/SKILL.md")
             return buf.getvalue()
     return None
+
+
+class Sagasu:
+    """The AI of the site search: given the words a reader searched, it picks
+    the pages that fit from the search index (public/sagasu.json) and writes no
+    answer. Claude Haiku 5.5 on Google Cloud (Vertex AI), called by REST with
+    the VM's service account, so no key is kept; set AIAI_SAGASU=vertex to use
+    it. Elsewhere, and when a limit is reached, it picks nothing and the page
+    shows only the pages with the words in them. Searches are not logged here;
+    the page records them (kaiseki)."""
+
+    MODEL = "claude-haiku-5-5"
+    PER_MINUTE, PER_DAY = 30, 3000
+    META = "http://metadata.google.internal/computeMetadata/v1/"
+
+    def __init__(self, index_path, on=os.environ.get("AIAI_SAGASU") == "vertex"):
+        self.index_path, self.on = index_path, on
+        self.lock = threading.Lock()
+        self.cache, self.calls, self.token = {}, [], (None, 0)
+        self.index, self.mtime = [], 0
+
+    def entries(self):
+        m = os.path.getmtime(self.index_path)
+        if m != self.mtime:
+            with open(self.index_path, encoding="utf-8") as f:
+                self.index, self.mtime = json.load(f), m
+            self.cache.clear()
+        return self.index
+
+    def meta(self, path):
+        req = urllib.request.Request(self.META + path, headers={"Metadata-Flavor": "Google"})
+        return urllib.request.urlopen(req, timeout=5).read().decode()
+
+    def bearer(self):
+        tok, until = self.token
+        if not tok or time.time() > until - 60:
+            d = json.loads(self.meta("instance/service-accounts/default/token"))
+            tok, until = d["access_token"], time.time() + d["expires_in"]
+            self.token = (tok, until)
+        return tok
+
+    def allowed(self):
+        now = time.time()
+        self.calls = [t for t in self.calls if now - t < 86400]
+        if len(self.calls) >= self.PER_DAY or sum(now - t < 60 for t in self.calls) >= self.PER_MINUTE:
+            return False
+        self.calls.append(now)
+        return True
+
+    def pick(self, q):
+        q = " ".join(str(q).split())[:100]
+        if not q or not self.on:
+            return []
+        with self.lock:
+            index = self.entries()
+            if q in self.cache:
+                return self.cache[q]
+            if not self.allowed():
+                return []
+        pages = "\n".join(f"{i}\t{e['t']}\t{e['h']}\t{e['x']}" for i, e in enumerate(index))
+        prompt = (
+            "aiai のサイトの中を探す人が、次の言葉で探しました。下の目録(番号、題、見出し、中身の始め)から、"
+            "その人が読みたいページを、合う順に 5 つまで選んでください。言葉が同じでなくても、探している"
+            "ことに合えば選びます。合う物が無ければ、選びません。答えは JSON だけで、"
+            '{"hits": [番号, ...]} の形にしてください。\n\n'
+            f"探した言葉: {q}\n\n目録:\n{pages}"
+        )
+        body = {"anthropic_version": "vertex-2023-10-16", "max_tokens": 2000,
+                "messages": [{"role": "user", "content": prompt}]}
+        try:
+            project = self.meta("project/project-id")
+            url = (f"https://aiplatform.googleapis.com/v1/projects/{project}/locations/global/"
+                   f"publishers/anthropic/models/{self.MODEL}:rawPredict")
+            req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={
+                "Authorization": f"Bearer {self.bearer()}", "Content-Type": "application/json"})
+            res = json.load(urllib.request.urlopen(req, timeout=30))
+            text = "".join(c.get("text", "") for c in res.get("content", []) if c.get("type") == "text")
+            m = re.search(r"\{.*\}", text, re.S)
+            hits = [i for i in json.loads(m[0]).get("hits", []) if isinstance(i, int) and 0 <= i < len(index)][:5] if m else []
+        except (urllib.error.URLError, OSError, ValueError, KeyError):
+            return []
+        with self.lock:
+            if len(self.cache) > 1000:
+                self.cache.clear()
+            self.cache[q] = hits
+        return hits
 
 
 def load_soudan():
@@ -65,6 +156,12 @@ def create_app(soudan=None):
             raise HTTPException(404, "そのスキルはありません")
         return Response(data, media_type="application/zip",
                         headers={"Content-Disposition": f'attachment; filename="{name}.zip"'})
+
+    sagasu = Sagasu(os.path.join(HERE, "public", "sagasu.json"))
+
+    @app.post("/api/sagasu")
+    def search(body: dict = Body(default={})):  # a plain def: FastAPI runs it in a thread
+        return {"hits": sagasu.pick(body.get("q", ""))}
 
     if soudan is not None:
         app.mount("/soudan", soudan)
