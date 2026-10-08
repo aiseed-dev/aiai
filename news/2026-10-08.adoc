@@ -1,0 +1,74 @@
+= aiai ニュース 2026-10-08
+:日付: 2026-10-08
+
+== Liquid AI が、画像を見て選択肢に確からしさを返す「決定モデル」d1-3B の重みを公開し、Jetson Orin Nano で 1 問 50 ms で答えます
+:分野: VLM
+:国・地域: 米国
+
+Liquid AI は 2026 年 10 月 7 日、文章を書く代わりに、はい・いいえ、選択、点数の形の問いに 1 回の計算で答える
+「決定モデル」の d1-3B と d1-omni-600M の重みを、Hugging Face で公開しました(会社の発表です)。d1-3B は同社の VLM である
+LFM2.5-VL-3B を元にした 31 億パラメーターのモデルで、文章と画像を読みます。d1-omni-600M は 5 億 8,700 万パラメーターで、
+画像のほかに 16 kHz の音声も読みますが、研究段階の版と書いてあります。速さは、d1-3B で 1 問あたり Jetson Orin Nano で
+50 ms、Jetson AGX Orin で 26 ms、Apple M5 Pro で 30 ms です。画像を外すと画像の評価の点が 74.1 から 45.1 に下がるので、
+答えは画像を見て決めています。同社のブログは、部品の写真から不良を見分ける使い方を、公開データ VisA で 85〜97% の
+正答率と書いています(学習していない作業です)。ライセンスはモデルの説明に lfm1.0 と書いてあります。
+
+出典: Hugging Face ブログ「Multimodal open d1 decision models for the edge」(LiquidAI、2026-10-07)、https://huggingface.co/blog/LiquidAI/open-d1 、2026-10-08 に確かめました +
+出典: LiquidAI「d1-3b」(Hugging Face のモデルの説明)、https://huggingface.co/LiquidAI/d1-3b 、2026-10-08 に確かめました +
+出典: Liquid AI ブログ「Introducing d1: The most capable decision model, now with vision」(2026-10-05)、https://www.liquid.ai/blog/d1-decision-model 、2026-10-08 に確かめました
+
+== Google が、写真、動画、音声、文章を同じ数の並びにする 7 億 4,000 万パラメーターの「EmbeddingGemma 2」を Apache 2.0 で公開しました
+:分野: VLM
+:国・地域: 米国
+
+Google は 2026 年 10 月 6 日、文章、コード、画像、PDF のような文書の画像、動画、音声を、同じ 768 次元のベクトルにする
+埋め込みモデル「EmbeddingGemma 2」を公開しました(会社の発表です)。言葉で答えるモデルではなく、手元の写真や動画を
+言葉で探す仕組み(検索と RAG)に使う物です。Gemma 4 を元にしていて、文章だけなら 2 億 7,000 万、画像を足すと 4 億 4,000 万、
+音声も足すと 7 億 4,000 万パラメーターと、要る部分だけを読み込めます。ベクトルは 128 次元まで縮められ、256 次元で
+画像、動画、音声の検索の精度を約 95% 保つと書いています。ライセンスは Apache 2.0 で、Hugging Face、Ollama、LM Studio、
+LiteRT(Android と iOS)で使えます。
+
+出典: Google for Developers ブログ「EmbeddingGemma 2: The Developer Guide」(2026-10-06)、https://developers.googleblog.com/embeddinggemma-2-the-developer-guide/ 、2026-10-08 に確かめました +
+出典: Google for Developers ブログ「Bring multimodal semantic search to the edge with EmbeddingGemma 2」、https://developers.googleblog.com/google-ai-edge-with-embeddinggemma-2/ 、2026-10-08 に確かめました
+
+== Amazon の Ring が初めてのスマートロックを発表し、電池が切れてもつまみを回して開けられるようにしました
+:分野: VLM
+:国・地域: 米国
+
+Ring は 2026 年 10 月 7 日、同社で初めてのスマートロック「Ring Smart Lock」を発表しました(会社の発表です)。指紋、
+タッチ式のテンキー、Ring のアプリ、Alexa の 4 つの方法で開け、鍵は要りません。電池が切れたときは、本体のつまみを
+数回回して発電し、その場で開けられます。電池は約 1 年もちます。通信は Amazon Sidewalk を使い、家の Wi-Fi が無くても
+遠くから施錠と状態の確認ができます。米国で 2027 年の初めに売り、値段は 249 米ドルと報じられています。FCC の認可は
+まだで、仕様が変わることがあります。Matter と Apple Home への対応は、発表に書いてありません。同じ日に 4K のカメラ 4 種
+(屋外、スポットライト、投光器、屋内)と、首を振る屋内カメラも発表しました。顔を見て鍵を開ける機能は書いてありません。
+
+出典: Amazon「Ring ends smart lock anxiety with a lock you can recharge by hand」(About Amazon、日付の表示なし。報道は 2026-10-07)、https://www.aboutamazon.com/news/devices/ring-smart-lock-battery-recharge 、2026-10-08 に確かめました +
+出典: TechCrunch「Ring's first smart lock can be hand-cranked when its battery dies」(2026-10-07)、https://techcrunch.com/2026/10/07/rings-first-smart-lock-can-be-hand-cranked-when-its-battery-dies/ 、2026-10-08 に確かめました +
+出典: 9to5Mac「Ring announces its first smart lock, solving a major pain point for smart home users」(2026-10-07)、https://9to5mac.com/2026/10/07/ring-announces-first-ever-smart-lock-solving-core-problem/ 、2026-10-08 に確かめました
+
+== 幕張メッセの農業WEEK で、三菱電機が畑の周りを歩いて動物を追い払う犬型ロボットを、AI のカメラで鳥を追うレーザーと並べて見せています
+:分野: VLM
+:国・地域: 日本
+
+2026 年 10 月 7 日から 9 日まで幕張メッセで開かれている第 16 回農業WEEK(主催は RX Japan、約 1,000 社が出展)に、
+鳥獣被害を防ぐ機器が集まっています。三菱電機の先端技術総合研究所は、倒木や起伏のある地面を歩き、センサーとカメラを
+載せて畑の周りを自分で見回り、イノシシやクマを追い払う犬型のロボットを見せています。いまは離れた所から追い払い、
+近づいて威嚇することは検討中だと、研究者が取材に答えています。アニマルプロテックは、AI のカメラでカラス、アオサギ、
+カモを見つけて追いかけ、レーザーを当てて追い払う装置を、AZx は、太陽電池で動き、赤外線で動く物を見つけて AI が人だけを
+見分け、スマートフォンに知らせる約 700 g のカメラを出しています。主催者の発表によると、2025 年 12 月の農林水産省の
+調査で、野生動物による農作物の被害は全国で約 188 億円と、前の年より約 24 億円増えました。
+
+出典: KSB 瀬戸内海放送「イヌ型ロボットで農作物守れ カメラ搭載し巡回、動物追い払う 威嚇機能も検討」(2026-10-08)、https://news.ksb.co.jp/ann/article/16948909 、2026-10-08 に確かめました +
+出典: RX Japan 合同会社「【深刻化する農作物の盗難・鳥獣害にAI・ロボットで対抗】害鳥対策レーザー、犬型ロボットなど、農地を守る最新技術が『第16回 農業WEEK』に集結」(PR TIMES、2026-09-28)、https://prtimes.jp/main/html/rd/p/000002187.000026157.html 、2026-10-08 に確かめました
+
+== 岩手県滝沢市で、クマが人里に下りにくくする「緩衝林帯」を作る作業が公開され、東北森林管理局は県内で今年度中に約 6 ha を整えます
+:分野: VLM
+:国・地域: 日本
+
+緩衝林帯は、人が住む所とクマがすむ森の間の木立で、下草やつるを刈って見通しを良くし、クマが人里に下りにくくして、
+出てきても見つけやすくする物です。2026 年 10 月 7 日、滝沢市の県道沿いの国有林で、国が委託した作業員が刈り払い機で
+草とつるを刈る作業を報道に公開しました。岩手県での公開は初めてです。東北森林管理局は、国の「クマ被害対策パッケージ」の
+一部として、今年度中に県内で約 6 ha の緩衝林帯を整えます。岩手県では、昨年度にクマに襲われて 5 人が亡くなり、
+1993 年の統計の開始から最も多く、今年度もすでに 3 人が亡くなっています。
+
+出典: IAT 岩手朝日テレビ「クマの人里侵入を防ぐ 滝沢市で『緩衝林帯』整備作業を公開【岩手・滝沢市】」(Yahoo!ニュース、2026-10-07)、https://news.yahoo.co.jp/articles/bfc1142d4f4fc1784c04ef82fee42ceef875263c 、2026-10-08 に確かめました
