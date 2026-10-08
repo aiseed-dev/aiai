@@ -8,8 +8,11 @@
 | `kaiseki.js` | ページに置くスクリプト。表示、見ていた時間、どこまで下へ見たか、出来事(短い値つき)を送る |
 | `server.py` | 受け口。標準ライブラリと SQLite。IP アドレスは記録しない |
 | `test_server.py` | 受け口の確かめ(`python kaiseki/test_server.py`) |
+| `SKILL.md` | 手引き。読まれ方の記録で、サイトを直す |
+| `naosu.py` | 記録のまとめを AI の CLI に読ませ、ページを直させ、`kaiseki/YYYY-MM-DD` の枝にコミットする。取り込む(`--merge`)、捨てる(`--drop`)。標準ライブラリだけ |
+| `kiroku.adoc` | 直し方の記録。`naosu.py` が足し、https://aiai.aiseed.dev/kaiseki/kiroku.html に出る |
 
-3 つのファイルは、aiseed-dev/aiai-tools の `kaiseki/` をそのまま写した物です(`kaiseki.js` はコミット e3e2d58、
+`kaiseki.js`、`server.py`、`test_server.py` の 3 つは、aiseed-dev/aiai-tools の `kaiseki/` をそのまま写した物です(`kaiseki.js` はコミット e3e2d58、
 `server.py` と `test_server.py` はコミット f39a9a9)。ページのスクリプトと受け口は aiai-tools で作るので、直すときは aiai-tools を
 直してから写します。
 
@@ -61,3 +64,19 @@ handle {
 
 記録は同じ VM の上で SQLite から読むので、`KAISEKI_TOKEN` と `KAISEKI_LINK_TOKEN` は置きません。
 空のときは、集計と会員の口が 403 を返すだけです。
+
+## 毎日のまとめと、直す段
+
+VM の systemd の timer `aiai-kaiseki-matome` が、毎日 0 時 10 分(日本時間)に `tools/kaiseki_matome.py` で前の日を
+まとめ、Claude Haiku 5.5(Google Cloud)の所見を付けて、`~/aiai-server/kaiseki/YYYY-MM-DD.adoc` と `.json` に書きます。
+
+```
+python3 tools/kaiseki_matome.py --db ~/aiai-server/kaiseki/kaiseki.db --site aiai.aiseed.dev --out ~/aiai-server/kaiseki --ai haiku
+```
+
+手元の PC では、アプリの「解析」のタブ(`AIAI_LOCAL=1`)が、まとめを SSH で取り込み、`naosu.py` を動かします。
+
+```
+python kaiseki/naosu.py --ai claude
+python kaiseki/naosu.py --merge kaiseki/2026-10-09
+```

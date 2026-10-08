@@ -15,6 +15,7 @@ import flet as ft
 from kiroku_view import LOCAL, KirokuView
 from news_view import NewsView
 from server_view import ServerView
+from kaiseki_view import KaisekiView
 from soudan_view import SoudanView
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
@@ -208,9 +209,14 @@ async def main(page: ft.Page):
     async def show_server():
         await server.render()
 
+    kaiseki = KaisekiView(page, show)
+
+    async def show_kaiseki():
+        await kaiseki.render()
+
     # The records tab reads this PC and the news tab writes to it, so they are there only
     # when the app runs on the person's own PC; elsewhere the news is read-only
-    tabs = [show_list] + ([show_kiroku, show_server] if LOCAL else []) + [show_kangaekata, show_news_edit if LOCAL else show_news, show_soudan]
+    tabs = [show_list] + ([show_kiroku, show_server, show_kaiseki] if LOCAL else []) + [show_kangaekata, show_news_edit if LOCAL else show_news, show_soudan]
 
     async def change(e):
         result = tabs[e.control.selected_index]()
@@ -229,7 +235,8 @@ async def main(page: ft.Page):
     page.navigation_bar = ft.NavigationBar(
         destinations=[ft.NavigationBarDestination(icon=ft.Icons.MENU_BOOK, label="スキル")]
         + ([ft.NavigationBarDestination(icon=ft.Icons.HISTORY, label="記録"),
-            ft.NavigationBarDestination(icon=ft.Icons.SHIELD_OUTLINED, label="サーバー")] if LOCAL else [])
+            ft.NavigationBarDestination(icon=ft.Icons.SHIELD_OUTLINED, label="サーバー"),
+            ft.NavigationBarDestination(icon=ft.Icons.INSIGHTS, label="解析")] if LOCAL else [])
         + [ft.NavigationBarDestination(icon=ft.Icons.LIGHTBULB_OUTLINE, label="考え方"),
                       ft.NavigationBarDestination(icon=ft.Icons.NEWSPAPER if LOCAL else ft.Icons.NOTIFICATIONS_NONE,
                                                   label="ニュース" if LOCAL else "お知らせ"),

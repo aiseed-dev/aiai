@@ -309,7 +309,7 @@ document.querySelectorAll("[data-copy]").forEach(function (b) {
 </script>"""
 
 # The guides that are tools of their own, not steps of the path
-TOOL_GUIDES = {"news": "ニュース", "kanri": "管理"}
+TOOL_GUIDES = {"news": "ニュース", "kanri": "管理", "kaiseki": "解析"}
 
 HOW_TO_LOAD = ("「写す」で写して、ふだん使っている AI のチャットに貼ります。貼るほかに、AI に「スキル」として登録しておくこともできます。"
                "Claude は ZIP を、Gemini は SKILL.md か ZIP を上げます。ChatGPT は、スキルが使えるワークスペースで入れます。"
@@ -537,8 +537,40 @@ KAISEKI_PAGE = """<article>
 </ul>
 <h2>送り先</h2>
 <p>このサイトのサーバー(<code>https://aiai.aiseed.dev/kaiseki/v1/</code>)です。Cookie に番号は置かず、IP アドレスは記録しません。探した言葉は、合うページを選ぶために、Google Cloud の Claude Haiku 5.5 にも渡します。</p>
-<p>仕組みのコードは、aiai のリポジトリの <code>kaiseki/</code> にあります(AGPL-3.0-or-later)。</p>
+<p>仕組みのコードは、aiai のリポジトリの <code>kaiseki/</code> にあります(AGPL-3.0-or-later)。記録を読んで何を直したかは、<a href="/kaiseki/kiroku.html">直し方の記録</a>にあります。</p>
 </div>
+</article>"""
+
+
+def kiroku_page(path=os.path.join(ROOT, "kaiseki", "kiroku.adoc")):
+    """The log of the fixes made from the record (kaiseki/kiroku.adoc, which
+    kaiseki/naosu.py adds to), newest first: page, what was seen, what was
+    done, and whether it worked."""
+    entries = []
+    if os.path.exists(path):
+        for part in re.split(r"^== ", read(path), flags=re.M)[1:]:
+            lines = part.splitlines()
+            fields, cur = {}, None
+            for line in lines[1:]:
+                if m := re.match(r":ページ: ?(.*)", line):
+                    fields["ページ"] = m[1].strip()
+                elif m := re.match(r"(見たこと|直したこと|確かめたこと): ?(.*)", line):
+                    cur = m[1]
+                    fields[cur] = m[2].strip()
+                elif cur and line.strip():
+                    fields[cur] = join_lines([fields[cur], line.strip()])
+            entries.append((lines[0].strip(), fields))
+    items = []
+    for head, f in reversed(entries):
+        where = f.get("ページ", "")
+        link = f' <a href="{html.escape(where)}">{html.escape(where)}</a>' if where.startswith("/") else ""
+        rows = "".join(f"<dt>{k}</dt><dd>{inline(f[k])}</dd>" for k in ("見たこと", "直したこと", "確かめたこと") if f.get(k))
+        items.append(f'<section class="kiroku-entry"><h2>{inline(head)}</h2><p class="fine">{link}</p><dl>{rows}</dl></section>')
+    return f"""<article>
+<p class="kicker"><a href="/kaiseki/">読まれ方の記録</a></p>
+<h1>直し方の記録</h1>
+<p class="lead">読まれ方の記録を AI に読ませて、ページをどう直したか、直した後にどうなったかです。</p>
+<div class="prose">{"".join(items) or "<p>まだありません。</p>"}</div>
 </article>"""
 
 
@@ -582,6 +614,7 @@ def main():
     write(os.path.join(OUT, "sagasu.html"), page("探す", SEARCH_PAGE, "aiai のサイトの中を探す"))
     write(os.path.join(OUT, "404.html"), page("見つかりません", NOT_FOUND))
     write(os.path.join(OUT, "kaiseki", "index.html"), page("読まれ方の記録", KAISEKI_PAGE, "aiai のサイトが記録する物と送り先"))
+    write(os.path.join(OUT, "kaiseki", "kiroku.html"), page("直し方の記録", kiroku_page(), "読まれ方の記録から、aiai のサイトをどう直したか"))
     write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(skills, kangaekata, days), ensure_ascii=False))
     print(f"{OUT} に、スキル {len(skills)}、ニュース {len(days)} 日分のページを作りました")
 
