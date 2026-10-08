@@ -76,7 +76,7 @@ class KaisekiView:
         ai_box.on_select = lambda e: setattr(self, "ai", e.control.value)
         out = [ft.Text("読まれ方の記録で、サイトを直す", size=22, weight=ft.FontWeight.BOLD),
                self.note("サイトは、読む人がどこで読み、何を探しているかを記録します。サーバーが毎日 0 時 10 分にまとめ、"
-                         f"Claude Haiku 5.5 が所見を付けます(tools/kaiseki_matome.py)。まとめは {where} にあります。"
+                         f"Gemini 3.8 Flash が所見を付けます(tools/kaiseki_matome.py)。まとめは {where} にあります。"
                          "「記録から直させる」で、あなたの AI がページを直し、足りないページを書き、別の枝にコミットします。"),
                ft.Row([ft.OutlinedButton("サーバーから取り込む" if SERVER else "読み直す", icon=ft.Icons.DOWNLOAD,
                                          on_click=self.fetch, disabled=self.busy),

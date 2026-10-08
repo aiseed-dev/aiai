@@ -10,9 +10,9 @@ tab brings the folder to the person's PC and has their AI fix the pages.
 Only totals go into the summary, no ID of anyone. Standard library only.
 
     python3 tools/kaiseki_matome.py --db ~/aiai-server/kaiseki/kaiseki.db --site aiai.aiseed.dev \\
-        --out ~/aiai-server/kaiseki [--day 2026-10-08] [--ai haiku]
+        --out ~/aiai-server/kaiseki [--day 2026-10-08] [--ai gemini]
 
-With --ai haiku, Claude Haiku 5.5 on Google Cloud (Vertex AI, with the
+With --ai gemini, Gemini 3.8 Flash on Google Cloud (Vertex AI, with the
 machine's service account, so no key is kept) reads the day next to the
 earlier days and writes a short note: what people were looking for, where
 they stopped reading, and which pages are missing. A page left more than
@@ -28,14 +28,14 @@ import sqlite3
 import statistics
 import sys
 import urllib.error
-import urllib.request
 import zoneinfo
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kougeki import metadata  # noqa: E402
+from kougeki import ask_gemini  # noqa: E402
 
 TOKYO = zoneinfo.ZoneInfo("Asia/Tokyo")
 TOP = 20
+MODEL = "gemini-3.8-flash"
 
 
 def bounds(day):
@@ -130,20 +130,6 @@ def adoc(r):
     return "\n".join(lines) + "\n"
 
 
-def ask_haiku(prompt, model="claude-haiku-5-5"):
-    """Claude's answer through Vertex AI, with the machine's service account."""
-    project = metadata("project/project-id")
-    token = json.loads(metadata("instance/service-accounts/default/token"))["access_token"]
-    url = (f"https://aiplatform.googleapis.com/v1/projects/{project}/locations/global/"
-           f"publishers/anthropic/models/{model}:rawPredict")
-    body = {"anthropic_version": "vertex-2023-10-16", "max_tokens": 4000, "messages": [{"role": "user", "content": prompt}]}
-    req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), method="POST",
-                                 headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"})
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        answer = json.load(resp)
-    return "".join(c.get("text", "") for c in answer.get("content", []) if c.get("type") == "text").strip()
-
-
 def earlier(folder, today, n=7):
     """The earlier days' adoc in the folder, newest first."""
     out = []
@@ -165,10 +151,10 @@ def ai_note(r, folder):
               "記録にある数だけを使い、推測で書きません。数が少ないときは、少ないと書きます。\n\n"
               f"<今日の記録>\n{adoc(r)}\n</今日の記録>\n\n<前の日>\n" + ("\n".join(before) or "(まだありません)") + "\n</前の日>\n")
     try:
-        return {"model": "claude-haiku-5-5", "text": ask_haiku(prompt) or "(答えがありませんでした)"}
+        return {"model": MODEL, "text": ask_gemini(prompt, MODEL) or "(答えがありませんでした)"}
     except (OSError, ValueError, KeyError, urllib.error.URLError) as e:
         detail = getattr(e, "read", lambda: b"")()
-        return {"model": "claude-haiku-5-5", "text": "", "error": (detail.decode("utf-8", errors="replace") if detail else str(e))[:300]}
+        return {"model": MODEL, "text": "", "error": (detail.decode("utf-8", errors="replace") if detail else str(e))[:300]}
 
 
 def main():
@@ -177,7 +163,7 @@ def main():
     ap.add_argument("--site", required=True, help="まとめるサイトのホスト(例: aiai.aiseed.dev)")
     ap.add_argument("--day", help="まとめる日(日本時間)。既定は昨日")
     ap.add_argument("--out", help="この日の記録(adoc と json)を書くフォルダー。無ければ adoc を出すだけ")
-    ap.add_argument("--ai", choices=["haiku"], help="Claude Haiku 5.5(Google Cloud)に読ませて、所見を足す")
+    ap.add_argument("--ai", choices=["gemini"], help="Gemini 3.8 Flash(Google Cloud)に読ませて、所見を足す")
     a = ap.parse_args()
     day = datetime.date.fromisoformat(a.day) if a.day else datetime.datetime.now(TOKYO).date() - datetime.timedelta(days=1)
     r = summary(os.path.expanduser(a.db), a.site, day)

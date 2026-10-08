@@ -536,7 +536,7 @@ KAISEKI_PAGE = """<article>
 <li>このサイトの中で探した言葉と、見つからなかったページ</li>
 </ul>
 <h2>送り先</h2>
-<p>このサイトのサーバー(<code>https://aiai.aiseed.dev/kaiseki/v1/</code>)です。Cookie に番号は置かず、IP アドレスは記録しません。探した言葉は、合うページを選ぶために、Google Cloud の Claude Haiku 5.5 にも渡します。</p>
+<p>このサイトのサーバー(<code>https://aiai.aiseed.dev/kaiseki/v1/</code>)です。Cookie に番号は置かず、IP アドレスは記録しません。探した言葉は、合うページを選ぶために、Google Cloud の Gemini 3.8 Flash にも渡します。</p>
 <p>仕組みのコードは、aiai のリポジトリの <code>kaiseki/</code> にあります(AGPL-3.0-or-later)。記録を読んで何を直したかは、<a href="/kaiseki/kiroku.html">直し方の記録</a>にあります。</p>
 </div>
 </article>"""

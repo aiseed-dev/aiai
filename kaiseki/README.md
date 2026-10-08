@@ -68,10 +68,10 @@ handle {
 ## 毎日のまとめと、直す段
 
 VM の systemd の timer `aiai-kaiseki-matome` が、毎日 0 時 10 分(日本時間)に `tools/kaiseki_matome.py` で前の日を
-まとめ、Claude Haiku 5.5(Google Cloud)の所見を付けて、`~/aiai-server/kaiseki/YYYY-MM-DD.adoc` と `.json` に書きます。
+まとめ、Gemini 3.8 Flash(Google Cloud)の所見を付けて、`~/aiai-server/kaiseki/YYYY-MM-DD.adoc` と `.json` に書きます。
 
 ```
-python3 tools/kaiseki_matome.py --db ~/aiai-server/kaiseki/kaiseki.db --site aiai.aiseed.dev --out ~/aiai-server/kaiseki --ai haiku
+python3 tools/kaiseki_matome.py --db ~/aiai-server/kaiseki/kaiseki.db --site aiai.aiseed.dev --out ~/aiai-server/kaiseki --ai gemini
 ```
 
 手元の PC では、アプリの「解析」のタブ(`AIAI_LOCAL=1`)が、まとめを SSH で取り込み、`naosu.py` を動かします。

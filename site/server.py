@@ -50,13 +50,13 @@ def skill_zip(name, root=False):
 class Sagasu:
     """The AI of the site search: given the words a reader searched, it picks
     the pages that fit from the search index (public/sagasu.json) and writes no
-    answer. Claude Haiku 5.5 on Google Cloud (Vertex AI), called by REST with
+    answer. Gemini 3.8 Flash on Google Cloud (Vertex AI), called by REST with
     the VM's service account, so no key is kept; set AIAI_SAGASU=vertex to use
     it. Elsewhere, and when a limit is reached, it picks nothing and the page
     shows only the pages with the words in them. Searches are not logged here;
     the page records them (kaiseki)."""
 
-    MODEL = "claude-haiku-5-5"
+    MODEL = "gemini-3.8-flash"
     PER_MINUTE, PER_DAY = 30, 3000
     META = "http://metadata.google.internal/computeMetadata/v1/"
 
@@ -112,16 +112,17 @@ class Sagasu:
             '{"hits": [番号, ...]} の形にしてください。\n\n'
             f"探した言葉: {q}\n\n目録:\n{pages}"
         )
-        body = {"anthropic_version": "vertex-2023-10-16", "max_tokens": 2000,
-                "messages": [{"role": "user", "content": prompt}]}
+        body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0, "maxOutputTokens": 2048, "responseMimeType": "application/json"}}
         try:
             project = self.meta("project/project-id")
             url = (f"https://aiplatform.googleapis.com/v1/projects/{project}/locations/global/"
-                   f"publishers/anthropic/models/{self.MODEL}:rawPredict")
+                   f"publishers/google/models/{self.MODEL}:generateContent")
             req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={
                 "Authorization": f"Bearer {self.bearer()}", "Content-Type": "application/json"})
             res = json.load(urllib.request.urlopen(req, timeout=30))
-            text = "".join(c.get("text", "") for c in res.get("content", []) if c.get("type") == "text")
+            parts = res.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+            text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
             m = re.search(r"\{.*\}", text, re.S)
             hits = [i for i in json.loads(m[0]).get("hits", []) if isinstance(i, int) and 0 <= i < len(index)][:5] if m else []
         except (urllib.error.URLError, OSError, ValueError, KeyError):
