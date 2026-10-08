@@ -510,7 +510,7 @@ SEARCH_PAGE = """<article>
 <p class="kicker">探す</p>
 <h1>サイトの中を探す</h1>
 <form id="sagasu" class="sagasu" role="search">
-  <input type="search" name="q" maxlength="100" placeholder="例: 履歴書、鳥獣害、転職" aria-label="探す言葉">
+  <input type="search" name="q" maxlength="100" placeholder="例: 転職、鳥獣害、サーバーの管理" aria-label="探す言葉">
   <button class="button primary" type="submit">探す</button>
 </form>
 <div id="sagasu-out" class="prose" aria-live="polite"></div>
