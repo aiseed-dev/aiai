@@ -1,12 +1,12 @@
-<svg viewBox="0 0 360 250" role="img" aria-label="同じ解析の数字を、広告に使うとどの広告を出すかを決め、サイトの改善に使うとどこを直すかを決める、という対比の図">
+<svg viewBox="0 0 360 250" role="img" aria-label="同じ解析の数字を、広告に使うとどの広告を出すかを決め、サイトの改善に使うとページを直し、足りないページを作る、という対比の図">
   <g class="fm-box"><rect x="10" y="10" width="165" height="230" rx="14"/></g>
   <g class="fx"><rect x="185" y="10" width="165" height="230" rx="14"/></g>
   <text class="fm" x="92" y="38">広告に使うと</text>
   <text class="ft strong" x="267" y="38">サイトの改善に使うと</text>
   <text class="ft" x="92" y="174">どの広告を</text>
   <text class="ft" x="92" y="196">出すかを決める</text>
-  <text class="ft strong" x="267" y="174">どこを直すかを</text>
-  <text class="ft strong" x="267" y="196">決める</text>
+  <text class="ft strong" x="267" y="174">ページを直し、</text>
+  <text class="ft strong" x="267" y="196">足りないページを作る</text>
   <text class="fm" x="92" y="224">読む人は、広告を見る</text>
   <text class="fm" x="267" y="224">読む人が、読みやすくなる</text>
   <g class="fb"><rect x="30" y="56" width="125" height="14" rx="4"/><rect x="30" y="78" width="125" height="14" rx="4"/><rect x="30" y="100" width="125" height="14" rx="4"/><rect x="205" y="56" width="125" height="14" rx="4"/><rect x="205" y="78" width="125" height="14" rx="4"/><rect x="205" y="100" width="125" height="14" rx="4"/></g>

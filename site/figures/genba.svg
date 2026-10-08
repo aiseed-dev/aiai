@@ -1,4 +1,4 @@
-<svg viewBox="0 0 360 300" role="img" aria-label="写真を AI が読み、読み取れたことを並べ、判断は現場の人がして、記録して見直す、という流れの図">
+<svg viewBox="0 0 360 300" role="img" aria-label="写真を AI が読み、読み取れたことを並べ、AI が判断して知らせ、記録して見直す、という流れの図">
   <g class="fb"><rect x="14" y="14" width="150" height="110" rx="8"/><rect x="196" y="14" width="150" height="110" rx="8"/></g>
   <path class="fa-line" d="M24 96 L62 60 L92 84 L118 64 L154 96"/>
   <path class="fa-line" d="M24 110 H154"/>
@@ -11,7 +11,7 @@
   <text class="ft small" x="271" y="108">夕方 5 時</text>
   <path class="fa-line" d="M180 132 V158"/><path class="fa-head" d="M174 152 L180 160 L186 152"/>
   <g class="fx"><rect x="40" y="164" width="280" height="46" rx="23"/></g>
-  <text class="ft strong" x="180" y="193">判断するのは、現場のあなた</text>
+  <text class="ft strong" x="180" y="193">AI が判断して、知らせる</text>
   <path class="fa-line" d="M180 212 V236"/><path class="fa-head" d="M174 230 L180 238 L186 230"/>
   <g class="fb"><rect x="60" y="242" width="240" height="44" rx="12"/></g>
   <text class="ft" x="180" y="270">記録して、見直す</text>
