@@ -1,0 +1,220 @@
+= kaiseki 設計書
+:日付: 2026-10-12
+:対象: kaiseki/server.py と kaiseki/kaiseki.js(aiai-tools e3e2d58)、tools/kaiseki_matome.py
+
+== 1. 目的と範囲
+
+kaiseki は、自分のサイトを読む人が、どのページを、どこまで、どれだけの時間読み、何を探したかを、自分のサーバーに
+記録する仕組みです。Google Analytics や AdSense が集めるのと同じ種類の情報を、外のサービスに送らずに集め、
+広告ではなくサイトの改善に使います。
+
+この設計書が扱うのは、次の 3 つです。
+
+* ページに置くスクリプト(`kaiseki.js`)
+* 記録を受ける受け口(`server.py`)
+* 1 日分をまとめる道具(`tools/kaiseki_matome.py`)
+
+使っているサイトは 2 つです。
+
+[cols="2,3,3"]
+|===
+| | aiai.aiseed.dev | weather.time-j.net
+
+| サイトの作り | 動的(`site/server.py`)と静的ページ | 静的ページ(Cloudflare Pages)。deb2 が 10 分ごとに作って公開する
+| 受け口の場所 | Google Cloud の Compute Engine の VM。`127.0.0.1:8420` | deb2 の `https://analytics.aiseed.dev`(`/home/dev/kaiseki/server.py`)
+| 前に置く物 | Caddy(`/kaiseki/v1/` を渡し、アクセスログに書かない) | Caddy
+| 同意 | 聞かない。Cookie も番号も置かない(`data-ask="no"`) | 帯で聞く。受け入れた人にだけ Cookie の番号を置く
+| 記録の置き場 | `~/aiai-server/kaiseki/kaiseki.db` | `/home/dev/kaiseki/data/kaiseki.db`
+| 受け口の版 | aiai-tools e3e2d58 と同じ | 古い版(2026-10-12 時点。scroll と value の列が無い)
+|===
+
+2 つの受け口は別々です。2026-10-08 に、天気のサイトの解析は deb2 で、aiai の分は Google Cloud で処理すると
+発注者が決めました(weather リポジトリの `docs/operations.md`)。
+
+== 2. 守ること
+
+* 記録は、自分のサーバーに置きます。外の解析サービスには送りません
+* IP アドレスは記録しません。受け口はアクセスログを書かず、前の Caddy も、解析の道はアクセスログに書きません
+* 読む人が誰かは記録しません。番号を置くのは、読む人が受け入れたときだけで、番号は乱数です
+* 読む人は、自分の番号で、記録を見ることも、消すこともできます
+* 出来事に付ける値(`value`)は、短い言葉だけにします。氏名、住所、電話などの識別情報を入れません
+* サイトの中の検索で探した言葉は、そのまま記録します。言葉に識別情報が入ることがあるので、記録を外に出しません。
+  aiai の検索では、Google Cloud の Gemini にも渡します(これは `site/server.py` の `/api/sagasu` の動きです)
+
+== 3. 全体の構成
+
+----
+読む人のブラウザー
+   │  kaiseki.js が view / leave / 出来事を送る(sendBeacon、無ければ fetch)
+   ▼
+Caddy ── 解析の道はアクセスログに書かない
+   ▼
+server.py(標準ライブラリ、127.0.0.1:8420) ── 入れる前に検査する
+   ▼
+SQLite(hits と links)
+   ▼
+tools/kaiseki_matome.py ── 毎日 0 時 10 分(日本時間)。前の日を adoc と json にまとめ、AI の所見を足す
+   ▼
+YYYY-MM-DD.adoc / .json ── 人と AI が読み、ページを直す
+----
+
+aiai では、まとめを手元の PC に取り込み、`naosu.py` が AI の CLI にページを直させます(`kaiseki/README.md`)。
+weather では、まとめを動かす仕組みが、まだありません(6 章)。
+
+== 4. ページのスクリプト(kaiseki.js)
+
+=== 4.1 置き方
+
+----
+<script src="/kaiseki.js" data-to="https://analytics.aiseed.dev"
+        data-own="time-j.net aiseed.dev" defer></script>
+----
+
+[cols="1,3"]
+|===
+| 属性 | 意味
+
+| `data-to` | 受け口のアドレス。既定は `https://analytics.aiseed.dev`
+| `data-own` | 自分のサイトのドメイン(空白区切り)。ここへのリンクに、番号を渡す
+| `data-ask="no"` | 帯を出さず、Cookie も番号も使わない。表示、離れたとき、出来事を数えるだけ
+| `data-ask-text` | 帯の最初の質問の文を替える(なぜ記録するか)
+|===
+
+=== 4.2 送る記録
+
+`view`(ページを開いたとき)には、次を付けて `POST /v1/hit` に送ります。
+
+`site`(ホスト)、`path`、`event`、`title`、`referrer`(ホストだけ)、`utm`(source、medium、campaign、term、content を
+`|` でつなぐ)、`lang`、`tz`、`screen`(幅x高さ)、`ua`、`sid`(訪問の番号)、`vid`(受け入れた人の番号)
+
+`leave`(ページが見えなくなったとき)には、さらに `seconds`(見ていた秒数)と `scroll`(どこまで下へ見たか、0〜100)を
+付けます。タブを切り替えるたびに送るので、1 回の訪問で複数の `leave` が入ることがあります。
+
+出来事は `kaiseki.event("名前", { value: "短い値" })` で送ります。`value` は 100 字までです。
+
+=== 4.3 同意の 3 つの形
+
+[cols="2,3,3"]
+|===
+| 形 | 置く物 | 送る物
+
+| `data-ask="no"` | 何も置かない | 番号なし(`sid`、`vid` とも空)
+| 受け入れた | Cookie `kaiseki_id`(乱数、400 日)と `kaiseki_choice=yes`。訪問の番号を sessionStorage に | `sid` と `vid` を付ける
+| 受け入れない | Cookie `kaiseki_choice=no` だけ | 番号なし。数えるだけ。それまでの番号があれば、受け口に消すよう頼む
+|===
+
+受け入れた人が `data-own` のほかのサイトへリンクをたどると、番号をリンクの `#kaiseki_id=` に付けて渡します。
+`#` の後ろの部分は、どのサーバーにも送られません。渡された側は、受け入れない人には何も置きません。
+
+=== 4.4 公開される関数
+
+`window.kaiseki` に、`choose(yes)`、`forget()`、`event(name, extra)`、`id()`、`to` があります。`id()` は、
+サイトの会員の仕組みが番号を会員に結び付けるために使います。
+
+== 5. 受け口(server.py)
+
+標準ライブラリだけで動きます(Python 3.11 以上)。環境変数は次のとおりです。
+
+[cols="1,3"]
+|===
+| 変数 | 意味
+
+| `KAISEKI_DB` | SQLite のファイル。既定は `kaiseki.db`
+| `KAISEKI_SITES` | 受けるサイトのホスト(空白区切り)。空のときは、ブラウザーの Origin が同じ HTTPS のサイトなら、どれでも受ける
+| `KAISEKI_ORIGINS` | 手元で試すときに足す Origin
+| `KAISEKI_TOKEN` | 集計(`/v1/report`、`/v1/member`)を読むための合言葉。空のときは 403
+| `KAISEKI_LINK_TOKEN` | 会員との結び付け(`/v1/link`、`/v1/forget-member`)の合言葉。空のときは 403
+|===
+
+=== 5.1 道
+
+[cols="2,1,3"]
+|===
+| 道 | 認証 | 動き
+
+| `POST /v1/hit` | なし | 検査して入れる。入れても捨てても 204 を返す(送る側に、受け付けたかを教えない)
+| `POST /v1/forget` | 番号を知っていること | その番号の記録と結び付きを消し、消した数を返す
+| `GET /v1/mine?vid=` | 番号を知っていること | その番号の記録と結び付いた会員を返す
+| `POST /v1/link` | `KAISEKI_LINK_TOKEN` | 番号を会員に結び付ける
+| `POST /v1/forget-member` | `KAISEKI_LINK_TOKEN` | 会員に結び付いた番号と、その記録をすべて消す
+| `GET /v1/report?site=&from=&to=` | `KAISEKI_TOKEN` | 日とページごとの表示数と人数
+| `GET /v1/member?member=` | `KAISEKI_TOKEN` | 会員に結び付いた記録
+|===
+
+=== 5.2 入れる前の検査(`clean_hit`)
+
+* 本文は 2048 バイトまで。JSON の辞書でなければ捨てます
+* `site` が `KAISEKI_SITES` に無ければ捨てます。空のときは、Origin が `https://` と `site` に一致する場合だけ受けます
+* `path` は `/` で始まり、300 字までです
+* `event` は `[a-z0-9_]{1,40}` です。空なら `view` とします
+* `seconds`(86400 まで)と `scroll`(100 まで)は、`leave` のときだけ受けます
+* `value` は、`view` と `leave` では空にし、それ以外では 100 字までです
+* `referrer` は、ホストの形で、自分のサイトでないときだけ入れます
+* `screen` は `数字x数字` の形だけです。`sid` と `vid` は UUID の形だけです
+
+=== 5.3 記録の形
+
+`hits` の列は次のとおりです。
+
+`ts`(UTC)、`day`、`site`、`path`、`event`、`seconds`、`title`、`referrer`、`utm`、`lang`、`tz`、`screen`、`ua`、
+`sid`、`vid`、`scroll`、`value`
+
+`links`(`vid`、`member`、`ts`)は、番号と会員の結び付きです。`scroll` と `value` が無い古い DB は、受け口の
+起動時に `ALTER TABLE` で列が足されます(`Store.__init__`)。
+
+== 6. 毎日のまとめ(tools/kaiseki_matome.py)
+
+`--db` と `--site` を指定すると、日本時間の 1 日分を読み、次を数えます。
+
+* ページごとの表示回数、見ていた時間と下へ見た所の中ほど、終わりまで(90% 以上)見た割合
+* 出来事 `section`(読んだ見出し)、`open`、`use`、`link`、`out`、`search`、`nohit`、`notfound`
+* スマートフォンの幅(768 未満)の割合、来た元、utm
+
+`--out` を付けると `YYYY-MM-DD.adoc` と `.json` を書き、`--ai gemini` を付けると、前の 7 日と並べた所見を足します。
+まとめに入るのは合計だけで、誰かの番号は入りません。
+
+上に挙げた名前以外の出来事は、読み込まれますが、まとめには出ません。
+
+== 7. 出来事の名前
+
+[cols="1,2,3"]
+|===
+| 名前 | 送るサイト | `value`
+
+| `view`、`leave`、`accept` | どちらも(スクリプトが送る) | なし
+| `section` | aiai | 読んだ見出し
+| `open`、`use`、`link`、`out` | aiai | 開いた全文、写した手引き、次のページ、外へのリンク
+| `search`、`nohit` | aiai | 探した言葉、見つからなかった言葉
+| `notfound` | aiai。weather(案) | 見つからなかったページの道
+| `mine_add`、`mine_remove` | weather(案) | アメダスの番号
+| `search` | weather(案) | ヘッダーの検索の言葉
+| `stage_save` | weather(案) | 保存した設定(流す場面、都市)
+| `map_tab` | weather(案) | 降水の地図の切り替え(前 1 時間、前 24 時間)
+|===
+
+weather の案は、weather 側のセッションが 2026-10-12 に挙げた物で、まだ入っていません。
+
+== 8. 2026-10-12 時点で終わっていないこと
+
+[cols="3,2"]
+|===
+| 項目 | 受け持ち
+
+| deb2 の受け口(md5 ff992bc1)を、aiai-tools e3e2d58(md5 e67ab76d)に替える。`server.py` を置き、
+  `sudo systemctl restart kaiseki` する。先に `data/kaiseki.db` を控える | 発注者(今晩)
+| 替えた後、weather の `kaiseki.js`(今は aiai-pro 9557e06)を e3e2d58 に写し直す | weather のセッション
+| 本番での「受け入れる」と離れたときの記録を、人のブラウザーで確かめる | weather のセッションと発注者
+| `kaiseki_matome.py` を weather.time-j.net で動かす。deb2 の DB が必要。weather の出来事(7 章)を
+  まとめに出すには、`kaiseki_matome.py` の直しが要る | aiai
+| deb2 に毎日のまとめを置く(systemd の timer) | 発注者の許しを得て、aiai
+| 記録を持つ期間が決まっていない。いまは、読む人が消すとき以外、消えない | 発注者が決める
+|===
+
+== 9. 出典と確かめたこと
+
+* `kaiseki/server.py`、`kaiseki/kaiseki.js`、`tools/kaiseki_matome.py` を読んで書きました(2026-10-12)
+* `python3 kaiseki/test_server.py` が 12 件通ることを確かめました(2026-10-12)
+* weather.time-j.net のトップに `kaiseki.js` が入っていること、`analytics.aiseed.dev` が
+  `https://weather.time-j.net` からの事前確認に 204 を返すことを確かめました(2026-10-12)
+* deb2 の `kaiseki.service` の ExecStart と、`server.py` の md5 を ssh で読みました(2026-10-12)
+* deb2 で動く受け口の設定(`secrets.env` の中身)は、読んでいません

@@ -9,6 +9,8 @@
 | `server.py` | 受け口。標準ライブラリと SQLite。IP アドレスは記録しない |
 | `test_server.py` | 受け口の確かめ(`python kaiseki/test_server.py`) |
 | `SKILL.md` | 手引き。読まれ方の記録で、サイトを直す |
+| `sekkei.adoc` | 設計書。目的、構成、記録の形、受け口の道、同意の形、終わっていないこと |
+| `tebiki.adoc` | ユーザーマニュアル。運営する人(まとめを読む、サイトに入れる、出来事を足す)と、読む人 |
 | `naosu.py` | 記録のまとめを AI の CLI に読ませ、ページを直させ、`kaiseki/YYYY-MM-DD` の枝にコミットする。取り込む(`--merge`)、捨てる(`--drop`)。標準ライブラリだけ |
 | `kiroku.adoc` | 直し方の記録。`naosu.py` が足し、https://aiai.aiseed.dev/kaiseki/kiroku.html に出る |
 
