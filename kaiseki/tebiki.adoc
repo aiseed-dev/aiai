@@ -90,6 +90,48 @@ python3 kaiseki/test_server.py
 . 受け口を再起動します(deb2 では `sudo systemctl restart kaiseki`)
 . 起動時に、`scroll` と `value` の列が古い DB に足されます。サイトを開いて、表示が入ることを確かめます
 
+=== 1.9 毎日のまとめを自動で動かす(2 か所とも同じ形)
+
+受け口のサーバーごとに、systemd の service と timer を置きます。違うのは、DB の場所、サイトのホスト、
+`--ai gemini` を付けるかだけです。`--ai gemini` は Google Cloud のサービスアカウントで動くので、
+aiai の VM だけに付けます。deb2 では付けず、まとめ(`.adoc`)を本人の AI に読ませます。
+
+[cols="1,2,2"]
+|===
+| | aiai の VM(Google Cloud) | deb2
+
+| 置く場所 | `~/aiai/` | `~/kaiseki/`(`tools/kaiseki_matome.py` と `tools/kougeki.py` を写す)
+| DB | `~/aiai-server/kaiseki/kaiseki.db` | `/home/dev/kaiseki/data/kaiseki.db`
+| サイト | `aiai.aiseed.dev` | `weather.time-j.net`
+| 書く先 | `~/aiai-server/kaiseki` | `/home/dev/kaiseki/matome`
+| AI の所見 | `--ai gemini` | 付けない
+|===
+
+[source,ini]
+----
+# /etc/systemd/system/kaiseki-matome.service (deb2 の例)
+[Unit]
+Description=kaiseki: sum up yesterday
+
+[Service]
+Type=oneshot
+User=dev
+ExecStart=/usr/bin/python3 /home/dev/kaiseki/tools/kaiseki_matome.py --db /home/dev/kaiseki/data/kaiseki.db --site weather.time-j.net --out /home/dev/kaiseki/matome
+
+# /etc/systemd/system/kaiseki-matome.timer
+[Unit]
+Description=kaiseki: sum up yesterday, daily
+
+[Timer]
+OnCalendar=*-*-* 00:10:00 Asia/Tokyo
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+----
+
+置いたら `sudo systemctl enable --now kaiseki-matome.timer` で始め、`systemctl list-timers` で次の時刻を確かめます。
+
 == 2. サイトを読む人
 
 同意を聞くサイト(weather.time-j.net)では、初めて開くと、画面の下に帯が出ます。
