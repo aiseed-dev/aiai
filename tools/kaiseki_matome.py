@@ -35,6 +35,8 @@ from kougeki import ask_gemini  # noqa: E402
 
 TOKYO = zoneinfo.ZoneInfo("Asia/Tokyo")
 TOP = 20
+# Events the summary has its own heading for; any other event a site names is listed by value
+KNOWN = {"section", "open", "use", "link", "out", "notfound", "search", "nohit"}
 MODEL = "gemini-3.8-flash"
 
 
@@ -97,6 +99,7 @@ def summary(db, site, day):
         "pages": pages, "sections": sections,
         "opens": top("open"), "uses": top("use"), "links": top("link"), "outs": top("out"),
         "notfound": words("notfound"), "searches": words("search"), "nohit": words("nohit"),
+        "others": {name: [[v, n] for v, n in words(name)] for name in sorted(events) if name not in KNOWN},
         "referrers": [[h, n] for h, n in refs.most_common(TOP) if h],
         "utm": [[u, n] for u, n in utms.most_common(TOP) if u],
     }
@@ -125,6 +128,9 @@ def adoc(r):
                       ("referrers", "来た元"), ("utm", "キャンペーン(utm)")):
         if r[key]:
             lines += ["", f"== {head}", ""] + [f"- {v}: {n} 回" for v, n in r[key]]
+    for name, items in r.get("others", {}).items():
+        if items:
+            lines += ["", f"== 出来事 {name}(値ごと)", ""] + [f"- {v or '(値なし)'}: {n} 回" for v, n in items]
     if r.get("ai"):
         lines += ["", f"== AI の所見({r['ai']['model']})", "", r["ai"]["text"] or f"(読めませんでした: {r['ai'].get('error', '')})"]
     return "\n".join(lines) + "\n"
@@ -148,6 +154,7 @@ def ai_note(r, folder):
               "1. 読む人が探している物: 探した言葉、見つからなかった言葉とページを、同じことを探している物どうしでまとめる\n"
               "2. 直す候補: 多くの人が読むのをやめる見出しやページ、よく開かれる全文、終わりまで読まれないページ\n"
               "3. 足りないページの候補: 探しても見つからなかった物から、作るとよいページ\n"
+              "4. 次に書く記事の候補: 読まれているページ、来た元、探した言葉、出来事の値から、読む人が求めている話題\n"
               "記録にある数だけを使い、推測で書きません。数が少ないときは、少ないと書きます。\n\n"
               f"<今日の記録>\n{adoc(r)}\n</今日の記録>\n\n<前の日>\n" + ("\n".join(before) or "(まだありません)") + "\n</前の日>\n")
     try:
