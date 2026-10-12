@@ -489,7 +489,40 @@ def plain(text, limit=160):
     return text[:limit]
 
 
-def search_index(skills, kangaekata, days):
+def load_kiji(folder=os.path.join(ROOT, "kiji")):
+    """[(slug, title, subtitle, body)] of the articles, kiji/*.md, newest name first.
+    An article starts with "# title" and a one-line subtitle."""
+    out = []
+    if os.path.isdir(folder):
+        for name in sorted(os.listdir(folder), reverse=True):
+            if name.endswith(".md"):
+                text = read(os.path.join(folder, name))
+                m = re.match(r"# (.+)\n+(.+)\n", text)
+                out.append((name[:-3], m[1].strip(), m[2].strip(), text[m.end():]) if m else (name[:-3], name[:-3], "", text))
+    return out
+
+
+def kiji_pages(articles):
+    """{path: html} of one page per article and their list at /kiji/."""
+    pages, rows = {}, []
+    for slug, title, sub, body in articles:
+        pages[f"kiji/{slug}.html"] = page(title, f"""<article>
+<p class="kicker"><a href="/kiji/">記事</a></p>
+<h1>{html.escape(title)}</h1>
+<p class="lead">{inline(sub)}</p>
+<div class="prose">{markdown(body)}</div>
+</article>""", sub)
+        rows.append(f'<li><a href="/kiji/{slug}.html">{html.escape(title)}</a><br><span class="fine">{inline(sub)}</span></li>')
+    if rows:
+        pages["kiji/index.html"] = page("記事", f"""<article>
+<p class="kicker">記事</p>
+<h1>記事</h1>
+<div class="prose"><ul>{"".join(rows)}</ul></div>
+</article>""")
+    return pages
+
+
+def search_index(skills, kangaekata, days, articles=()):
     """[{u, t, h, x}] (address, title, heading, text) of the pages and their
     sections, which sagasu.js searches and the server's AI picks from."""
     out = []
@@ -503,6 +536,10 @@ def search_index(skills, kangaekata, days):
         for e in entries:
             text = " ".join(body for src, body in e["paras"] if not src)
             out.append({"u": f"/news/{date}.html", "t": f"ニュース {date}", "h": e["heading"], "x": plain(text)})
+    for slug, title, sub, body in articles:
+        url = f"/kiji/{slug}.html"
+        out.append({"u": url, "t": title, "h": "", "x": plain(sub)})
+        out += [{"u": url, "t": title, "h": h, "x": plain(text)} for h, text in sections(body) if h]
     return out
 
 
@@ -611,11 +648,14 @@ def main():
 </article>""", "AI 時代に、AI を使い込んだ経験をどう活かすか"))
     for path, text in news_pages(days).items():
         write(os.path.join(OUT, path), text)
+    articles = load_kiji()
+    for path, text in kiji_pages(articles).items():
+        write(os.path.join(OUT, path), text)
     write(os.path.join(OUT, "sagasu.html"), page("探す", SEARCH_PAGE, "aiai のサイトの中を探す"))
     write(os.path.join(OUT, "404.html"), page("見つかりません", NOT_FOUND))
     write(os.path.join(OUT, "kaiseki", "index.html"), page("読まれ方の記録", KAISEKI_PAGE, "aiai のサイトが記録する物と送り先"))
     write(os.path.join(OUT, "kaiseki", "kiroku.html"), page("直し方の記録", kiroku_page(), "読まれ方の記録から、aiai のサイトをどう直したか"))
-    write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(skills, kangaekata, days), ensure_ascii=False))
+    write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(skills, kangaekata, days, articles), ensure_ascii=False))
     print(f"{OUT} に、スキル {len(skills)}、ニュース {len(days)} 日分のページを作りました")
 
 
