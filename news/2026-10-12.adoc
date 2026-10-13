@@ -1,0 +1,36 @@
+= aiai ニュース 2026-10-12
+:日付: 2026-10-12
+
+== Cloudflare が、画像、音声、動画を読んで選択肢ごとの確からしさを返す「Clef-omni」を Apache 2.0 で公開しました
+:分野: VLM
+:国・地域: 米国
+
+Cloudflare は 2026 年 10 月 9 日、決まった問いの選択肢ごとに確からしさを返す「決定モデル」Clef の仲間として、文章、画像、音声(WAV、MP3)、動画(MP4、WebM)を読む「Clef-omni」を出しました(会社の発表です)。
+元は Qwen3-Omni-30B-A3B-Instruct で、重みは Hugging Face に Apache 2.0 で置かれ、同社の Workers AI でも使えます。文章を書くことはせず、1 回の計算ですべての選択肢に確からしさを付けます。
+同社の測った中央値では、画像の判断が約 150 ms、音の入った 21 秒の動画が約 1.5 秒で、入力の値段は 100 万トークンあたり 0.15 米ドルです。10 月 1 日に出した Clef(元は Qwen3.8-27B)と Clef-flash も、同じく Apache 2.0 で公開しています。
+
+出典: Cloudflare Blog「Clef-omni」(2026-10-09)、https://blog.cloudflare.com/clef-faster-cheaper-multimodal 、2026-10-12 に確かめました +
+出典: Hugging Face「Cloudflare/clef-omni」、https://huggingface.co/Cloudflare/clef-omni 、2026-10-12 に確かめました +
+出典: Cloudflare Blog「Clef decision models」(2026-10-01)、https://blog.cloudflare.com/clef-decision-models 、2026-10-12 に確かめました
+
+== フランスの LightOn が、文書の写真から文字、表、図の数字を読み取る小さな VLM「LightOnOCR-3」を Apache 2.0 で公開しました
+:分野: VLM
+:国・地域: 欧州
+
+LightOn は 2026 年 10 月 8 日、文書を読む VLM「LightOnOCR-3」を、0.8B、1B、4B の 3 つの大きさで、Apache 2.0 で公開しました(会社の発表です)。
+文字を書き出すほか、「grounding」と頼むと、ページの中の塊ごとに種類と位置の枠を返し、写真には短い説明を、グラフには元の数字の表を返します。0.8B と 4B は Qwen3.5 の VLM の作りです。
+同社の測定では、olmOCR-Bench の点数が 4B で 86.3、0.8B で 85.5 で、H100 1 枚で 0.8B は 1 秒に 4.78 ページを読みます。
+
+出典: Hugging Face Blog「LightOnOCR-3」(2026-10-08)、https://huggingface.co/blog/lightonai/lightonocr-3 、2026-10-12 に確かめました +
+出典: Hugging Face「lightonai/LightOnOCR-3-4B」、https://huggingface.co/lightonai/LightOnOCR-3-4B 、2026-10-12 に確かめました
+
+== 群馬大学の藤井雄作教授が、街のカメラの映像を読む AI の出力を、独立した記録係と抜き打ちの監査で縛る仕組みを論文で示しました
+:分野: VLM
+:国・地域: 日本
+
+群馬大学の藤井雄作教授は、カメラとセンサーで人の行動が続けて分かる街を想定し、映像を読む AI の出力の扱いを論じた論文を、学術誌 Smart Cities に 2026 年 10 月 6 日に出しました。
+前に提案した仕組み(VRAIO)では、AI の出力を外に出すたびに、使うカメラ、時間、目的を申告させ、独立した記録係が決まりに合うかを確かめて、書き換えられない記録に残します。記録係は中身を見ないので、申告と実際の出力を抜き打ちの監査で比べ、違反には罰を科します。
+論文は、こうした仕組みで出力が信頼できても、人が AI に見られ続けることを受け入れるかは別の問題だとして、段階を踏んで確かめる方法を示しています。答えはまだ出していません。
+
+出典: Yusaku Fujii「Governing AI Outputs in a Fully Sensed Society: Is Output Governance Sufficient for Social Acceptance?」Smart Cities 9(10), 167(2026-10-06)、https://www.mdpi.com/2624-6511/9/10/167 、2026-10-12 に確かめました +
+出典: Help Net Security「Who watches the AI watching your street?」(2026-10-08)、https://helpnetsecurity.com/2026/10/08/ai-surveillance-cameras-privacy 、2026-10-12 に確かめました
