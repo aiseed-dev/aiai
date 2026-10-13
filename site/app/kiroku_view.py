@@ -51,8 +51,8 @@ class KirokuView:
         read = [
             ft.Text("記録を、あなたの AI に渡す材料にする", size=22, weight=ft.FontWeight.BOLD),
             self.note("この PC にある、あなたと AI の対話の記録を読み、1 つのファイルにまとめます。そのファイルを、"
-                      "使っている AI に渡すと、「自分を知る」「次を考える」の 12 の項目を作ってくれます。"
-                      "AI の答えを受けて、あなたがどう返したかに、長所や考え方が出ます。メールアドレスや電話番号などに"
+                      "使っている AI に渡すと、度々聞いていることを数えて並べ、アプリにする物を一緒に選びます。"
+                      "メールアドレスや電話番号などに"
                       "見える物は、この PC の上で伏せます。ほかの記録を足すのも自由です。"),
             ft.Row([ft.FilledButton("PC の AI の道具の記録を読む", icon=ft.Icons.COMPUTER, on_click=self.read_tools),
                     ft.OutlinedButton("書き出したファイルを選ぶ", icon=ft.Icons.UPLOAD_FILE, on_click=self.pick)],
@@ -70,8 +70,8 @@ class KirokuView:
                      self.note(f"最近の月: {months}" if months else "日付は読めませんでした")]
             if any(who == "user" for _, who, _ in self.messages):
                 read += [ft.FilledButton("材料のファイルを作る", icon=ft.Icons.DESCRIPTION, on_click=self.make_handout),
-                         self.note("できたファイルを、使っている AI のチャットに上げて(または貼って)、「このとおりに項目を作って」"
-                                   "と頼みます。項目は、あなたの AI が 1 つずつ作り、あなたが直します。")]
+                         self.note("できたファイルを、使っている AI のチャットに上げて(または貼って)、「このとおりに進めて」"
+                                   "と頼みます。どれをアプリにするかは、あなたが決めます。")]
                 if self.models:
                     box = ft.Dropdown(label="報告書を書くモデル", width=280, value=self.model,
                                       options=[ft.DropdownOption(key=m, text=m) for m in self.models])
