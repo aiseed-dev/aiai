@@ -102,5 +102,41 @@ class BuildTest(unittest.TestCase):
             self.assertTrue(all({"u", "t", "h", "x"} <= set(e) <= {"u", "t", "h", "x", "k"} for e in index))
 
 
+
+class JidouTest(unittest.TestCase):
+    """The site with the fixes Gemini made by itself (tools/kaiseki_jidou.py) in AIAI_JIDOU."""
+
+    def test_the_fixes_show_on_the_site(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            jidou = os.path.join(tmp, "jidou")
+            os.makedirs(os.path.join(jidou, "kiji"))
+            with open(os.path.join(jidou, "yougo.json"), "w", encoding="utf-8") as f:
+                json.dump([{"word": "くりかえし", "page": "/skills/rireki.html", "hi": "2026-10-14"}], f)
+            with open(os.path.join(jidou, "annai.json"), "w", encoding="utf-8") as f:
+                json.dump([{"from": "/skills/rireki.html", "to": "/skills/genba.html", "text": "写真も読ませられます",
+                            "hi": "2026-10-14"}], f)
+            with open(os.path.join(jidou, "kiji", "jidou-2026-10-14-1.md"), "w", encoding="utf-8") as f:
+                f.write("# 架空の記事\n\n記録から\n\n本文です。\n")
+            with open(os.path.join(jidou, "kiroku.adoc"), "w", encoding="utf-8") as f:
+                f.write("= 記録\n\n== 2026-10-14 検索の言葉「くりかえし」\n:ページ: /skills/rireki.html\n:種類: 自動\n"
+                        "見たこと: 架空\n直したこと: つないだ\n")
+            out = os.path.join(tmp, "public")
+            make_site.OUT, make_site.JIDOU = out, jidou
+            try:
+                make_site.main()
+            finally:
+                make_site.JIDOU = ""
+
+            def page(path):
+                with open(os.path.join(out, path), encoding="utf-8") as f:
+                    return f.read()
+            self.assertIn('class="annai"', page("skills/rireki.html"))
+            self.assertIn("写真も読ませられます", page("skills/rireki.html"))
+            self.assertIn("Gemini が自動で書きました", page("kiji/jidou-2026-10-14-1.html"))
+            self.assertIn("Gemini が自動で", page("kaiseki/kiroku.html"))
+            index = json.loads(page("sagasu.json"))
+            self.assertIn("くりかえし", [e.get("k", "") for e in index if e["u"] == "/skills/rireki.html"][0])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
