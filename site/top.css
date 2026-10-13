@@ -956,3 +956,5 @@ footer strong { color: var(--fg); }
 /* aiai tools, for those who also sell to companies */
 .tools-intro { padding: 8px 0 48px; }
 .tools-intro .section-lead { max-width: 46em; }
+.tool-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 600px) { .tool-cards { grid-template-columns: 1fr; } }

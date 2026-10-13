@@ -50,7 +50,7 @@ AI は、何が写っているかを読み取って判断し、知らせ、記�
 
 {{fig:kakoikomi}}
 
-書類のデータは adoc で書き、手引きはどの AI でも読め、記録は自分の側に置きます。コードは AGPL-3.0、文書は CC BY 4.0 なので、全部を持って出られます。
+書類のデータは adoc で書き、手引きはどの AI でも読め、記録は自分の側に置きます。コードは AGPL-3.0、文書は CC BY 4.0 なので、全部を持って出られます。Office の書類を扱うときは、Microsoft Office なしで docx と xlsx を読み書きできる OSS の [officework](https://github.com/aiseed-dev/officework) を使います。
 
 ## あなたの AI に、手引きを読ませる {#tebiki}
 
