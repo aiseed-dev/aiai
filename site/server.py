@@ -106,7 +106,7 @@ class Sagasu:
                 return self.cache[q]
             if not self.allowed():
                 return []
-        pages = "\n".join(f"{i}\t{e['t']}\t{e['h']}\t{e['x']}" for i, e in enumerate(index))
+        pages = "\n".join(f"{i}\t{e['t']}\t{e['h']}\t{e['x']}\t{e.get('k', '')}" for i, e in enumerate(index))
         prompt = (
             "aiai のサイトの中を探す人が、次の言葉で探しました。下の目録(番号、題、見出し、中身の始め)から、"
             "その人が読みたいページを、合う順に 5 つまで選んでください。言葉が同じでなくても、探している"

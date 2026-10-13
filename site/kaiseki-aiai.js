@@ -11,7 +11,10 @@
   if (document.querySelector("[data-notfound]")) ev("notfound", location.pathname);
 
   // A heading counts once a page, when it comes into view
-  var heads = document.querySelectorAll("main h2, section[id]");
+  // a section with an id counts for its own heading, so that heading is not counted twice
+  var heads = Array.prototype.filter.call(document.querySelectorAll("main h2, section[id]"), function (el) {
+    return el.tagName === "SECTION" || !el.closest("section[id]");
+  });
   if ("IntersectionObserver" in window) {
     var seen = new IntersectionObserver(function (items) {
       items.forEach(function (it) {

@@ -975,3 +975,8 @@ footer strong { color: var(--fg); }
   padding: 14px; font-size: 0.85rem; max-height: 520px; overflow: auto; }
 .fine.bad { color: #d9534f; }
 .linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+/* "Next to read": lines Gemini added from the record (tools/kaiseki_jidou.py) */
+.annai { margin: 28px 0 0; padding: 14px 18px; border-left: 4px solid var(--accent); background: var(--bg-2); border-radius: 10px; }
+.annai-head { margin: 0 0 6px; font-weight: 700; font-size: 0.9rem; color: var(--muted); }
+.annai ul { margin: 0; padding-left: 1.1em; }

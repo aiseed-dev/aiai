@@ -26,6 +26,8 @@ OUT = os.path.join(HERE, "public")
 STEPS = [("AI の活用法", ["rireki", "website", "moushikomi", "genba", "kaiseki", "kanri", "news"]),
          ("手引き", ["tenshoku", "gakusei", "keikaku"])]
 NEWS_ON_TOP = 3
+# The fixes Gemini makes by itself on the server (tools/kaiseki_jidou.py), when AIAI_JIDOU names their folder
+JIDOU = os.environ.get("AIAI_JIDOU", "")
 
 
 # ---- reading Markdown -------------------------------------------------------------------
@@ -394,6 +396,7 @@ def skill_page(name, step, title, description, raw, body):
 </div>
 </details>
 <textarea id="skill-src" hidden>{html.escape(raw)}</textarea>
+{annai_html(f"/skills/{name}.html")}
 </article>
 {COPY_SCRIPT}""", description)
 
@@ -488,28 +491,56 @@ def plain(text, limit=160):
     return text[:limit]
 
 
+def jidou(name, default):
+    """One of the files of the automatic fixes, or default when there are none."""
+    try:
+        with open(os.path.join(JIDOU, name), encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return default
+
+
 def load_kiji(folder=os.path.join(ROOT, "kiji")):
-    """[(slug, title, subtitle, body)] of the articles, kiji/*.md, newest name first.
-    An article starts with "# title" and a one-line subtitle."""
+    """[(slug, title, subtitle, body, auto)] of the articles, kiji/*.md and those Gemini
+    wrote by itself (auto), newest name first. An article starts with "# title" and a
+    one-line subtitle."""
+    found = []
+    for where, auto in ((folder, False), (os.path.join(JIDOU, "kiji") if JIDOU else "", True)):
+        if where and os.path.isdir(where):
+            found += [(name, os.path.join(where, name), auto) for name in os.listdir(where) if name.endswith(".md")]
     out = []
-    if os.path.isdir(folder):
-        for name in sorted(os.listdir(folder), reverse=True):
-            if name.endswith(".md"):
-                text = read(os.path.join(folder, name))
-                m = re.match(r"# (.+)\n+(.+)\n", text)
-                out.append((name[:-3], m[1].strip(), m[2].strip(), text[m.end():]) if m else (name[:-3], name[:-3], "", text))
+    for name, path, auto in sorted(found, reverse=True):
+        text = read(path)
+        m = re.match(r"# (.+)\n+(.+)\n", text)
+        out.append((name[:-3], m[1].strip(), m[2].strip(), text[m.end():], auto) if m
+                   else (name[:-3], name[:-3], "", text, auto))
     return out
+
+
+def annai_html(url):
+    """The lines Gemini added at the end of this page, pointing to pages readers went on to."""
+    items = [a for a in jidou("annai.json", []) if a.get("from") == url]
+    if not items:
+        return ""
+    lis = "".join(f'<li><a href="{html.escape(a["to"])}">{html.escape(a["text"])}</a></li>' for a in items)
+    return f'<aside class="annai"><p class="annai-head">次に読む</p><ul>{lis}</ul></aside>'
+
+
+AUTO_NOTE = ('<p class="fine">この記事は、読まれ方の記録から、Gemini が自動で書きました'
+             '(<a href="/kaiseki/kiroku.html">直し方の記録</a>)。</p>')
 
 
 def kiji_pages(articles):
     """{path: html} of one page per article and their list at /kiji/."""
     pages, rows = {}, []
-    for slug, title, sub, body in articles:
+    for slug, title, sub, body, auto in articles:
         pages[f"kiji/{slug}.html"] = page(title, f"""<article>
 <p class="kicker"><a href="/kiji/">記事</a></p>
 <h1>{html.escape(title)}</h1>
 <p class="lead">{inline(sub)}</p>
+{AUTO_NOTE if auto else ""}
 <div class="prose">{markdown(body)}</div>
+{annai_html(f"/kiji/{slug}.html")}
 </article>""", sub)
         rows.append(f'<li><a href="/kiji/{slug}.html">{html.escape(title)}</a><br><span class="fine">{inline(sub)}</span></li>')
     if rows:
@@ -535,10 +566,18 @@ def search_index(skills, kangaekata, days, articles=()):
         for e in entries:
             text = " ".join(body for src, body in e["paras"] if not src)
             out.append({"u": f"/news/{date}.html", "t": f"ニュース {date}", "h": e["heading"], "x": plain(text)})
-    for slug, title, sub, body in articles:
+    # words Gemini tied to a page (tools/kaiseki_jidou.py), so the search finds it by them
+    words = {}
+    for y in jidou("yougo.json", []):
+        words.setdefault(y.get("page", ""), []).append(y.get("word", ""))
+    for slug, title, sub, body, _ in articles:
         url = f"/kiji/{slug}.html"
         out.append({"u": url, "t": title, "h": "", "x": plain(sub)})
         out += [{"u": url, "t": title, "h": h, "x": plain(text)} for h, text in sections(body) if h]
+    for e in out:
+        page_url = e["u"].split("#")[0]
+        if page_url in words:
+            e["k"] = " ".join(words.pop(page_url))
     return out
 
 
@@ -630,17 +669,20 @@ KAISEKI_PAGE = """<article>
 
 
 def kiroku_page(path=os.path.join(ROOT, "kaiseki", "kiroku.adoc")):
-    """The log of the fixes made from the record (kaiseki/kiroku.adoc, which
-    kaiseki/naosu.py adds to), newest first: page, what was seen, what was
-    done, and whether it worked."""
+    """The log of the fixes made from the record, newest first: those the owner's AI
+    made (kaiseki/kiroku.adoc, which kaiseki/naosu.py adds to) and those Gemini made
+    by itself (kiroku.adoc in AIAI_JIDOU): page, what was seen, what was done, and
+    whether it worked."""
     entries = []
-    if os.path.exists(path):
-        for part in re.split(r"^== ", read(path), flags=re.M)[1:]:
+    for p in (path, os.path.join(JIDOU, "kiroku.adoc") if JIDOU else ""):
+        if not p or not os.path.exists(p):
+            continue
+        for part in re.split(r"^== ", read(p), flags=re.M)[1:]:
             lines = part.splitlines()
             fields, cur = {}, None
             for line in lines[1:]:
-                if m := re.match(r":ページ: ?(.*)", line):
-                    fields["ページ"] = m[1].strip()
+                if m := re.match(r":(ページ|種類): ?(.*)", line):
+                    fields[m[1]] = m[2].strip()
                 elif m := re.match(r"(見たこと|直したこと|確かめたこと): ?(.*)", line):
                     cur = m[1]
                     fields[cur] = m[2].strip()
@@ -648,11 +690,12 @@ def kiroku_page(path=os.path.join(ROOT, "kaiseki", "kiroku.adoc")):
                     fields[cur] = join_lines([fields[cur], line.strip()])
             entries.append((lines[0].strip(), fields))
     items = []
-    for head, f in reversed(entries):
+    for n, (head, f) in sorted(enumerate(entries), key=lambda x: (x[1][0][:10], x[0]), reverse=True):
         where = f.get("ページ", "")
         link = f' <a href="{html.escape(where)}">{html.escape(where)}</a>' if where.startswith("/") else ""
+        who = "Gemini が自動で" if f.get("種類") == "自動" else "AI が直し、人が取り込んだ"
         rows = "".join(f"<dt>{k}</dt><dd>{inline(f[k])}</dd>" for k in ("見たこと", "直したこと", "確かめたこと") if f.get(k))
-        items.append(f'<section class="kiroku-entry"><h2>{inline(head)}</h2><p class="fine">{link}</p><dl>{rows}</dl></section>')
+        items.append(f'<section class="kiroku-entry"><h2>{inline(head)}</h2><p class="fine">{who}{link}</p><dl>{rows}</dl></section>')
     return f"""<article>
 <p class="kicker"><a href="/kaiseki/">読まれ方の記録</a></p>
 <h1>直し方の記録</h1>
@@ -696,6 +739,7 @@ def main():
 <h1>aiai の考え方</h1>
 {toc}
 <div class="prose">{markdown(kangaekata)}</div>
+{annai_html("/kangaekata.html")}
 </article>""", "AI 時代に、AI を使い込んだ経験をどう活かすか"))
     for path, text in news_pages(days).items():
         write(os.path.join(OUT, path), text)

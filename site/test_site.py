@@ -99,7 +99,7 @@ class BuildTest(unittest.TestCase):
             self.assertIn({"u": "/news/2026-09-30.html", "t": "ニュース 2026-09-30"},
                           [{"u": e["u"], "t": e["t"]} for e in index])
             self.assertTrue(any(e["u"].startswith("/kangaekata.html#") and e["h"] for e in index))
-            self.assertTrue(all(set(e) == {"u", "t", "h", "x"} for e in index))
+            self.assertTrue(all({"u", "t", "h", "x"} <= set(e) <= {"u", "t", "h", "x", "k"} for e in index))
 
 
 if __name__ == "__main__":

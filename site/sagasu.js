@@ -21,7 +21,7 @@
   function words(q, all) {
     var ws = q.toLowerCase().split(/\s+/).filter(Boolean);
     return all.filter(function (e) {
-      var text = (e.t + " " + e.h + " " + e.x).toLowerCase();
+      var text = (e.t + " " + e.h + " " + e.x + " " + (e.k || "")).toLowerCase();
       return ws.every(function (w) { return text.indexOf(w) >= 0; });
     }).slice(0, 10);
   }
