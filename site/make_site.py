@@ -286,7 +286,7 @@ HEADER = """<header class="bar">
 </header>"""
 
 FOOTER = """<footer>
-  <p><strong>aiai</strong> AI 時代の学び方</p>
+  <p><strong>aiai</strong> AI 時代の AI 活用法</p>
   <p class="small"><a href="/sagasu.html">探す</a> ・ <a href="/kaiseki/">読まれ方の記録</a></p>
   <p class="small">文書は CC BY 4.0、コードは AGPL-3.0-or-later です。見本の人、店、数字は、すべて架空です。このサイトは、国や役所が作った物ではありません。</p>
 </footer>"""

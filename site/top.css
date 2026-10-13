@@ -944,3 +944,11 @@ footer strong { color: var(--fg); }
 .kiroku-entry dl { margin: 6px 0 18px; }
 .kiroku-entry dt { font-weight: 700; margin-top: 8px; }
 .kiroku-entry dd { margin: 2px 0 0; }
+
+/* The uses of AI on the top page: six side by side, not a sequence */
+.use-list { grid-template-columns: repeat(3, 1fr); }
+.use-list .step::after { display: none; }
+.use-list .step h3 { font-size: 1.1rem; line-height: 1.5; }
+.others { margin-top: 20px; }
+@media (max-width: 880px) { .use-list { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .use-list { grid-template-columns: 1fr; } }
