@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" font-family="'Noto Sans CJK JP','Hiragino Sans','Yu Gothic',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0f766e"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9a6b00"/></marker>
+    <style>
+      .t{font-size:22px;fill:#14201d}.s{font-size:17px;fill:#3d4d48}.h{font-size:26px;font-weight:700;fill:#14201d}
+      .k{font-size:16px;fill:#0f766e;font-weight:700}.w{font-size:17px;fill:#7a5600}
+      .box{fill:#fff;stroke:#c9d6d1;stroke-width:2}.gc{fill:#eef6f4;stroke:#0f766e;stroke-width:3}
+      .ai{fill:#fff7e6;stroke:#c08a00;stroke-width:2.5}.me{fill:#f3f0fa;stroke:#6b5aa8;stroke-width:2}
+      .ln{stroke:#0f766e;stroke-width:2.5;fill:none}.lg{stroke:#9a6b00;stroke-width:2.5;fill:none;stroke-dasharray:7 5}
+    </style>
+  </defs>
+  <rect width="1600" height="1000" fill="#fbfaf7"/>
+  <text x="40" y="52" class="h" font-size="30">aiai — AI 時代の AI 活用法(構成)</text>
+  <text x="40" y="84" class="s">https://aiai.aiseed.dev/ ・ github.com/aiseed-dev/aiai</text>
+
+  <!-- people -->
+  <rect x="40" y="130" width="300" height="120" rx="16" class="box"/>
+  <text x="62" y="170" class="t">読む人(ブラウザー)</text>
+  <text x="62" y="200" class="s">手引きを写して、自分の AI に</text>
+  <text x="62" y="226" class="s">Cookie なしで読まれ方を記録</text>
+  <rect x="40" y="280" width="300" height="130" rx="16" class="box"/>
+  <text x="62" y="320" class="t">サインインした人</text>
+  <text x="62" y="350" class="s">Apple ID / Google ID</text>
+  <text x="62" y="376" class="s">審査用のテストアカウント</text>
+  <text x="62" y="400" class="s">1 日の回数に上限</text>
+  <rect x="40" y="740" width="300" height="200" rx="16" class="me"/>
+  <text x="62" y="780" class="t">持ち主の PC</text>
+  <text x="62" y="810" class="s">自分の AI(Claude Code など)</text>
+  <text x="62" y="836" class="s">アプリの「解析」のタブ</text>
+  <text x="62" y="862" class="s">大きな直しは、人が取り込む</text>
+  <text x="62" y="888" class="s">push、sudo、秘密の値は人だけ</text>
+  <text x="62" y="914" class="s">git archive で VM に載せる</text>
+
+  <!-- Google Cloud -->
+  <rect x="400" y="110" width="760" height="850" rx="22" class="gc"/>
+  <text x="426" y="150" class="h">Google Cloud ・ Compute Engine の VM</text>
+  <rect x="430" y="175" width="700" height="80" rx="12" class="box"/>
+  <text x="452" y="210" class="t">Caddy(HTTPS)</text>
+  <text x="452" y="238" class="s">アクセスログで攻撃を数える ・ 解析の道はログに書かない(IP を記録しない)</text>
+
+  <rect x="430" y="280" width="420" height="300" rx="12" class="box"/>
+  <text x="452" y="316" class="t">aiai-site(FastAPI)</text>
+  <text x="452" y="348" class="s">静的なページ(make_site.py が作る)</text>
+  <text x="452" y="376" class="s">/api/sagasu サイトの中の検索</text>
+  <text x="470" y="400" class="k">Gemini はページの番号を選ぶだけ</text>
+  <text x="452" y="430" class="s">/tameshi 手引きを読ませた Gemini と対話、</text>
+  <text x="470" y="454" class="s">好みでニュースを作る(Google 検索)</text>
+  <text x="452" y="484" class="s">/app Flet の画面</text>
+  <text x="452" y="514" class="s">サインイン(OpenID Connect)と回数の上限</text>
+  <text x="452" y="544" class="s">書いたことは記録しない</text>
+
+  <rect x="870" y="280" width="260" height="140" rx="12" class="box"/>
+  <text x="890" y="316" class="t">aiai-kaiseki</text>
+  <text x="890" y="346" class="s">読まれ方の受け口</text>
+  <text x="890" y="372" class="s">SQLite ・ ID なし</text>
+  <text x="890" y="398" class="s">見出し、検索、404 …</text>
+
+  <rect x="430" y="610" width="700" height="320" rx="12" class="box"/>
+  <text x="452" y="646" class="t">毎日の timer(エージェント)</text>
+  <text x="452" y="682" class="s">0:05 kougeki 攻撃を数える → Gemini が所見(サーバーは変えない)</text>
+  <text x="452" y="712" class="s">0:10 kaiseki_matome 読まれ方をまとめる(合計だけ)→ Gemini が所見</text>
+  <text x="452" y="742" class="s">0:20 kaiseki_jidou Gemini がサイトを自動で直す</text>
+  <text x="470" y="770" class="k">直せるのは 3 つ: 検索の言葉、次に読む案内、記事</text>
+  <text x="470" y="796" class="k">リンクはサイトの中だけ ・ 1 日の数に上限</text>
+  <text x="470" y="822" class="k">答えはプログラムが確かめる ・ STOP で止まる ・ 取り消せる</text>
+  <text x="470" y="848" class="k">直したことと効いたかを /kaiseki/kiroku.html に公開</text>
+  <text x="452" y="884" class="s">記録とまとめ: ~/aiai-server(リポジトリの外)</text>
+  <text x="452" y="910" class="s">毎朝のニュースの下書き: 持ち主の AI が書き、人が読んで載せる</text>
+
+  <!-- Vertex AI -->
+  <rect x="1220" y="280" width="340" height="250" rx="16" class="ai"/>
+  <text x="1242" y="320" class="h">Vertex AI</text>
+  <text x="1242" y="356" class="t">Gemini 3.8 Flash</text>
+  <text x="1242" y="390" class="w">サービスアカウントで呼ぶ</text>
+  <text x="1242" y="416" class="w">(鍵をサーバーに置かない)</text>
+  <text x="1242" y="450" class="s">検索 ・ 所見 ・ 自動の直し</text>
+  <text x="1242" y="476" class="s">手引きとの対話 ・ ニュース</text>
+  <rect x="1220" y="580" width="340" height="110" rx="16" class="ai"/>
+  <text x="1242" y="620" class="t">Google 検索</text>
+  <text x="1242" y="652" class="s">ニュースを作るときに記事を探し、</text>
+  <text x="1242" y="676" class="s">読んだ記事の URL を出典にする</text>
+  <rect x="1220" y="130" width="340" height="110" rx="16" class="box"/>
+  <text x="1242" y="170" class="t">Apple / Google の ID</text>
+  <text x="1242" y="200" class="s">OpenID Connect</text>
+
+  <!-- arrows -->
+  <path class="ln" d="M340 190 H420 V215 H428" marker-end="url(#a)"/>
+  <path class="ln" d="M340 345 H428" marker-end="url(#a)"/>
+  <path class="ln" d="M850 350 H868" marker-end="url(#a)"/>
+  <path class="ln" d="M1000 420 V600" marker-end="url(#a)"/>
+  <path class="lg" d="M850 560 H1200 V400 H1218" marker-end="url(#g)"/>
+  <path class="lg" d="M1130 760 H1180 V470 H1218" marker-end="url(#g)"/>
+  <path class="lg" d="M1390 530 V578" marker-end="url(#g)"/>
+  <path class="ln" d="M1220 185 H1150 V260 H700 V278" marker-end="url(#a)"/>
+  <path class="ln" d="M340 840 H428" marker-end="url(#a)"/>
+</svg>
