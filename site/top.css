@@ -1000,3 +1000,13 @@ footer strong { color: var(--fg); }
 .flow-guide { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 20px; }
 .flow-guide .skill { flex: 1 1 360px; }
 .katsuyou .path-steps { margin-top: 18px; }
+
+/* The top page: the hero's words, the flow, and a table of contents */
+.hero.simple { grid-template-columns: 1fr; padding-bottom: 24px; }
+.hero.simple .lead { max-width: 46em; }
+.mokuji { padding: 24px 0 64px; }
+.mokuji-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 28px; }
+.mokuji-list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.mokuji-list a { font-weight: 700; text-decoration: none; }
+.mokuji-list span { display: block; color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+@media (max-width: 600px) { .mokuji-list { grid-template-columns: 1fr; } }
