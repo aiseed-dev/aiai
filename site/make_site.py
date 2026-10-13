@@ -279,6 +279,7 @@ HEADER = """<header class="bar">
     <a href="/#how">使い方</a>
     <a href="/news/">ニュース</a>
     <a href="/kangaekata.html">考え方</a>
+    <a href="/kiji/">記事</a>
     <a href="/sagasu.html">探す</a>
   </nav>
   <a class="open" href="/app/">アプリ</a>
