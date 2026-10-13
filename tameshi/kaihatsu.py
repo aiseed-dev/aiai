@@ -81,10 +81,14 @@ def sekkei(materials, note, folder, ask, draw, step):
 
     for s in screens:
         step(f"画面の絵を描く: {s['name']}")
-        png = draw("スマートフォンのアプリの 1 画面の、白黒のシンプルなワイヤーフレーム。縦長の画面を 1 つだけ描く。"
-                   f"画面の名前は「{s['name']}」。上から順に、次の物をこの文字のまま、日本語で描く: "
-                   + "、".join(f"「{p}」" for p in s.get("parts", [])[:12])
-                   + "。ここに無いボタンや文字は描かない。写真や人の顔は描かない。")
+        try:
+            png = draw("スマートフォンのアプリの 1 画面の、白黒のシンプルなワイヤーフレーム。縦長の画面を 1 つだけ描く。"
+                       f"画面の名前は「{s['name']}」。上から順に、次の物をこの文字のまま、日本語で描く: "
+                       + "、".join(f"「{p}」" for p in s.get("parts", [])[:12])
+                       + "。ここに無いボタンや文字は描かない。写真や人の顔は描かない。")
+        except Exception:  # one picture that cannot be drawn does not stop the job
+            step(f"画面の絵を描けませんでした: {s['name']}")
+            continue
         write(folder, f"docs/images/{s['id']}.png", png)
 
     step("設計書とマニュアルを照らし合わせる")

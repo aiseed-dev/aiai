@@ -154,7 +154,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var form = $("tameshi-job");
   if (!form) return;
-  var kind = "sekkei", timer = null;
+  var kind = "sekkei", mihon = "", timer = null;
   var NAMES = { sekkei: "設計書とマニュアル", chousa: "関係するアプリの調べ" };
   var STATUS = { waiting: "待っています", running: "進めています", done: "できました", error: "止まりました" };
   function token() { try { return sessionStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
@@ -178,14 +178,15 @@
   }
 
   form.querySelectorAll("button[data-kind]").forEach(function (b) {
-    b.addEventListener("click", function () { kind = b.dataset.kind; });
+    b.addEventListener("click", function () { kind = b.dataset.kind; mihon = b.dataset.mihon || ""; });
   });
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     var files = $("tameshi-files").files;
-    if (!files.length) return note("資料を選んでください", true);
+    if (!files.length && !mihon) return note("資料を選んでください", true);
     var data = new FormData();
     data.append("kind", kind);
+    if (mihon) data.append("mihon", "1");
     data.append("note", $("tameshi-note").value);
     Array.prototype.forEach.call(files, function (f) { data.append("files", f); });
     note("送っています");

@@ -648,6 +648,9 @@ def tameshi_page():
         <button class="button primary" type="submit" data-kind="sekkei">設計書とマニュアルを作る</button>
         <button class="button" type="submit" data-kind="chousa">関係するアプリを調べる</button>
       </div>
+      <p class="fine">資料が手元に無ければ、架空の見本(パン屋の取り置きのアプリ)で試せます。
+        <button class="linkish" type="submit" data-kind="sekkei" data-mihon="1">見本で設計書とマニュアルを作る</button> ・
+        <a href="https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon">見本を見る</a></p>
     </form>
     <p class="fine" id="tameshi-job-note" aria-live="polite"></p>
     <div id="tameshi-jobs"></div>

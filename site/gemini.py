@@ -56,25 +56,31 @@ def _follow(url):
         return url
 
 
-def _post(model, body, timeout):
-    try:
-        project = _meta("project/project-id")
-        url = (f"https://aiplatform.googleapis.com/v1/projects/{project}/locations/global/"
-               f"publishers/google/models/{model}:generateContent")
-        req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
-                                     headers={"Authorization": f"Bearer {_bearer()}", "Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.load(r)
-    except urllib.error.HTTPError as e:
-        raise GeminiError(f"Gemini が答えませんでした({e.code})") from e
-    except (urllib.error.URLError, OSError, ValueError) as e:
-        raise GeminiError("Gemini につながりませんでした") from e
+def _post(model, body, timeout, waits=(5, 20)):
+    """The answer; when the model is busy (429, 503), it waits and asks again, once per wait."""
+    for n in range(len(waits) + 1):
+        try:
+            project = _meta("project/project-id")
+            url = (f"https://aiplatform.googleapis.com/v1/projects/{project}/locations/global/"
+                   f"publishers/google/models/{model}:generateContent")
+            req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
+                                         headers={"Authorization": f"Bearer {_bearer()}", "Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 503) and n < len(waits):
+                time.sleep(waits[n])
+                continue
+            raise GeminiError(f"Gemini が答えませんでした({e.code})") from e
+        except (urllib.error.URLError, OSError, ValueError) as e:
+            raise GeminiError("Gemini につながりませんでした") from e
 
 
 def image(prompt, model=None):
     """PNG bytes of one picture drawn from the prompt (Nano Banana unless another model is named)."""
     answer = _post(model or IMAGE_MODEL, {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                                          "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]}}, 300)
+                                          "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]}}, 300,
+                   waits=(30, 60, 90, 120))
     for p in (answer.get("candidates") or [{}])[0].get("content", {}).get("parts", []):
         if p.get("inlineData", {}).get("mimeType") == "image/png":
             return base64.b64decode(p["inlineData"]["data"])

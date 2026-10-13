@@ -174,6 +174,12 @@ class ServerTest(unittest.TestCase):
         self.assertIn("== High Climb", text)
         self.assertIn("https://highclimb.example/", text)
 
+    def test_the_sample_needs_no_upload(self):
+        h = self.google("u9")
+        r = self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertIn("こむぎ堂", self.gemini.seen[0][0][-1]["text"])
+
     def test_jobs_are_only_for_the_owner_and_the_allowed(self):
         h = self.google("u1")
         jid = self.job(h, "chousa", files=[("files", ("SKILL.md", "# 架空".encode(), "text/markdown"))]).json()["id"]

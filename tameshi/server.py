@@ -119,6 +119,7 @@ MATERIAL_EXTS = (".md", ".adoc", ".txt")
 MATERIAL_BYTES = 2_000_000     # all the files of one job, unpacked
 MATERIAL_FILES = 50
 JOB_DAYS = 7
+MIHON = os.path.join(ROOT, "hackathon", "mihon")  # a made-up sample of materials
 
 
 def materials_of(uploads):
@@ -271,15 +272,21 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         return sorted(out)
 
     @app.post("/api/jobs")
-    async def new_job(kind: str = Form(...), note: str = Form(""), files: list[UploadFile] = File(...),
-                      authorization: str = Header("")):
+    async def new_job(kind: str = Form(...), note: str = Form(""), mihon: str = Form(""),
+                      files: list[UploadFile] | None = File(None), authorization: str = Header("")):
         s = person(authorization)
         if kind not in ("sekkei", "chousa"):
             raise HTTPException(422, "何をするかを選んでください")
         if not may_make(s):
             raise HTTPException(403, "この機能は、使える人を決めています")
         uploads = []
-        for f in files[:MATERIAL_FILES]:
+        if mihon == "1":
+            # the made-up sample of the repository (hackathon/mihon), for reviewers and first tries
+            for dirpath, _, names in os.walk(MIHON):
+                for n in sorted(names):
+                    with open(os.path.join(dirpath, n), "rb") as f:
+                        uploads.append((os.path.relpath(os.path.join(dirpath, n), MIHON), f.read()))
+        for f in (files or [])[:MATERIAL_FILES]:
             data = await f.read(MATERIAL_BYTES + 1)
             if len(data) > MATERIAL_BYTES:
                 raise HTTPException(422, "資料が大きすぎます(2 MB まで)")
