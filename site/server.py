@@ -2,7 +2,9 @@
 """Serves the aiai site: the pages built into public/ by make_site.py (the
 top page, the skills, the thinking, the news) at /, each skill's ZIP at
 /skills/<name>.zip, the site search's AI at /api/sagasu (AIAI_SAGASU=vertex),
-the Flet app (app/main.py) at /app/, and, when SOUDAN_MODELS is set, the second-opinion server (soudan/server.py) at /soudan/.
+trying aiai with Gemini after signing in at /tameshi (AIAI_TAMESHI=1,
+tameshi/server.py), the Flet app (app/main.py) at /app/, and, when
+SOUDAN_MODELS is set, the second-opinion server (soudan/server.py) at /soudan/.
 
     python site/make_assets.py
     python site/make_site.py
@@ -134,6 +136,19 @@ class Sagasu:
         return hits
 
 
+def load_tameshi():
+    """tameshi/server.py's app, at /tameshi, with its addresses from AIAI_SITE: trying
+    aiai with Gemini after signing in. Its secrets (GOOGLE_*, APPLE_*, TAMESHI_TEST_*)
+    come from the environment, as tameshi/server.py says."""
+    spec = importlib.util.spec_from_file_location("tameshi_server", os.path.join(ROOT, "tameshi", "server.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    site = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
+    db = os.environ.get("AIAI_TAMESHI_DB") or os.path.join(os.path.expanduser("~"), "aiai-server", "tameshi", "tameshi.db")
+    os.makedirs(os.path.dirname(db), exist_ok=True)
+    return mod.create_app(dict(os.environ) | {"BASE_URL": site + "/tameshi", "RETURN_URLS": site + "/tameshi.html", "DB": db})
+
+
 def load_soudan():
     """soudan/server.py, under its own name (this file is server.py too)."""
     spec = importlib.util.spec_from_file_location("soudan_server", os.path.join(HERE, "..", "soudan", "server.py"))
@@ -142,7 +157,7 @@ def load_soudan():
     return mod
 
 
-def create_app(soudan=None):
+def create_app(soudan=None, tameshi=None):
     import flet as ft
 
     sys.path.insert(0, os.path.join(HERE, "app"))
@@ -166,6 +181,8 @@ def create_app(soudan=None):
 
     if soudan is not None:
         app.mount("/soudan", soudan)
+    if tameshi is not None:
+        app.mount("/tameshi", tameshi)
     app.mount("/app", ft.run(screen, export_asgi_app=True, assets_dir=os.path.join(HERE, "app", "assets")))
     app.mount("/", Pages(directory=os.path.join(HERE, "public"), html=True))
     return app
@@ -191,4 +208,5 @@ if __name__ == "__main__":
     ap.add_argument("--port", type=int, default=8020)
     a = ap.parse_args()
     soudan = load_soudan().create_app() if os.environ.get("SOUDAN_MODELS") else None
-    uvicorn.run(create_app(soudan), host=a.host, port=a.port)
+    tameshi = load_tameshi() if os.environ.get("AIAI_TAMESHI") == "1" else None
+    uvicorn.run(create_app(soudan, tameshi), host=a.host, port=a.port)

@@ -958,3 +958,20 @@ footer strong { color: var(--fg); }
 .tools-intro .section-lead { max-width: 46em; }
 .tool-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 @media (max-width: 880px) { .tool-cards { grid-template-columns: 1fr; } }
+
+/* Trying aiai with Gemini (tameshi.html) */
+.tameshi-box { margin: 26px 0; padding: 20px; background: var(--bg-2); border-radius: var(--radius); }
+.tameshi-box h2 { margin-top: 0; font-size: 1.15rem; }
+.tameshi-test { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+.tameshi-test .fine { width: 100%; margin: 0; }
+.tameshi-test input, .tameshi-box textarea, .tameshi-pick select { font: inherit; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--card); color: var(--fg); min-width: 0; }
+.tameshi-box textarea { width: 100%; resize: vertical; }
+#tameshi-news .button { margin-top: 10px; }
+.tameshi-pick { display: block; margin-bottom: 12px; }
+.tameshi-log { display: flex; flex-direction: column; gap: 10px; max-height: 460px; overflow-y: auto; margin-bottom: 10px; }
+.tameshi-log .msg { white-space: pre-wrap; }
+#tameshi-news-text { white-space: pre-wrap; background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px; font-size: 0.85rem; max-height: 520px; overflow: auto; }
+.fine.bad { color: #d9534f; }
+.linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }

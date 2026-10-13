@@ -553,6 +553,57 @@ SEARCH_PAGE = """<article>
 </article>
 <script src="/sagasu.js" defer></script>"""
 
+def tameshi_page():
+    """/tameshi.html: try aiai with Gemini after signing in (tameshi/server.py, at /tameshi)."""
+    tastes = html.escape(read(os.path.join(ROOT, "news", "好み.adoc")))
+    return f"""<article>
+<p class="kicker">試す</p>
+<h1>aiai を、Gemini で試す</h1>
+<p class="lead">サインインすると、手引きを読ませた Gemini と対話したり、自分の好みで今日のニュースを作らせたりできます。Gemini は Google Cloud で動きます。書いたことは Gemini に送り、このサイトには記録しません。1 日に使える回数があります。</p>
+<section id="tameshi-in" class="tameshi-box">
+  <h2>サインイン</h2>
+  <div class="actions">
+    <a class="button primary" id="tameshi-google" hidden>Google でサインイン</a>
+    <a class="button" id="tameshi-apple" hidden>Apple でサインイン</a>
+  </div>
+  <form id="tameshi-test" class="tameshi-test" hidden>
+    <p class="fine">審査用のテストアカウント</p>
+    <input id="tameshi-id" autocomplete="username" placeholder="ID" aria-label="ID">
+    <input id="tameshi-password" type="password" autocomplete="current-password" placeholder="パスワード" aria-label="パスワード">
+    <button class="button" type="submit">入る</button>
+  </form>
+  <p class="fine" id="tameshi-in-note" aria-live="polite"></p>
+</section>
+<div id="tameshi-use" hidden>
+  <p class="fine"><span id="tameshi-who"></span> ・ <span id="tameshi-left"></span> ・ <button type="button" class="linkish" id="tameshi-out">サインアウト</button></p>
+  <section class="tameshi-box">
+    <h2>手引きを読ませた Gemini と対話する</h2>
+    <label class="tameshi-pick">手引き <select id="tameshi-guide"></select></label>
+    <div id="tameshi-log" class="tameshi-log" aria-live="polite"></div>
+    <form id="tameshi-chat" class="sagasu">
+      <textarea id="tameshi-say" rows="2" maxlength="4000" placeholder="例: 始めたいです" aria-label="書くこと"></textarea>
+      <button class="button primary" type="submit">送る</button>
+    </form>
+    <p class="fine" id="tameshi-chat-note" aria-live="polite"></p>
+  </section>
+  <section class="tameshi-box">
+    <h2>今日のニュースを作らせる</h2>
+    <p class="fine">分野、地域、件数、扱わない物を書きます。下は aiai のニュースの好みです。書き替えて使えます。</p>
+    <form id="tameshi-news">
+      <textarea id="tameshi-tastes" rows="10" maxlength="4000" aria-label="好み">{tastes}</textarea>
+      <button class="button primary" type="submit">作る</button>
+    </form>
+    <p class="fine" id="tameshi-news-note" aria-live="polite"></p>
+    <div id="tameshi-news-out" hidden>
+      <pre id="tameshi-news-text"></pre>
+      <button type="button" class="button" id="tameshi-copy">写す</button>
+    </div>
+  </section>
+</div>
+</article>
+<script src="/tameshi.js" defer></script>"""
+
+
 NOT_FOUND = """<article>
 <div data-notfound hidden></div>
 <h1>このページは見つかりません</h1>
@@ -622,7 +673,8 @@ def main():
     write(os.path.join(OUT, "index.html"), top.replace("</body>", KAISEKI_TAGS + "\n</body>"))
     shutil.copyfile(os.path.join(HERE, "top.css"), os.path.join(OUT, "top.css"))
     for src, name in ((os.path.join(ROOT, "kaiseki", "kaiseki.js"), "kaiseki.js"),
-                      (os.path.join(HERE, "kaiseki-aiai.js"), "kaiseki-aiai.js"), (os.path.join(HERE, "sagasu.js"), "sagasu.js")):
+                      (os.path.join(HERE, "kaiseki-aiai.js"), "kaiseki-aiai.js"), (os.path.join(HERE, "sagasu.js"), "sagasu.js"),
+                      (os.path.join(HERE, "tameshi.js"), "tameshi.js")):
         shutil.copyfile(src, os.path.join(OUT, name))
     skills = load_skills()
     for name, s in skills.items():
@@ -652,6 +704,7 @@ def main():
         write(os.path.join(OUT, path), text)
     write(os.path.join(OUT, "sagasu.html"), page("探す", SEARCH_PAGE, "aiai のサイトの中を探す"))
     write(os.path.join(OUT, "404.html"), page("見つかりません", NOT_FOUND))
+    write(os.path.join(OUT, "tameshi.html"), page("Gemini で試す", tameshi_page(), "手引きを読ませた Gemini と対話し、好みでニュースを作らせる"))
     write(os.path.join(OUT, "kaiseki", "index.html"), page("読まれ方の記録", KAISEKI_PAGE, "aiai のサイトが記録する物と送り先"))
     write(os.path.join(OUT, "kaiseki", "kiroku.html"), page("直し方の記録", kiroku_page(), "読まれ方の記録から、aiai のサイトをどう直したか"))
     write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(skills, kangaekata, days, articles), ensure_ascii=False))
