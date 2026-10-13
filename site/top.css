@@ -914,7 +914,7 @@ footer strong { color: var(--fg); }
   .steps > ol::before { display: none; }
   .chat-steps { grid-template-columns: 1fr 1fr; }
   .bar { flex-wrap: wrap; row-gap: 6px; }
-  .menu { order: 3; width: 100%; margin-left: 0; gap: 18px; overflow-x: auto; }
+  .menu { order: 3; width: 100%; margin-left: 0; gap: 15px; overflow-x: auto; }
   .open { margin-left: auto; }
 }
 
