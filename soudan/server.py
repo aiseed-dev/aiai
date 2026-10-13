@@ -24,7 +24,7 @@ the file name is the kind. Settings come from environment variables:
     ANTHROPIC_API_KEY     for the anthropic models
     SOUDAN_PER_DAY        consultations (one per model) one person may make a day (default 10)
     SOUDAN_DAY_LIMIT      model calls everyone together may make a day (default 300); a
-                          report calls the model once per item of rireki/SKILL.md, then once more
+                          report calls the model once per item of 報告の項目.md, then once more
     RESEARCH_EMAILS       sign-in emails of the research staff, who make invitation
                           codes and read the summary (space separated)
     TIMEZONE              default Asia/Tokyo
@@ -133,11 +133,11 @@ def read_kanten(folder):
     return common, kinds
 
 
-# ---- the report: items from rireki/SKILL.md --------------------------------------------
+# ---- the report: items from 報告の項目.md -----------------------------------------------
 
 
 def read_rireki(path):
-    """(rules, items) from rireki/SKILL.md: its 守ること and 項目 sections.
+    """(rules, items) from 報告の項目.md: its 守ること and 項目 sections.
 
     Each item is a dict: number, group, name, what (its one line), the lines under
     it by their label (読む物, 見る所, 書き方), and from 読む物: dialogue (whether it
@@ -217,7 +217,7 @@ def create_app(env=None, providers=None, models=None):
     provs = providers if providers is not None else ms.providers_from(env)
     mods = models if models is not None else models_from(env)
     common, kinds = read_kanten(os.path.join(HERE, "観点"))
-    rireki_rules, rireki_items = read_rireki(os.path.join(HERE, "..", "rireki", "SKILL.md"))
+    rireki_rules, rireki_items = read_rireki(os.path.join(HERE, "報告の項目.md"))
     with open(os.path.join(HERE, "同意.md"), encoding="utf-8") as f:
         consent = f.read().strip()
     consent_version = hashlib.sha256(consent.encode()).hexdigest()[:12]
@@ -388,7 +388,7 @@ def create_app(env=None, providers=None, models=None):
         return out
 
     def report_steps(material, events):
-        """The agent's steps: one per item of rireki/SKILL.md, in order, then a summary.
+        """The agent's steps: one per item of 報告の項目.md, in order, then a summary.
 
         A model gives better answers to small, exact requests, so each step asks
         for one item with that item's lines (読む物, 見る所, 書き方), and hands it only
