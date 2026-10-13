@@ -51,7 +51,9 @@
       $("tameshi-in").hidden = true;
       $("tameshi-use").hidden = false;
       $("tameshi-who").textContent = me.provider === "test" ? "テストアカウント" : (me.email || me.provider);
-      $("tameshi-left").textContent = "今日あと: 対話 " + me.left.chat + " 回、ニュース " + me.left.news + " 回";
+      $("tameshi-left").textContent = "今日あと: 対話 " + me.left.chat + " 回、ニュース " + me.left.news + " 回、設計書 "
+        + me.left.sekkei + " 回、調べ " + me.left.chousa + " 回";
+      $("tameshi-kaihatsu").hidden = !me.kaihatsu;
     });
   }
 
@@ -144,4 +146,126 @@
       note("tameshi-news-note", "写しました");
     });
   });
+})();
+
+// The longer jobs from materials: design and manual, and related apps
+(function () {
+  var API = "/tameshi", KEY = "aiai.tameshi.token";
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $("tameshi-job");
+  if (!form) return;
+  var kind = "sekkei", timer = null;
+  var NAMES = { sekkei: "設計書とマニュアル", chousa: "関係するアプリの調べ" };
+  var STATUS = { waiting: "待っています", running: "進めています", done: "できました", error: "止まりました" };
+  function token() { try { return sessionStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
+  function auth() { return { Authorization: "Bearer " + token() }; }
+  function get(path) {
+    return fetch(API + path, { headers: auth() }).then(function (r) {
+      if (!r.ok) throw new Error("うまくいきませんでした(" + r.status + ")");
+      return r;
+    });
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text) e.textContent = text;
+    return e;
+  }
+  function note(text, bad) {
+    var n = $("tameshi-job-note");
+    n.textContent = text || "";
+    n.classList.toggle("bad", !!bad);
+  }
+
+  form.querySelectorAll("button[data-kind]").forEach(function (b) {
+    b.addEventListener("click", function () { kind = b.dataset.kind; });
+  });
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var files = $("tameshi-files").files;
+    if (!files.length) return note("資料を選んでください", true);
+    var data = new FormData();
+    data.append("kind", kind);
+    data.append("note", $("tameshi-note").value);
+    Array.prototype.forEach.call(files, function (f) { data.append("files", f); });
+    note("送っています");
+    fetch(API + "/api/jobs", { method: "POST", headers: auth(), body: data }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.join("、") : (d.detail || "うまくいきませんでした"));
+        return d;
+      });
+    }).then(function () {
+      note("始めました。下で進み具合を見られます");
+      if (window.kaiseki) kaiseki.event("tameshi", { value: kind });
+      list();
+    }).catch(function (err) { note(err.message, true); });
+  });
+
+  function list() {
+    if (!token()) return;
+    get("/api/jobs").then(function (r) { return r.json(); }).then(function (d) {
+      var box = $("tameshi-jobs");
+      box.innerHTML = "";
+      var busy = false;
+      d.jobs.forEach(function (j) {
+        busy = busy || j.status === "waiting" || j.status === "running";
+        var item = el("div", "tameshi-job");
+        item.appendChild(el("p", "", NAMES[j.kind] + " ・ " + j.created + " ・ " + STATUS[j.status]));
+        item.appendChild(el("div", "tameshi-job-body"));
+        box.appendChild(item);
+        show(j.id, item.lastChild);
+      });
+      clearTimeout(timer);
+      if (busy) timer = setTimeout(list, 5000);
+    }).catch(function () {});
+  }
+  function show(id, body) {
+    get("/api/jobs/" + id).then(function (r) { return r.json(); }).then(function (j) {
+      var ol = el("ol", "tameshi-steps");
+      j.steps.forEach(function (s) { ol.appendChild(el("li", "", s.name + (s.seconds !== undefined ? "(" + s.seconds + " 秒)" : ""))); });
+      body.appendChild(ol);
+      if (j.error) body.appendChild(el("p", "fine bad", j.error));
+      if (j.status !== "done") return;
+      var zip = el("button", "button", "まとめてダウンロード(ZIP)");
+      zip.type = "button";
+      zip.addEventListener("click", function () {
+        get("/api/jobs/" + id + "/zip").then(function (r) { return r.blob(); }).then(function (b) {
+          var a = el("a");
+          a.href = URL.createObjectURL(b);
+          a.download = "aiai-" + j.kind + ".zip";
+          a.click();
+        });
+      });
+      body.appendChild(zip);
+      var pics = el("div", "tameshi-pics");
+      j.files.forEach(function (path) {
+        if (/\.png$/.test(path)) {
+          get("/api/jobs/" + id + "/file?path=" + encodeURIComponent(path)).then(function (r) { return r.blob(); }).then(function (b) {
+            var img = el("img");
+            img.src = URL.createObjectURL(b);
+            img.alt = path;
+            pics.appendChild(img);
+          });
+        } else {
+          var d = el("details"), s = el("summary", "", path), pre = el("pre");
+          d.appendChild(s);
+          d.appendChild(pre);
+          d.addEventListener("toggle", function () {
+            if (d.open && !pre.textContent) {
+              get("/api/jobs/" + id + "/file?path=" + encodeURIComponent(path))
+                .then(function (r) { return r.text(); }).then(function (t) { pre.textContent = t; });
+            }
+          });
+          body.appendChild(d);
+        }
+      });
+      body.appendChild(pics);
+    }).catch(function () {});
+  }
+  // the list shows once signed in; the page's own script signs in first
+  var tries = 0;
+  (function wait() {
+    if (!$("tameshi-use").hidden) return list();
+    if (++tries < 40) setTimeout(wait, 500);
+  })();
 })();

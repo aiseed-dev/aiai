@@ -1,8 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Tries aiai on the site with Gemini, for people who sign in: a dialogue
-with Gemini that has read one of the guides, and today's news made by
-Gemini with Google Search from the person's own tastes (as news/SKILL.md
-says). Gemini runs on Google Cloud (site/gemini.py). It is mounted at
+with Gemini that has read one of the guides, today's news made by Gemini
+with Google Search from the person's own tastes (as news/SKILL.md says),
+and two longer jobs from materials the person gives, a SKILL.md and its
+references (tameshi/kaihatsu.py): the design document and the user manual
+with a picture per screen, and the present state of the apps the materials
+concern. Gemini runs on Google Cloud (site/gemini.py). It is mounted at
 /tameshi by site/server.py; the screen is /tameshi.html.
 
 People sign in with Apple or Google (the sign-in of moushikomi/server.py).
@@ -19,19 +22,32 @@ the repository:
     TAMESHI_CHAT_PER_DAY    turns of the dialogue one person may have a day (default 30)
     TAMESHI_NEWS_PER_DAY    news one person may make a day (default 3)
     TAMESHI_DAY_LIMIT       Gemini calls everyone together may make a day (default 600)
+    TAMESHI_SEKKEI_PER_DAY  design jobs one person may start a day (default 1)
+    TAMESHI_CHOUSA_PER_DAY  research jobs one person may start a day (default 2)
+    TAMESHI_JOBS_PER_DAY    jobs everyone together may start a day (default 10)
+    TAMESHI_KAIHATSU_EMAILS sign-in emails that may start jobs (space separated); empty
+                            means everyone who signs in. The test account always may
+    TAMESHI_JOBS            the folder of the jobs' files (default jobs/ next to DB);
+                            a job and its files are deleted after 7 days
     TIMEZONE                default Asia/Tokyo
 """
 import datetime
 import importlib.util
+import io
+import json
 import os
 import re
 import secrets
+import shutil
 import sys
+import threading
 import time
 import urllib.parse
+import zipfile
 import zoneinfo
 
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
+from fastapi.responses import Response
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -44,12 +60,17 @@ _spec.loader.exec_module(ms)
 sys.path.insert(0, os.path.join(ROOT, "site"))
 import gemini  # noqa: E402
 
+sys.path.insert(0, HERE)
+import kaihatsu  # noqa: E402
+
 MESSAGE_CHARS = 4000     # one message in the dialogue
 DIALOGUE_CHARS = 30000   # the whole dialogue sent at once
 TASTES_CHARS = 4000      # the person's tastes for the news
 FAILED_LOGINS = 50       # wrong test-account passwords accepted a day, before the test login closes
 
 SCHEMA = ms.SIGN_IN_SCHEMA + """
+        CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, provider TEXT, sub TEXT, kind TEXT,
+            status TEXT, error TEXT, steps TEXT, created REAL, finished REAL);
         CREATE TABLE IF NOT EXISTS uses (day TEXT, provider TEXT, sub TEXT, kind TEXT, n INTEGER,
             PRIMARY KEY (day, provider, sub, kind));
 """
@@ -94,8 +115,43 @@ def guides(root=ROOT):
     return out
 
 
-def create_app(env=None, providers=None, model=None):
-    """model(contents, system=..., search=...) -> (text, sources); Gemini unless given."""
+MATERIAL_EXTS = (".md", ".adoc", ".txt")
+MATERIAL_BYTES = 2_000_000     # all the files of one job, unpacked
+MATERIAL_FILES = 50
+JOB_DAYS = 7
+
+
+def materials_of(uploads):
+    """The text of the materials: [(name, bytes)] of the uploaded files, a ZIP opened
+    in memory. Only Markdown, AsciiDoc and plain text are read; nothing is written."""
+    found, total = [], 0
+    for name, data in uploads:
+        if name.lower().endswith(".zip"):
+            try:
+                with zipfile.ZipFile(io.BytesIO(data)) as z:
+                    for info in z.infolist():
+                        if (not info.is_dir() and info.filename.lower().endswith(MATERIAL_EXTS)
+                                and ".." not in info.filename and info.file_size <= MATERIAL_BYTES):
+                            found.append((info.filename, z.read(info)))
+            except zipfile.BadZipFile:
+                raise HTTPException(422, f"{name} を開けませんでした")
+        elif name.lower().endswith(MATERIAL_EXTS):
+            found.append((name, data))
+    if not found:
+        raise HTTPException(422, "資料が入っていません(.md、.adoc、.txt か、それを入れた ZIP)")
+    parts = []
+    for name, data in found[:MATERIAL_FILES]:
+        total += len(data)
+        if total > MATERIAL_BYTES:
+            raise HTTPException(422, "資料が大きすぎます(2 MB まで)")
+        parts.append(f'<ファイル name="{name}">\n{data.decode("utf-8", errors="replace")}\n</ファイル>')
+    return "\n\n".join(parts)
+
+
+def create_app(env=None, providers=None, model=None, draw=None, run=None):
+    """model(contents, system=..., search=..., **more) -> (text, sources), and
+    draw(prompt) -> PNG bytes: Gemini unless given. run(fn) starts a job; a
+    thread unless given (the tests run it at once)."""
     env = dict(os.environ if env is None else env)
     base = env["BASE_URL"].rstrip("/")
     returns = env.get("RETURN_URLS", "").split()
@@ -104,8 +160,21 @@ def create_app(env=None, providers=None, model=None):
     provs = providers if providers is not None else ms.providers_from(env)
     ask = model or gemini.generate
     test_id, test_password = env.get("TAMESHI_TEST_ID", ""), env.get("TAMESHI_TEST_PASSWORD", "")
-    per_day = {"chat": int(env.get("TAMESHI_CHAT_PER_DAY", "30")), "news": int(env.get("TAMESHI_NEWS_PER_DAY", "3"))}
+    per_day = {"chat": int(env.get("TAMESHI_CHAT_PER_DAY", "30")), "news": int(env.get("TAMESHI_NEWS_PER_DAY", "3")),
+               "sekkei": int(env.get("TAMESHI_SEKKEI_PER_DAY", "1")), "chousa": int(env.get("TAMESHI_CHOUSA_PER_DAY", "2"))}
     day_limit = int(env.get("TAMESHI_DAY_LIMIT", "600"))
+    jobs_per_day = int(env.get("TAMESHI_JOBS_PER_DAY", "10"))
+    makers = {e.lower() for e in env.get("TAMESHI_KAIHATSU_EMAILS", "").split()}
+    jobs_dir = env.get("TAMESHI_JOBS") or os.path.join(os.path.dirname(os.path.abspath(env.get("DB") or os.path.join(HERE, "tameshi.db"))), "jobs")
+    paint = draw or gemini.image
+    slots = threading.BoundedSemaphore(2)  # jobs that call Gemini at the same time
+
+    def start_thread(fn):
+        def go():
+            with slots:
+                fn()
+        threading.Thread(target=go, daemon=True).start()
+    start = run or start_thread
     all_guides = guides()
     news_guide = without_front(read(os.path.join(ROOT, "news", "SKILL.md"))).split("\n## 使い方")[0]
     last_purge = [0.0]
@@ -118,6 +187,9 @@ def create_app(env=None, providers=None, model=None):
         if t - last_purge[0] >= 60:
             last_purge[0] = t
             ms.purge_sign_in(db, t)
+            for row in db.all("SELECT id FROM jobs WHERE created < ?", (t - JOB_DAYS * 86400,)):
+                shutil.rmtree(os.path.join(jobs_dir, row["id"]), ignore_errors=True)
+                db.run("DELETE FROM jobs WHERE id = ?", (row["id"],))
 
     app = FastAPI(title="aiai を試す", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.db = db
@@ -133,7 +205,8 @@ def create_app(env=None, providers=None, model=None):
         if used(s["provider"], s["sub"], kind) >= per_day[kind]:
             raise HTTPException(429, f"今日の分({per_day[kind]} 回)は使い終わりました。明日またどうぞ")
         everyone = db.one("SELECT COALESCE(SUM(n), 0) FROM uses WHERE day = ? AND provider != '-'", (today(),))[0]
-        if everyone >= day_limit:
+        jobs = db.one("SELECT COALESCE(SUM(n), 0) FROM uses WHERE day = ? AND kind IN ('sekkei', 'chousa')", (today(),))[0]
+        if everyone >= day_limit or (kind in ("sekkei", "chousa") and jobs >= jobs_per_day):
             raise HTTPException(429, "今日の受け付けは終わりました。明日またどうぞ")
         db.run("INSERT INTO uses VALUES (?, ?, ?, ?, 1) ON CONFLICT (day, provider, sub, kind) DO UPDATE SET n = n + 1",
                (today(), s["provider"], s["sub"], kind))
@@ -173,11 +246,115 @@ def create_app(env=None, providers=None, model=None):
                (ms.digest(token), "test", test_id, "", time.time() + ms.SESSION_DAYS * 86400))
         return {"token": token}
 
+    def may_make(s):
+        return s["provider"] == "test" or not makers or (s["email"] or "").lower() in makers
+
     @app.get("/api/me")
     def me(authorization: str = Header("")):
         s = person(authorization)
-        return {"provider": s["provider"], "email": s["email"],
+        return {"provider": s["provider"], "email": s["email"], "kaihatsu": may_make(s),
                 "left": {k: per_day[k] - used(s["provider"], s["sub"], k) for k in per_day}}
+
+    # ---- the longer jobs: design and manual, and the present state of related apps ----
+
+    def job_row(jid, s):
+        row = db.one("SELECT * FROM jobs WHERE id = ? AND provider = ? AND sub = ?", (jid, s["provider"], s["sub"]))
+        if not row:
+            raise HTTPException(404, "その仕事はありません")
+        return row
+
+    def job_files(jid):
+        folder = os.path.join(jobs_dir, jid)
+        out = []
+        for dirpath, _, names in os.walk(folder):
+            out += [os.path.relpath(os.path.join(dirpath, n), folder) for n in names]
+        return sorted(out)
+
+    @app.post("/api/jobs")
+    async def new_job(kind: str = Form(...), note: str = Form(""), files: list[UploadFile] = File(...),
+                      authorization: str = Header("")):
+        s = person(authorization)
+        if kind not in ("sekkei", "chousa"):
+            raise HTTPException(422, "何をするかを選んでください")
+        if not may_make(s):
+            raise HTTPException(403, "この機能は、使える人を決めています")
+        uploads = []
+        for f in files[:MATERIAL_FILES]:
+            data = await f.read(MATERIAL_BYTES + 1)
+            if len(data) > MATERIAL_BYTES:
+                raise HTTPException(422, "資料が大きすぎます(2 MB まで)")
+            uploads.append((os.path.basename(f.filename or "資料"), data))
+        materials = materials_of(uploads)
+        take(s, kind)
+        jid = secrets.token_urlsafe(12)
+        folder = os.path.join(jobs_dir, jid)
+        os.makedirs(folder, exist_ok=True)
+        db.run("INSERT INTO jobs VALUES (?, ?, ?, ?, 'waiting', '', '[]', ?, NULL)",
+               (jid, s["provider"], s["sub"], kind, time.time()))
+        steps = []
+
+        def step(name):
+            now = time.time()
+            if steps:
+                steps[-1]["seconds"] = round(now - steps[-1].pop("at"))
+            steps.append({"name": name, "at": now})
+            db.run("UPDATE jobs SET status = 'running', steps = ? WHERE id = ?",
+                   (json.dumps([{k: v for k, v in x.items() if k != "at"} for x in steps], ensure_ascii=False), jid))
+
+        def work():
+            try:
+                if kind == "sekkei":
+                    kaihatsu.sekkei(materials, note[:2000], folder, ask, paint, step)
+                else:
+                    kaihatsu.chousa(materials, note[:2000], folder, ask, step)
+                status, error = "done", ""
+            except gemini.GeminiError as e:
+                status, error = "error", str(e)
+            except (ValueError, KeyError, OSError):
+                status, error = "error", "途中で止まりました。もう一度試してください"
+            if steps and "at" in steps[-1]:
+                steps[-1]["seconds"] = round(time.time() - steps[-1].pop("at"))
+            db.run("UPDATE jobs SET status = ?, error = ?, steps = ?, finished = ? WHERE id = ?",
+                   (status, error, json.dumps(steps, ensure_ascii=False), time.time(), jid))
+        start(work)
+        return {"id": jid}
+
+    @app.get("/api/jobs")
+    def my_jobs(authorization: str = Header("")):
+        s = person(authorization)
+        rows = db.all("SELECT id, kind, status, created FROM jobs WHERE provider = ? AND sub = ? ORDER BY created DESC",
+                      (s["provider"], s["sub"]))
+        return {"jobs": [{"id": r["id"], "kind": r["kind"], "status": r["status"],
+                          "created": datetime.datetime.fromtimestamp(r["created"], tz).isoformat(timespec="minutes")}
+                         for r in rows]}
+
+    @app.get("/api/jobs/{jid}")
+    def job(jid: str, authorization: str = Header("")):
+        row = job_row(jid, person(authorization))
+        return {"id": jid, "kind": row["kind"], "status": row["status"], "error": row["error"],
+                "steps": json.loads(row["steps"] or "[]"), "files": job_files(jid) if row["status"] == "done" else []}
+
+    @app.get("/api/jobs/{jid}/file")
+    def job_file(jid: str, path: str, authorization: str = Header("")):
+        job_row(jid, person(authorization))
+        if path not in job_files(jid):
+            raise HTTPException(404, "そのファイルはありません")
+        with open(os.path.join(jobs_dir, jid, path), "rb") as f:
+            data = f.read()
+        kind = "image/png" if path.endswith(".png") else "text/plain; charset=utf-8"
+        return Response(data, media_type=kind, headers={"X-Content-Type-Options": "nosniff",
+                                                        "Content-Security-Policy": "default-src 'none'"})
+
+    @app.get("/api/jobs/{jid}/zip")
+    def job_zip(jid: str, authorization: str = Header("")):
+        row = job_row(jid, person(authorization))
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            for path in job_files(jid):
+                z.write(os.path.join(jobs_dir, jid, path), path)
+        name = f"aiai-{row['kind']}-{jid[:6]}.zip"
+        return Response(buf.getvalue(), media_type="application/zip",
+                        headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
     @app.post("/api/chat")
     async def chat(request: Request, authorization: str = Header("")):

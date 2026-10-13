@@ -983,3 +983,11 @@ footer strong { color: var(--fg); }
 
 /* hidden means hidden, whatever display a class gives */
 [hidden] { display: none !important; }
+.tameshi-job { margin: 16px 0; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+.tameshi-job > p { margin: 0 0 6px; font-weight: 700; }
+.tameshi-steps { margin: 0 0 8px; padding-left: 1.3em; font-size: 0.9rem; color: var(--muted); }
+.tameshi-job pre { white-space: pre-wrap; font-size: 0.82rem; max-height: 480px; overflow: auto; }
+.tameshi-pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+.tameshi-pics img { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+#tameshi-files { font: inherit; margin-top: 6px; }
+#tameshi-note { margin: 8px 0; }

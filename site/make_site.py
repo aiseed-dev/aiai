@@ -638,6 +638,20 @@ def tameshi_page():
       <button type="button" class="button" id="tameshi-copy">写す</button>
     </div>
   </section>
+  <section class="tameshi-box" id="tameshi-kaihatsu">
+    <h2>資料から、設計書と利用者マニュアルを作る。関係するアプリを調べる</h2>
+    <p class="fine">SKILL.md と参考の資料(.md、.adoc、.txt か、それを入れた ZIP)を渡します。設計書と利用者マニュアルは、Gemini 4 Argon が書き、画面の絵を Nano Banana が描き、最後に 2 つを照らし合わせます。調べる方は、Google 検索で公式サイトなどを読み、出典を付けます。数分かかります。作った物は 7 日で消します。</p>
+    <form id="tameshi-job">
+      <label class="tameshi-pick">資料 <input type="file" id="tameshi-files" multiple accept=".md,.adoc,.txt,.zip"></label>
+      <textarea id="tameshi-note" rows="2" maxlength="2000" placeholder="足したいこと(なくてもかまいません)" aria-label="足したいこと"></textarea>
+      <div class="actions">
+        <button class="button primary" type="submit" data-kind="sekkei">設計書とマニュアルを作る</button>
+        <button class="button" type="submit" data-kind="chousa">関係するアプリを調べる</button>
+      </div>
+    </form>
+    <p class="fine" id="tameshi-job-note" aria-live="polite"></p>
+    <div id="tameshi-jobs"></div>
+  </section>
 </div>
 </article>
 <script src="/tameshi.js" defer></script>"""
