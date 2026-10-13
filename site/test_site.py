@@ -82,7 +82,7 @@ class BuildTest(unittest.TestCase):
             make_site.main()
             for path in ("index.html", "top.css", "kangaekata.html", "news/index.html", "news/2026-09-30.html",
                          "skills/rireki.html", "skills/keikaku.html", "sagasu.html", "sagasu.json", "404.html",
-                         "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js"):
+                         "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "katsuyou.html"):
                 self.assertTrue(os.path.exists(os.path.join(out, path)), path)
             with open(os.path.join(out, "index.html"), encoding="utf-8") as f:
                 top = f.read()

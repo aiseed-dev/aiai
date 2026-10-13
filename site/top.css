@@ -991,3 +991,12 @@ footer strong { color: var(--fg); }
 .tameshi-pics img { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 #tameshi-files { font: inherit; margin-top: 6px; }
 #tameshi-note { margin: 8px 0; }
+
+/* The flow of the first use on the top page, and the page of all uses (katsuyou.html) */
+.flow-list .step h3 { font-size: 1.05rem; }
+.try { align-self: flex-start; font-size: 0.82rem; font-weight: 700; color: var(--accent); text-decoration: none;
+  padding: 3px 10px; border: 1px solid var(--accent); border-radius: 999px; }
+.try:hover { background: var(--accent-soft); }
+.flow-guide { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 20px; }
+.flow-guide .skill { flex: 1 1 360px; }
+.katsuyou .path-steps { margin-top: 18px; }

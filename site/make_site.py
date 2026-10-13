@@ -277,7 +277,7 @@ def page(title, body, description=""):
 HEADER = """<header class="bar">
   <a class="logo" href="/"><span class="mark" aria-hidden="true"></span>aiai</a>
   <nav class="menu">
-    <a href="/#skills">手引き</a>
+    <a href="/katsuyou.html">手引き</a>
     <a href="/#how">使い方</a>
     <a href="/news/">ニュース</a>
     <a href="/kangaekata.html">考え方</a>
@@ -766,6 +766,9 @@ def main():
     write(os.path.join(OUT, "sagasu.html"), page("探す", SEARCH_PAGE, "aiai のサイトの中を探す"))
     write(os.path.join(OUT, "404.html"), page("見つかりません", NOT_FOUND))
     write(os.path.join(OUT, "tameshi.html"), page("Gemini で試す", tameshi_page(), "手引きを読ませた Gemini と対話し、好みでニュースを作らせる"))
+    # the uses of AI and their guides (hand-written, as the top page is)
+    write(os.path.join(OUT, "katsuyou.html"), page("AI 時代の AI 活用法", read(os.path.join(HERE, "katsuyou.html")),
+                                                   "AI の使い方と、それぞれの手引き"))
     write(os.path.join(OUT, "kaiseki", "index.html"), page("読まれ方の記録", KAISEKI_PAGE, "aiai のサイトが記録する物と送り先"))
     write(os.path.join(OUT, "kaiseki", "kiroku.html"), page("直し方の記録", kiroku_page(), "読まれ方の記録から、aiai のサイトをどう直したか"))
     write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(skills, kangaekata, days, articles), ensure_ascii=False))
