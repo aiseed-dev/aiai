@@ -23,11 +23,11 @@ ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 SITE = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
 
 # The order and grouping of the skills on the list; others come last
-GROUPS = [("知る", ["rireki"]),
-          ("考える", ["tenshoku", "gakusei"]),
-          ("作る", ["genba", "website", "moushikomi", "keikaku"])]
+GROUPS = [("AI の活用法", ["rireki", "website", "moushikomi", "genba", "kaiseki", "kanri", "news"]),
+          ("手引き", ["tenshoku", "gakusei", "keikaku"])]
 ICONS = {"rireki": ft.Icons.HISTORY, "tenshoku": ft.Icons.WORK_OUTLINE, "gakusei": ft.Icons.SCHOOL, "genba": ft.Icons.PHOTO_CAMERA,
-         "website": ft.Icons.LANGUAGE, "moushikomi": ft.Icons.EVENT_AVAILABLE, "keikaku": ft.Icons.GRASS}
+         "website": ft.Icons.LANGUAGE, "moushikomi": ft.Icons.EVENT_AVAILABLE, "keikaku": ft.Icons.GRASS,
+         "kaiseki": ft.Icons.INSIGHTS, "kanri": ft.Icons.SHIELD_OUTLINED, "news": ft.Icons.NEWSPAPER}
 STEPS = [("1", "スキルを選ぶ"), ("2", "あなたの AI に貼る"), ("3", "対話しながら作る")]
 
 
@@ -80,7 +80,7 @@ def load_news(folder):
 
 
 async def main(page: ft.Page):
-    page.title = "aiai — AI 時代の学び方"
+    page.title = "aiai — AI 時代の AI 活用法"
     page.padding = 0
     page.theme = ft.Theme(color_scheme_seed=ft.Colors.TEAL)
     skills = load_skills(os.path.join(ASSETS, "skills"))
@@ -124,7 +124,7 @@ async def main(page: ft.Page):
             for n, t in STEPS], wrap=True, spacing=8, run_spacing=8)
         return ft.Container(ft.Column([
             ft.Text("aiai", size=30, weight=ft.FontWeight.W_800, color=ft.Colors.WHITE),
-            ft.Text("AI 時代の学び方", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=16),
+            ft.Text("AI 時代の AI 活用法", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=16),
             ft.Text("主役は、あなたの AI。スキルを写して、ふだん使っている AI に貼ると、AI があなたに聞きながら一緒に作ります。",
                     color=ft.Colors.with_opacity(0.92, ft.Colors.WHITE), size=13),
             steps], spacing=10),

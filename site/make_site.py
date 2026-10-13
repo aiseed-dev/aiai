@@ -22,9 +22,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT = os.path.join(HERE, "public")
 
-# The path a person takes, and the skills on each step; others come last
-STEPS = [("知る", ["rireki"]), ("考える", ["tenshoku", "gakusei"]), ("作る", ["genba"]),
-         ("始める", ["website", "moushikomi", "keikaku"])]
+# The order of the guides, and the label each guide's page shows; others come last
+STEPS = [("AI の活用法", ["rireki", "website", "moushikomi", "genba", "kaiseki", "kanri", "news"]),
+         ("手引き", ["tenshoku", "gakusei", "keikaku"])]
 NEWS_ON_TOP = 3
 
 
@@ -287,7 +287,7 @@ HEADER = """<header class="bar">
 
 FOOTER = """<footer>
   <p><strong>aiai</strong> AI 時代の AI 活用法</p>
-  <p class="small"><a href="/sagasu.html">探す</a> ・ <a href="/kaiseki/">読まれ方の記録</a></p>
+  <p class="small"><a href="/sagasu.html">探す</a> ・ <a href="/kaiseki/">読まれ方の記録</a> ・ <a href="https://github.com/aiseed-dev/aiai-tools">aiai tools</a></p>
   <p class="small">文書は CC BY 4.0、コードは AGPL-3.0-or-later です。見本の人、店、数字は、すべて架空です。このサイトは、国や役所が作った物ではありません。</p>
 </footer>"""
 
@@ -309,8 +309,6 @@ document.querySelectorAll("[data-copy]").forEach(function (b) {
 });
 </script>"""
 
-# The guides that are tools of their own, not steps of the path
-TOOL_GUIDES = {"news": "ニュース", "kanri": "管理", "kaiseki": "解析"}
 
 HOW_TO_LOAD = ("「写す」で写して、ふだん使っている AI のチャットに貼ります。貼るほかに、AI に「スキル」として登録しておくこともできます。"
                "Claude は ZIP を、Gemini は SKILL.md か ZIP を上げます。ChatGPT は、スキルが使えるワークスペースで入れます。"
@@ -331,7 +329,7 @@ def load_skills():
             m = re.search(r"^# (.+)$", body, re.M)
             title = m[1].strip() if m else name
             body = body[:m.start()] + body[m.end():] if m else body
-            skills[name] = (step_of.get(name, TOOL_GUIDES.get(name, "")), title, front.get("description", ""), raw, body)
+            skills[name] = (step_of.get(name, ""), title, front.get("description", ""), raw, body)
     order = [n for _, names in STEPS for n in names]
     return dict(sorted(skills.items(), key=lambda kv: order.index(kv[0]) if kv[0] in order else len(order)))
 

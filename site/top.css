@@ -952,3 +952,7 @@ footer strong { color: var(--fg); }
 .others { margin-top: 20px; }
 @media (max-width: 880px) { .use-list { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px) { .use-list { grid-template-columns: 1fr; } }
+
+/* aiai tools, for those who also sell to companies */
+.tools-intro { padding: 8px 0 48px; }
+.tools-intro .section-lead { max-width: 46em; }

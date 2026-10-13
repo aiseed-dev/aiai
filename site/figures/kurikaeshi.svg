@@ -1,0 +1,19 @@
+<svg viewBox="0 0 360 272" role="img" aria-label="履歴から度々頼んでいることを数え、同じ作業はアプリにし、同じ直しは AI への決まりに書く、という図">
+  <text class="fm" x="180" y="22">履歴から数えた、度々頼んでいること</text>
+  <g class="fx"><rect x="10" y="36" width="340" height="34" rx="10"/><rect x="10" y="78" width="340" height="34" rx="10"/></g>
+  <g class="fm-box"><rect x="10" y="120" width="340" height="34" rx="10"/></g>
+  <text class="ft small" x="150" y="58">畑の作業の予定表づくり</text>
+  <text class="ft small" x="150" y="100">見積の計算</text>
+  <text class="ft small" x="150" y="142">「余計な説明を書かないで」</text>
+  <text class="ft small strong" x="315" y="58">12 回</text>
+  <text class="ft small strong" x="315" y="100">8 回</text>
+  <text class="ft small strong" x="315" y="142">6 回</text>
+  <g class="fx"><rect x="10" y="200" width="165" height="62" rx="14"/></g>
+  <g class="fm-box"><rect x="185" y="200" width="165" height="62" rx="14"/></g>
+  <text class="ft" x="92" y="225">同じ作業は</text>
+  <text class="ft strong" x="92" y="248">アプリにする</text>
+  <text class="ft" x="267" y="225">同じ直しは</text>
+  <text class="ft strong" x="267" y="248">決まりに書く</text>
+  <path class="fa-line" d="M92 162 V190"/><path class="fa-head" d="M86 184 L92 192 L98 184"/>
+  <path class="fa-line" d="M267 162 V190"/><path class="fa-head" d="M261 184 L267 192 L273 184"/>
+</svg>

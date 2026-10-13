@@ -1,0 +1,14 @@
+<svg viewBox="0 0 360 250" role="img" aria-label="Office に囲い込まれると、書類は docx と xlsx、AI は Copilot、使うには管理者の許しが要り、履歴は組織の物になる。囲い込まないと、書類は adoc、どの AI でも読め、記録は自分の手元に置け、全部を持って出られる、という対比の図">
+  <g class="fm-box"><rect x="10" y="10" width="165" height="230" rx="14"/></g>
+  <g class="fx"><rect x="185" y="10" width="165" height="230" rx="14"/></g>
+  <text class="fm" x="92" y="38">Office に囲い込まれると</text>
+  <text class="ft strong" x="267" y="38">囲い込まないと</text>
+  <text class="ft small" x="92" y="82">書類は docx と xlsx</text>
+  <text class="ft small" x="92" y="122">AI は Copilot</text>
+  <text class="ft small" x="92" y="162">使うには管理者の許し</text>
+  <text class="ft small" x="92" y="202">履歴は組織の物</text>
+  <text class="ft small strong" x="267" y="82">書類は adoc</text>
+  <text class="ft small strong" x="267" y="122">どの AI でも読める</text>
+  <text class="ft small strong" x="267" y="162">記録は自分の手元に</text>
+  <text class="ft small strong" x="267" y="202">全部を持って出られる</text>
+</svg>
