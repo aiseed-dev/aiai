@@ -60,5 +60,67 @@ class CheckTest(unittest.TestCase):
             self.assertEqual([y["word"] for y in kj.load(os.path.join(out, "yougo.json"), [])], ["b"])
 
 
+WAKU_PAGES = [("/skills/a.html", "A"), ("/skills/b.html", "B"), ("/skills/c.html", "C"),
+              ("/shoukai/x.html", "X"), ("/shoukai/y.html", "Y"), ("/kiji/k.html", "K"), ("/news/2026-10-14.html", "N")]
+
+
+class WakuTest(unittest.TestCase):
+    def choose(self, page, clicks=None, views=None, shown=None):
+        return kj.choose_waku(page, WAKU_PAGES, clicks or {}, views or {}, shown or {})
+
+    def test_most_pressed_then_most_viewed_then_path(self):
+        cards = self.choose("/kiji/k.html", clicks={("/kiji/k.html", "/skills/b.html"): 3},
+                            views={"/skills/c.html": 9, "/shoukai/y.html": 5})
+        self.assertEqual(cards[:2], ["/skills/b.html", "/shoukai/y.html"])  # 1st guide, 2nd introduction
+        self.assertEqual(self.choose("/kiji/k.html")[:2], ["/skills/a.html", "/shoukai/x.html"])  # by path when equal
+
+    def test_the_more_pressed_of_the_first_two_goes_first(self):
+        cards = self.choose("/kiji/k.html", clicks={("/kiji/k.html", "/shoukai/x.html"): 4, ("/kiji/k.html", "/skills/a.html"): 1})
+        self.assertEqual(cards[:2], ["/shoukai/x.html", "/skills/a.html"])
+
+    def test_the_third_is_the_one_shown_on_the_fewest_days(self):
+        cards = self.choose("/kiji/k.html", shown={"/skills/b.html": 2, "/skills/c.html": 1, "/shoukai/y.html": 3})
+        self.assertEqual(len(cards), 3)
+        self.assertEqual(cards[2], "/skills/c.html")  # b: 2, c: 1, y: 3, and a and x are the 1st and 2nd
+
+    def test_the_open_page_is_left_out_and_there_are_three_at_most(self):
+        cards = self.choose("/skills/a.html")
+        self.assertNotIn("/skills/a.html", cards)
+        self.assertEqual(len(cards), 3)
+        self.assertTrue(all(c.startswith(("/skills/", "/shoukai/")) for c in cards))
+
+    def test_a_day_is_chosen_from_the_summaries_and_undone(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rec, out = os.path.join(tmp, "rec"), os.path.join(tmp, "out")
+            os.makedirs(rec)
+            os.makedirs(out)
+            self.assertEqual(kj.waku_step(rec, out, WAKU_PAGES, "2026-10-14"), "")  # no record: nothing chosen
+            kj.save(os.path.join(rec, "2026-10-13.json"),
+                    {"pages": [{"path": "/skills/b.html", "views": 5}], "moves": [["/kiji/k.html", "/skills/b.html", 2, 1]]})
+            kj.waku_step(rec, out, WAKU_PAGES, "2026-10-14")
+            waku = kj.load(os.path.join(out, "waku.json"), {})
+            self.assertEqual(waku["/kiji/k.html"][0], "/skills/b.html")
+            self.assertNotIn("/", waku)  # the top page has no frame
+            self.assertIn("「あわせて読む」を選び直した", kj.read(os.path.join(out, "kiroku.adoc")))
+            kj.waku_step(rec, out, WAKU_PAGES, "2026-10-15")
+            self.assertEqual(sorted(kj.load(os.path.join(out, "waku-history.json"), {})), ["2026-10-14", "2026-10-15"])
+            kj.undo(out, "2026-10-15")
+            self.assertEqual(sorted(kj.load(os.path.join(out, "waku-history.json"), {})), ["2026-10-14"])
+            self.assertEqual(kj.load(os.path.join(out, "waku.json"), {}), waku)
+
+    def test_only_a_change_of_the_first_or_second_is_logged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rec, out = os.path.join(tmp, "rec"), os.path.join(tmp, "out")
+            os.makedirs(rec)
+            os.makedirs(out)
+            kj.save(os.path.join(rec, "2026-10-13.json"), {"pages": [], "moves": []})
+            kj.waku_step(rec, out, WAKU_PAGES, "2026-10-14")
+            kj.save(os.path.join(rec, "2026-10-14.json"), {"pages": [], "moves": [["/kiji/k.html", "/skills/c.html", 4, 0]]})
+            text = kj.waku_step(rec, out, WAKU_PAGES, "2026-10-15")
+            self.assertEqual(text.count("の変更"), 1)  # only /kiji/k.html
+            self.assertIn(":ページ: /kiji/k.html", text)
+            self.assertIn("/skills/c.html", text)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
