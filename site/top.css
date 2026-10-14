@@ -910,3 +910,26 @@ sup { line-height: 0; }
 .menu a[aria-current="page"] { color: var(--accent); font-weight: 700; }
 @media (max-width: 880px) { .card-links { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .card-links { grid-template-columns: 1fr; } }
+
+/* The "あわせて読む" frame: three cards chosen from the record. At 1180 px and wider it is a column of 240 px to the right of
+   the text (760 px), 40 px apart, both together in the middle; it stays under the header. Narrower, it follows the text
+   as cards in 3, 2 or 1 columns. */
+.waku { max-width: 760px; margin: 28px auto 0; }
+.waku-head { font-size: 1.1rem; margin: 0 0 10px; }
+.waku-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.waku-card { display: block; height: 100%; padding: 14px 16px; background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); color: inherit; text-decoration: none; }
+.waku-card:hover { border-color: var(--accent); }
+.waku-kind { display: block; color: var(--muted); font-size: 0.78rem; }
+.waku-card strong { display: block; margin-top: 2px; }
+.waku-desc { display: block; margin-top: 4px; color: var(--muted); font-size: 0.86rem; }
+.waku-note { margin: 8px 0 0; font-size: 0.78rem; color: var(--muted); }
+.waku-note a { color: inherit; }
+@media (max-width: 880px) { .waku-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .waku-cards { grid-template-columns: 1fr; } }
+@media (min-width: 1180px) {
+  main.doc.has-waku { display: grid; grid-template-columns: minmax(0, 760px) 240px; column-gap: 40px; justify-content: center; align-items: start; }
+  main.doc.has-waku > article { grid-column: 1; grid-row: 1; margin: 0; max-width: none; }
+  main.doc.has-waku > .waku { grid-column: 2; grid-row: 1; position: sticky; top: 84px; margin: 0; max-width: none; }
+  .waku-cards { grid-template-columns: 1fr; }
+}

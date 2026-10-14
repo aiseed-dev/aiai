@@ -13,7 +13,7 @@
   // A heading counts once a page, when it comes into view
   // a section with an id counts for its own heading, so that heading is not counted twice
   var heads = Array.prototype.filter.call(document.querySelectorAll("main h2, section[id]"), function (el) {
-    return el.tagName === "SECTION" || !el.closest("section[id]");
+    return !el.closest(".waku") && (el.tagName === "SECTION" || !el.closest("section[id]"));
   });
   if ("IntersectionObserver" in window) {
     var seen = new IntersectionObserver(function (items) {

@@ -359,5 +359,70 @@ class JidouTest(unittest.TestCase):
             self.assertIn("くりかえし", [e.get("k", "") for e in index if e["u"] == "/skills/rireki.html"][0])
 
 
+class WakuTest(unittest.TestCase):
+    """The "あわせて読む" frame (kaiseki/sekkei.adoc, chapter 10)."""
+
+    def build(self, waku=None):
+        with tempfile.TemporaryDirectory() as tmp:
+            jidou = os.path.join(tmp, "jidou")
+            os.makedirs(jidou)
+            if waku is not None:
+                with open(os.path.join(jidou, "waku.json"), "w", encoding="utf-8") as f:
+                    json.dump(waku, f)
+            out = os.path.join(tmp, "public")
+            make_site.OUT, make_site.JIDOU = out, jidou
+            try:
+                make_site.main()
+            finally:
+                make_site.JIDOU = ""
+            pages = {}
+            for root, _, files in os.walk(out):
+                for name in files:
+                    if name.endswith(".html"):
+                        path = os.path.join(root, name)
+                        with open(path, encoding="utf-8") as f:
+                            pages["/" + os.path.relpath(path, out).replace(os.sep, "/")] = f.read()
+            return pages
+
+    def test_the_pages_that_carry_the_frame_and_those_that_do_not(self):
+        pages = self.build()
+        for url in ("/skills/rireki.html", "/tsukaikata.html", "/kangaekata.html", "/shoukai/weather.html", "/kiji/mamoru.html"):
+            self.assertIn('<aside class="waku"', pages[url], url)
+            self.assertIn('<main class="doc has-waku">', pages[url], url)
+        self.assertTrue(any(u.startswith("/news/2") and 'class="waku"' in t for u, t in pages.items()))
+        for url in ("/index.html", "/sagasu.html", "/404.html", "/kaiseki/index.html", "/kaiseki/kiroku.html", "/news/index.html", "/kiji/index.html"):
+            self.assertNotIn('class="waku"', pages[url], url)
+
+    def test_without_a_record_the_order_of_the_manual_decides(self):
+        t = self.build()["/skills/rireki.html"]
+        links = re.findall(r'<a class="waku-card" href="([^"]+)" data-waku>', t)
+        self.assertEqual(links, ["/skills/website.html", "/shoukai/aiai-tools.html", "/skills/moushikomi.html"])
+        self.assertIn("読まれ方の記録から選んでいます", t)
+        # the page's own guide is not in its frame
+        own = re.findall(r'<a class="waku-card" href="([^"]+)" data-waku>', self.build()["/skills/website.html"])
+        self.assertNotIn("/skills/website.html", own)
+        self.assertEqual(own[0], "/skills/moushikomi.html")
+
+    def test_the_record_decides_and_unknown_pages_are_left_out(self):
+        pages = self.build({"/skills/rireki.html": ["/skills/genba.html", "/skills/nowhere.html", "/shoukai/weather.html"]})
+        links = re.findall(r'<a class="waku-card" href="([^"]+)" data-waku>', pages["/skills/rireki.html"])
+        self.assertEqual(links, ["/skills/genba.html", "/shoukai/weather.html"])
+        # a page the record does not name keeps the order of the manual
+        self.assertIn('href="/skills/website.html" data-waku', pages["/skills/genba.html"])
+
+    def test_the_cards_hold_only_the_sites_own_pages(self):
+        for url, t in self.build().items():
+            for aside in re.findall(r'<aside class="waku".*?</aside>', t, re.S):
+                hrefs = re.findall(r'href="([^"]+)"', aside)
+                self.assertTrue(all(h.startswith(("/skills/", "/shoukai/", "/kaiseki/")) for h in hrefs), url)
+                self.assertLessEqual(len(re.findall(r'class="waku-card"', aside)), 3)
+
+    def test_the_frame_script_sends_waku_not_link(self):
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "kaiseki-aiai.js"), encoding="utf-8") as f:
+            js = f.read()
+        self.assertIn('data-waku', js)
+        self.assertIn('"waku"', js)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

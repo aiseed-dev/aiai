@@ -472,7 +472,53 @@ def current_menu(path):
     return ""
 
 
+# The "あわせて読む" frame (kaiseki/sekkei.adoc, chapter 10): three of the site's guides and introductions, chosen from
+# the record by tools/kaiseki_jidou.py (waku.json). main() fills WAKU with what the cards show.
+FRAME_PREFIXES = ("/skills/", "/shoukai/", "/kiji/", "/news/")
+FRAME_PAGES = ("/tsukaikata.html", "/kangaekata.html")
+WAKU = {"cards": {}, "guides": [], "intros": []}  # cards: {url: (kind, title, description)}
+
+
+def has_frame(url):
+    """Guides, usage, introductions, articles, the way of thinking and each day's news carry the frame; the top page,
+    search, the page not found, the lists and the record's pages do not."""
+    return url in FRAME_PAGES or (url.startswith(FRAME_PREFIXES) and url.endswith(".html") and not url.endswith("/index.html"))
+
+
+def first_sentence(text, limit=60):
+    """The text up to its first 。, or "" when there is none or it is longer than the limit."""
+    m = re.match(r"(.*?。)", plain(text, 400))
+    return m[1] if m and len(m[1]) <= limit else ""
+
+
+def waku_urls(url):
+    """The three pages of this page's frame: those the record chose, else the first in the order of the manual's tables
+    (the first guide, the first introduction, the next guide), never this page itself."""
+    cards = WAKU["cards"]
+    chosen = [u for u in jidou("waku.json", {}).get(url, []) if u in cards and u != url][:3]
+    if chosen:
+        return chosen
+    guides, intros = ([u for u in WAKU[k] if u in cards and u != url] for k in ("guides", "intros"))
+    return [u for u in (guides[:1] + intros[:1] + guides[1:2]) if u]
+
+
+def waku_html(url):
+    urls = waku_urls(url)
+    if not urls:
+        return ""
+    cards = "".join(
+        f'<li><a class="waku-card" href="{u}" data-waku><span class="waku-kind">{WAKU["cards"][u][0]}</span>'
+        f'<strong>{html.escape(WAKU["cards"][u][1])}</strong>'
+        + (f'<span class="waku-desc">{html.escape(WAKU["cards"][u][2])}</span>' if WAKU["cards"][u][2] else "") + "</a></li>"
+        for u in urls)
+    return (f'<aside class="waku" aria-labelledby="waku-head"><h2 id="waku-head" class="waku-head">あわせて読む</h2>'
+            f'<ul class="waku-cards">{cards}</ul><p class="waku-note"><a href="/kaiseki/">読まれ方の記録から選んでいます</a></p></aside>')
+
+
 def write(path, text):
+    url = "/" + os.path.relpath(path, OUT).replace(os.sep, "/")
+    if has_frame(url) and '<main class="doc">' in text:
+        text = text.replace('<main class="doc">', '<main class="doc has-waku">', 1).replace("</main>", waku_html(url) + "\n</main>", 1)
     href = current_menu(path)
     if href:  # the menu shows which of its pages is open
         text = re.sub(rf'(<nav class="menu">.*?)<a href="{re.escape(href)}">', lambda m: m[1] + f'<a href="{href}" aria-current="page">',
@@ -772,6 +818,20 @@ def load_kiji(folder=os.path.join(ROOT, "kiji")):
     return out
 
 
+def fill_waku(skills, shoukai):
+    """What the frame's cards show: each guide's title and its README's first sentence, each introduction's title and
+    first sentence, and the order of the manual's tables (guides under ほかの手引き, introductions under 一緒に使う物)."""
+    WAKU["cards"] = {f"/skills/{n}.html": ("手引き", plain(t, 100), first_sentence(d)) for n, (_, t, d, _, _) in skills.items()}
+    for n, t, secs in shoukai:
+        WAKU["cards"][f"/shoukai/{n}.html"] = ("一緒に使う物", plain(t, 100), first_sentence(secs[0]["html"]))
+    text = read(MANUAL) if os.path.exists(MANUAL) else ""
+
+    def listed(heading, kind):
+        m = re.search(rf"^== {heading}\n(.*?)(?=^== |\Z)", text, re.M | re.S)
+        return [f"/{kind}/{n}.html" for n in re.findall(rf"{kind}/(\w[\w-]*)\.html", m[1])] if m else []
+    WAKU["guides"], WAKU["intros"] = listed("ほかの手引き", "skills"), listed("一緒に使う物", "shoukai")
+
+
 def annai_html(url):
     """The lines Gemini added at the end of this page, pointing to pages readers went on to."""
     items = [a for a in jidou("annai.json", []) if a.get("from") == url]
@@ -971,6 +1031,8 @@ def main():
         top = re.sub(r"\s*<!-- news-section -->.*?<!-- /news-section -->", "", top, flags=re.S)
     top = re.sub(r"<footer>.*?</footer>", lambda m: FOOTER, top, count=1, flags=re.S)  # one footer for all the pages
     skills = load_skills()
+    shoukai = load_shoukai()
+    fill_waku(skills, shoukai)
     top = top.replace("<!-- skill-src -->", skill_source(skills))  # what the first step of the flow copies
     write(os.path.join(OUT, "index.html"), top.replace("</body>", COPY_SCRIPT + "\n" + KAISEKI_TAGS + "\n</body>"))
     shutil.copyfile(os.path.join(HERE, "top.css"), os.path.join(OUT, "top.css"))
@@ -1012,7 +1074,6 @@ def main():
     # the usage page is the short form of the user manual; its PDF is copied beside it (the flow is the top page's)
     write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)) + skill_source(skills) + COPY_SCRIPT, "手引きを AI に読ませる方法と、アプリを作る流れ"))
     docs = os.path.dirname(MANUAL)
-    shoukai = load_shoukai()
     for path, text in shoukai_pages(shoukai).items():
         write(os.path.join(OUT, path), text)
     if os.path.exists(os.path.join(docs, "manual.pdf")):
