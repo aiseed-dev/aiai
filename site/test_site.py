@@ -174,7 +174,7 @@ class BuildTest(unittest.TestCase):
             self.assertNotIn("/katsuyou.html", top)
             self.assertIn('href="/tsukaikata.html#tools"', top)
             # the flow: steps 1 to 8, the two questions and the end; no step that is only "作る"
-            for text in ("1 何度も頼むことを見つける", "2 今あるアプリを探す", "不満はあるか", "3 どう良くするかを考える",
+            for text in ("1 AI とのチャットの履歴から、何度も頼むことを見つける", "2 今あるアプリを探す", "不満はあるか", "3 どう良くするかを考える",
                          "4 要望か、自分で作るか", "5 今あるアプリの課題を集める", "6 設計書とマニュアルを作る", "7 実装する",
                          "8 テストする", "直す所はあるか", "使い始める"):
                 self.assertIn(text, top)

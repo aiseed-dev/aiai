@@ -839,7 +839,7 @@ footer strong { color: var(--fg); }
 
 /* The top page's flow: a step opens to its explanation, a step the site's Gemini can
    do has a button on its right, and a question branches to the right */
-.nagare { --c2: 128px; --gap: 40px; max-width: calc(380px + var(--gap) + var(--c2)); margin: 10px auto 24px; }
+.nagare { --c1: 470px; --c2: 128px; --gap: 40px; max-width: calc(var(--c1) + var(--gap) + var(--c2)); margin: 10px auto 24px; }
 .nagare-row { display: grid; grid-template-columns: minmax(0, 1fr) var(--c2); column-gap: var(--gap); align-items: center; }
 .nagare-step, .nagare-q { grid-column: 1; margin: 0; line-height: 1.5; letter-spacing: 0; }
 p.nagare-step, .nagare-step > summary, .nagare-q { padding: 10px 14px; text-align: center;
