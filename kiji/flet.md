@@ -55,6 +55,27 @@ typescript-go の README(API は not ready)、https://github.com/microsoft/types
 Flet、https://github.com/flet-dev/flet 。AIseed Weather、https://github.com/aiseed-dev/weather 。
 2026-10-14 に確かめました)
 
+## Go だけより、Python と Rust で
+
+TypeScript は、コンパイラーを Go だけで書き直す道を選びました。速さを取る代わりに、使う人が手を入れる
+場所は無くなります。
+
+速さと、手を入れられることの両方を取るなら、Python と Rust を組み合わせる形があります。
+
+- **重い所だけを Rust で書く。** Rust は、動いている間にメモリを片付ける仕組み(ガベージコレクター)を
+  持たずに動きます。Go の標準の道具では、どのアプリにもガベージコレクターが入ります
+- **残りは Python のままにする。** 使う人が読んで、直して、足せます。AI も Python がいちばん得意です。
+  PyO3 と maturin を使うと、Rust で書いた所を、Python の部品として呼べます
+- **Python の世界では、もう広く使われている。** コードの点検の Ruff と、部品を入れる uv は、Rust で
+  書かれた Python の道具です。表を扱う Polars は、Rust で書かれた計算の仕組みを、Python からも使えます。
+  データを確かめる Pydantic も、2 からは確かめの中心を Rust で書いています
+- **Rust は書くのが難しいが、AI が書ける。** 天気のアプリでも、速さが要る所は、この形にできます
+
+(Rust、https://www.rust-lang.org/ 。Go「A Guide to the Go Garbage Collector」、https://go.dev/doc/gc-guide 。
+PyO3、https://github.com/PyO3/pyo3 。Ruff、https://github.com/astral-sh/ruff 。uv、https://github.com/astral-sh/uv 。
+Polars、https://github.com/pola-rs/polars 。pydantic-core、https://github.com/pydantic/pydantic-core 。
+2026-10-14 に確かめました)
+
 ## まとめ
 
 - 業務のアプリの画面を TypeScript で書き、中身を Python で書くと、言語の間に断絶ができる
@@ -63,3 +84,5 @@ Flet、https://github.com/flet-dev/flet 。AIseed Weather、https://github.com/a
   補ったことは、試験と AI への決まりに書いておく
 - TypeScript は、型が動かす前に消え、型の仕組みもわざと完全にしていない。画面のために、部品の山にも頼る。
   足りない所があっても、使う人は直す側に回れない
+- 速さと柔軟さは、Go だけにするより、Python と Rust を組み合わせる方が両方取れる。重い所だけを Rust で
+  書き、残りは使う人が手を入れられる Python のままにする
