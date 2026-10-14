@@ -1,0 +1,94 @@
+= officework
+:lang: ja
+
+Office の書類を、Microsoft Office なしで読み書きする、文書と表計算の OSS です。書類は adoc で持ちます。
+
+この文書の事実は、2026-10-14 に公開されている版で確かめました。確かめた版は、Python のパッケージが 0.9.0(PyPI)、アプリ(aiseed office)が 0.1.0-alpha.7(GitHub Releases)です。
+
+== officework とは
+
+officework は、Word と Excel の書類(docx と xlsx)を読んで、直して、保存し、PDF に書き出すソフトウェアです。ライセンスは AGPL-3.0-or-later で、ソースコードはすべて公開されています。^[1]^
+
+使い方は 2 つあります。
+
+* Python のパッケージとして使います。Python から docx と xlsx を読み書きします。Linux、macOS、Windows の版があります。^[1]^
+* アプリ(aiseed office)として使います。文書と表計算を画面で直します。Linux、macOS、Windows の版を、試験公開として配っています。^[2]^
+
+次のような人と場面で使えます。
+
+* 役所や取引先から届いた docx や xlsx の様式に、自分の AI と一緒に値を入れて返したい人
+* Microsoft Office を持っていない機械で、Office の書類を開いて直したい人
+* 書類の中身を、文字のファイルとして保存し、変更の履歴を残したい人
+
+== aiai との関係
+
+aiai は「囲い込まない」を方針にしています。書類は adoc で持ちます。Office の書類は、受け渡しのときだけ読み書きします。officework は、その受け渡しを Microsoft Office なしで行うために使います。
+
+officework は、aiai とは別のプロジェクトです。aiai は、公開されている officework を使う側です。
+
+== できること
+
+=== 書類を文字のファイルで持つ
+
+文書は adoc(AsciiDoc)で持てます。表は、同じ文字のままの形の `.sheet.adoc` で持てます。^[3]^ 文字のファイルなので、Microsoft Office がなくても読めて、git で変更の差分も取れます。^[6]^
+
+docx と xlsx は、受け渡しの形式として読み書きします。^[1]^ ^[6]^
+
+=== 様式にデータの値を入れる
+
+履歴書や申請書の様式は、値を入れる所に `{氏名}` のような印を置いた表または文書です。値は、名前と値を並べた `.sheet.adoc` に書きます。様式とデータは別のファイルなので、1 つのデータで何枚もの様式を埋められます。^[3]^
+
+Word と Excel で作った様式には、印を置かなくても値を入れられます。Excel では、データにセルの番地か定義した名前を書きます。Word では、差し込み印刷のフィールドか `{氏名}` のような印が、値を入れる所を示します。入るのは値だけで、ファイルのほかの部分は元のまま写されます。^[4]^
+
+=== PDF に書き出す
+
+保存するときに拡張子を `.pdf` にすると、直した文書や表が PDF になります。ページの描き方は、Word と Excel の印刷結果に合わせるように作っています。^[1]^ ^[4]^
+
+=== 表のセルから Python の関数を呼ぶ
+
+自分で書いた Python の関数を、セルの数式から呼べます。たとえば `~/.config/officework/funcs/` に関数 `倍` を書くと、セルに `=倍(A1)` と入れて使えます。^[5]^ コードはブックにも文書にも保存されません。書類を開いただけで、コードが動くことはありません。^[5]^
+
+Python は、お使いの機械のものを使います。Python が要るのは、グラフ、数式、ピボットテーブル、マクロの機能です。文書と表の編集、docx と xlsx の読み書き、印刷は、Python がなくても動きます。^[5]^
+
+== 注意してほしいこと
+
+開発中で、試験公開の段階です。Word と Excel と同じ表示と印刷を目標にしていますが、まだ同じになっていない所があります。たとえば、リリースノートには、集めた表計算 55 枚のうち 24 枚で、印刷の枚数が Excel と違うと書かれています。^[4]^ 分かっている問題の一覧も、リリースノートにあります。
+
+== 使い始め方
+
+Python のパッケージは、次のコマンドで入ります。Python は 3.10 以上が必要です。^[1]^
+
+[source,sh]
+----
+pip install officework
+----
+
+アプリは、GitHub の Releases から入手します。^[2]^
+
+* ソースコードと手引き: https://github.com/aiseed-dev/officework
+* Python のパッケージ: https://pypi.org/project/officework/
+* 不具合と要望の報告: https://github.com/aiseed-dev/officework/issues
+
+手引きは、リポジトリの `docs/ja/` にあります。様式を埋める手順は「様式の手引き」、数式から Python を呼ぶ手順は「calc の手引き」に書かれています。
+
+== aiai の中の officework
+
+aiai の `office/` に、officework のリボンの設定ファイル(`ribbon.toml`)と、Python のボタン 3 つを置いています。^[7]^ 置くと、リボンが「aiseed office 簡易版」になり、次のボタンが使えます。
+
+* 様式で埋める: 開いているデータ(`.sheet.adoc`)で様式を埋め、PDF をデータの隣に書きます
+* 足りない名前と別紙: データに無い名前を、ステータスバーに出します
+* 報告の下書き: データの値を含まない、報告の下書きを書きます
+
+aiai の `rirekisho/` には、架空の人の履歴書のデータ(`履歴書.sheet.adoc`)と、厚生労働省と JIS の 2 種類の履歴書の様式があります。^[7]^ 専用のアプリは作りません。機能が足りないときや不具合を見つけたときは、officework の Issues に報告します。^[7]^
+
+この簡易版は、macOS で確かめています。Linux と Windows では、まだ確かめていません。^[7]^
+
+== 出典(2026-10-14 に確かめた)
+
+. PyPI のプロジェクトページと JSON(最新 0.9.0、2026-09-30 公開、AGPL-3.0-or-later、Python 3.10 以上、Linux・macOS・Windows の wheel): https://pypi.org/project/officework/ と https://pypi.org/pypi/officework/json
+. GitHub Releases(最新 app-v0.1.0-alpha.7、2026-09-30): https://github.com/aiseed-dev/officework/releases
+. 様式の手引き(タグ v0.9.0): https://github.com/aiseed-dev/officework/blob/v0.9.0/docs/ja/forms-manual.adoc
+. リリースノート 0.9.0(タグ v0.9.0): https://github.com/aiseed-dev/officework/blob/v0.9.0/RELEASE.ja.adoc
+. calc の手引きと Python の手引き(タグ v0.9.0): https://github.com/aiseed-dev/officework/blob/v0.9.0/docs/ja/calc-manual.adoc と https://github.com/aiseed-dev/officework/blob/v0.9.0/docs/ja/python-manual.adoc
+. README(日本語、タグ v0.9.0): https://github.com/aiseed-dev/officework/blob/v0.9.0/README.ja.adoc
+. aiai の `office/README.md` と `rirekisho/`: https://github.com/aiseed-dev/aiai/tree/main/office と https://github.com/aiseed-dev/aiai/tree/main/rirekisho
