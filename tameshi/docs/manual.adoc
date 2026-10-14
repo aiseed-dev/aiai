@@ -3,7 +3,7 @@
 :toc:
 :toc-title: 目次
 
-aiai(https://aiai.aiseed.dev/)は、ふだん使っている AI に読ませる手引きと、手引きの一部を Google Cloud の Gemini で
+aiai(https://aiai.aiseed.dev/ )は、ふだん使っている AI に読ませる手引きと、手引きの一部を Google Cloud の Gemini で
 試せる aiai のアプリ(Web では https://aiai.aiseed.dev/app/ 、スマートフォンのアプリもある)です。このマニュアルは、手引きの使い方と、いちばん大事な使い方で
 ある「AI に何度も頼んでいることを、アプリにする」流れを、順に説明します。
 
@@ -45,7 +45,7 @@ image::images/nagare.svg[アプリを作る流れ]
 |===
 
 ふだん使っている AI には、aiai の手引き「度々聞いていることを、アプリにする」を読ませます。手引きのページ
-(https://aiai.aiseed.dev/skills/rireki.html)から写して貼るか、スキルとして入れます。
+(https://aiai.aiseed.dev/skills/rireki.html )から写して貼るか、スキルとして入れます。
 
 トップページの「作るまでの流れ」でも、同じ流れが見られます。段を押すと説明が開き、色の付いた段の右の
 「Gemini で試す」を押すと、アプリの「作る」のその段の欄に移ります。
@@ -86,7 +86,7 @@ AI が、度々頼んでいること、毎回手間がかかっていること�
 自分で決めます。同じ直し(「余計な説明を書かないで」など)の繰り返しは、アプリにせず、AI への決まりに書きます。
 
 PC の AI の道具(Claude Code など)の記録や、書き出した履歴のファイルは、aiai のアプリ
-(https://aiai.aiseed.dev/app/)の「記録」のタブで、AI に渡す材料のファイルにできます。Claude Code は、
+(https://aiai.aiseed.dev/app/ )の「記録」のタブで、AI に渡す材料のファイルにできます。Claude Code は、
 既定では 30 日より前の記録を消します。前の記録も使いたいときは、Claude Code の設定 `cleanupPeriodDays` で日数を延ばし
 ます。デスクトップアプリと Cowork で始めたか、最後に続けた記録は、既定では消えません
 (Claude Code Docs「Data usage」、https://code.claude.com/docs/en/data-usage 、2026-10-14 に確かめました)。
