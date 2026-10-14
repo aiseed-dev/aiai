@@ -33,3 +33,7 @@ nougyou/keikaku/経営計画の結果.adoc
 *.pem
 *.key
 *.db
+# The user manual's figures, screenshots and PDF are kept
+!tameshi/docs/images/
+!tameshi/docs/images/*.png
+!tameshi/docs/manual.pdf

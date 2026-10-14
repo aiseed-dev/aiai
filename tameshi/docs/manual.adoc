@@ -1,12 +1,32 @@
-= アプリを作る流れと「Gemini で試す」利用者マニュアル
+= aiai 利用者マニュアル
 :日付: 2026-10-14
 :toc:
 :toc-title: 目次
 
-AI に何度も頼んでいることを、アプリにするまでの流れと、その流れのうち、aiai のサイトの「Gemini で試す」
-(https://aiai.aiseed.dev/tameshi.html)で Google Cloud の Gemini に頼める所の使い方です。
+aiai(https://aiai.aiseed.dev/)は、ふだん使っている AI に読ませる手引きと、手引きの一部を Google Cloud の Gemini で
+試せるページ(https://aiai.aiseed.dev/tameshi.html)です。このマニュアルは、手引きの使い方と、いちばん大事な使い方で
+ある「AI に何度も頼んでいることを、アプリにする」流れを、順に説明します。
 
-== 流れ
+== 手引きを AI に読ませる
+
+手引きは、AI への決まりを書いたファイル(SKILL.md)です。サイトの手引きのページを開き、中身を写して、ふだん使って
+いる AI に貼ります。AI が、あなたに聞きながら進めます。どれを作るか、どう直すかを決めるのは、あなたです。
+
+[cols="1,3"]
+|===
+| AI | 読ませ方
+
+| Claude | 手引きのページから ZIP を落とし、スキルとして上げます
+| Gemini | SKILL.md か ZIP を、スキルとして上げます
+| ChatGPT | 写して貼ります。スキルが使えるワークスペースなら、スキルとして入れます
+| Microsoft 365 Copilot | 企業用の場合は、管理者に入れてもらいます
+|===
+
+== アプリを作る流れ
+
+image::images/nagare.svg[アプリを作る流れ]
+
+色の付いた段は、試すページで Gemini に頼めます。
 
 [cols="3,5,3"]
 |===
@@ -181,6 +201,30 @@ ____
 
 書く欄に、分野、地域、件数、扱わない物を書きます。初めは aiai のニュースの好みが入っているので、書き替えて
 使います。「作る」を押すと、1 分ほどでできます。「写す」で、全文を写せます。
+
+== ほかの手引き
+
+[cols="2,3"]
+|===
+| 手引き | 使うとき
+
+| https://aiai.aiseed.dev/skills/website.html[Web サイトを作る] | 自分で作ると決めたとき。公開してよい事実だけで、静的なページを作る
+| https://aiai.aiseed.dev/skills/moushikomi.html[申し込みを受ける] | Apple ID か Google ID でサインインした人から、取り置きや予約を受ける
+| https://aiai.aiseed.dev/skills/genba.html[現場で VLM を使う] | 畑、店、空き家、民泊の写真や映像を AI に読ませ、判断を助ける
+| https://aiai.aiseed.dev/skills/kaiseki.html[読まれ方の記録で、サイトを直す] | 読む人がどこで読み、何を探しているかを、Cookie を置かずに記録し、ページを直す
+| https://aiai.aiseed.dev/skills/kanri.html[自分のシステムを、自分で管理する] | 毎日のログを数えて AI に読ませ、自分のサーバーを守る
+| https://aiai.aiseed.dev/skills/news.html[自分の分野のニュースを作る] | 分野、地域、件数、扱わない物を決めて、毎朝の下書きを作らせる
+| https://aiai.aiseed.dev/skills/tenshoku.html[転職を考える] ・ https://aiai.aiseed.dev/skills/gakusei.html[AI の時代、何を学ぶか] ・ https://aiai.aiseed.dev/skills/keikaku.html[自然農法の経営計画] | 必要なときに
+|===
+
+[[tools]]
+== 一緒に使う物
+
+* https://github.com/aiseed-dev/aiai-tools[aiai tools]: 会社や団体にも売るとき、会社で何をしているかを知り、それに合う
+  システムを作るためのスキル
+* https://github.com/aiseed-dev/officework[officework]: Office の書類を、Microsoft Office なしで読み書きする、文書と
+  表計算の OSS。書類は adoc で持つ
+* https://weather.time-j.net/[個人開発気象統計]: 気象庁のデータから、全国の地点の気温の順位や雨温図を出す、個人のサイト。AI と一緒に作った実例
 
 == 知らせが出たとき
 
