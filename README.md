@@ -259,8 +259,8 @@ officework の Issues に報告します。
   タブは、偽の Apple と Google、偽のモデルで)、`site/` と `tameshi/` を Compute Engine の VM で
   https://aiai.aiseed.dev/ として動かすこと(本番と同じ写しで、テストアカウントと本物の Gemini を使い、
   「今あるアプリを探す」から「課題を集める」へ進むまでを確かめました)
-- 試験: `site/`、`tameshi/`、`moushikomi/`、`soudan/`、`kaiseki/`、`tools/` の `test_*.py`、合わせて 108 件が
-  通ることを確かめました(2026-10-14)
+- 試験: `site/`、`tameshi/`、`moushikomi/`、`soudan/`、`kaiseki/`、`tools/` の `test_*.py` が、すべて通ることを
+  確かめました(2026-10-14)
 - まだ確かめていない物:
   - Cloudflare Pages での公開と、お問い合わせの関数
   - `moushikomi/` を本物の Apple と Google で使うこと。iPhone と Android のアプリへの書き出し
