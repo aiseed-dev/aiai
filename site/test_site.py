@@ -149,7 +149,7 @@ class BuildTest(unittest.TestCase):
                 self.assertNotIn(text, usage)
             with open(os.path.join(out, "index.html"), encoding="utf-8") as f:
                 top = f.read()
-            self.assertIn("度々聞いていることを、アプリにする", top)
+            self.assertIn("/skills/rireki.html", top)  # the button to the guide
             self.assertNotIn("/katsuyou.html", top)
             self.assertIn('href="/tsukaikata.html#tools"', top)
             # the flow: steps 1 to 8, the two questions and the end; no step that is only "作る"
@@ -159,6 +159,16 @@ class BuildTest(unittest.TestCase):
                 self.assertIn(text, top)
             self.assertNotIn('nagare-step tsukuru">作る<', top)
             self.assertEqual(top.count('class="nagare-try"'), 5)
+            # the head: the name and the theme, one button to the guide; the flow's heading; cards, not a table of contents
+            for text in ("<h1>", "aiai —", "AI 活用法", 'href="/skills/rireki.html">手引きを見る', "AI に何度も頼むことを、アプリにする",
+                         "<h2>ほかのページ</h2>", "色の付いた段は、Gemini で試せます"):
+                self.assertIn(text, top)
+            self.assertNotIn("主役は、あなたの AI", top)
+            self.assertNotIn("flow-guide", top)
+            self.assertEqual(top.count('class="card-link"'), 6)
+            for href in ("/tsukaikata.html", "/kangaekata.html", "/kiji/", "/news/", "/eizou.html", "/tsukaikata.html#tools", "/kaiseki/", "/sagasu.html"):
+                self.assertIn(f'href="{href}"', top)
+            self.assertNotIn("<script", top.split('<section id="mokuji"')[1].split("</main>")[0])
             with open(os.path.join(out, "news", "index.html"), encoding="utf-8") as f:
                 self.assertIn("架空の見出し", f.read())
             with open(os.path.join(out, "skills", "rireki.html"), encoding="utf-8") as f:

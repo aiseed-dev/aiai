@@ -1007,26 +1007,12 @@ footer strong { color: var(--fg); }
 .try { align-self: flex-start; font-size: 0.82rem; font-weight: 700; color: var(--accent); text-decoration: none;
   padding: 3px 10px; border: 1px solid var(--accent); border-radius: 999px; }
 .try:hover { background: var(--accent-soft); }
-.flow-guide { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 20px; }
-.flow-guide .skill { flex: 1 1 360px; }
 .katsuyou .path-steps { margin-top: 18px; }
 
-/* The top page: the hero's words, the flow, and a table of contents */
+/* The top page: the hero's words, the flow, and the cards to the other pages */
 .hero.simple { grid-template-columns: 1fr; padding-bottom: 24px; }
 .hero.simple .lead { max-width: 46em; }
 .mokuji { padding: 24px 0 64px; }
-.mokuji-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 28px; }
-.mokuji-list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
-.mokuji-list a { font-weight: 700; text-decoration: none; }
-.mokuji-list span { display: block; color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
-@media (max-width: 600px) { .mokuji-list { grid-template-columns: 1fr; } }
-
-/* The top page's grouped table of contents */
-.flow-guide { justify-content: center; }
-.mokuji-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 32px; }
-.mokuji-groups h3 { margin: 6px 0 2px; font-size: 1rem; color: var(--muted); }
-.mokuji-groups .mokuji-list { grid-template-columns: 1fr; }
-@media (max-width: 880px) { .mokuji-groups { grid-template-columns: 1fr; } }
 
 /* The top heading breaks only between its phrases */
 .hero h1 .nb { display: inline-block; }
@@ -1076,3 +1062,16 @@ p.nagare-step.tsukuru { background: var(--accent); border-color: var(--accent); 
   .nagare-try { margin-top: 7px; padding: 4px 6px; font-size: 0.75rem; letter-spacing: 0; }
   .nagare-setsumei { padding: 12px 14px; }
 }
+
+/* The top page's cards to the other pages: a small drawing, a title, one line */
+.card-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.card-link { display: block; padding: 16px 18px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  color: inherit; text-decoration: none; }
+.card-link:hover { border-color: var(--accent); }
+.card-link svg { display: block; color: var(--accent); margin-bottom: 8px; }
+.card-link strong { display: block; }
+.card-link span { display: block; margin-top: 2px; color: var(--muted); font-size: 0.88rem; }
+.card-more { margin: 14px 0 0; }
+.nagare-note { margin: 0 0 8px; text-align: center; }
+@media (max-width: 880px) { .card-links { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .card-links { grid-template-columns: 1fr; } }
