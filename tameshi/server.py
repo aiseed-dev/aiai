@@ -291,7 +291,10 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
             if len(data) > MATERIAL_BYTES:
                 raise HTTPException(422, "資料が大きすぎます(2 MB まで)")
             uploads.append((os.path.basename(f.filename or "資料"), data))
-        materials = materials_of(uploads)
+        if kind == "chousa" and not uploads and note.strip():
+            materials = ""  # what the person asks the AI again and again, written in the note
+        else:
+            materials = materials_of(uploads)
         take(s, kind)
         jid = secrets.token_urlsafe(12)
         folder = os.path.join(jobs_dir, jid)

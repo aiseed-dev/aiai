@@ -46,14 +46,34 @@
     if (d && d.left !== undefined) $("tameshi-left").textContent = "今日あと " + d.left + " 回";
   }
 
+  // A step of the flow on the top page links here (/tameshi.html#chousa). Go there once
+  // signed in, also after the trip to Apple or Google, which drops the #.
+  var GOTO = "aiai.tameshi.goto", PLACES = { chousa: "今あるアプリを探す", sekkei: "設計書と利用者マニュアルを作る" };
+  var aim = location.hash.slice(1);
+  try {
+    if (PLACES[aim]) sessionStorage.setItem(GOTO, aim);
+    else aim = sessionStorage.getItem(GOTO) || "";
+  } catch (e) {}
+  function arrive() {
+    if (!PLACES[aim]) return;
+    try { sessionStorage.removeItem(GOTO); } catch (e) {}
+    var place = $(aim);
+    aim = "";
+    if (!place || place.closest("[hidden]")) return;
+    place.scrollIntoView({ block: "start" });
+    var box = place.querySelector("textarea");
+    if (box) box.focus({ preventScroll: true });
+  }
+
   function signedIn() {
     return call("/api/me").then(function (me) {
       $("tameshi-in").hidden = true;
       $("tameshi-use").hidden = false;
       $("tameshi-who").textContent = me.provider === "test" ? "テストアカウント" : (me.email || me.provider);
-      $("tameshi-left").textContent = "今日あと: 対話 " + me.left.chat + " 回、ニュース " + me.left.news + " 回、設計書 "
-        + me.left.sekkei + " 回、調べ " + me.left.chousa + " 回";
+      $("tameshi-left").textContent = "今日あと: 対話 " + me.left.chat + " 回、ニュース " + me.left.news + " 回、アプリ探し "
+        + me.left.chousa + " 回、設計書 " + me.left.sekkei + " 回";
       $("tameshi-kaihatsu").hidden = !me.kaihatsu;
+      arrive();
     });
   }
 
@@ -74,6 +94,7 @@
       b.href = API + "/login/" + p + "?next=" + encodeURIComponent(location.origin + location.pathname);
     });
     $("tameshi-test").hidden = !info.test_login;
+    if (PLACES[aim] && !token && !one) note("tameshi-in-note", "サインインすると、「" + PLACES[aim] + "」に進みます");
     var sel = $("tameshi-guide");
     info.guides.forEach(function (g) {
       var o = document.createElement("option");
@@ -148,14 +169,14 @@
   });
 })();
 
-// The longer jobs from materials: design and manual, and related apps
+// The longer jobs: the apps there are now (#chousa), and the design and manual
+// from materials (#sekkei). Each section has its form and its own list of jobs.
 (function () {
   var API = "/tameshi", KEY = "aiai.tameshi.token";
-  var $ = function (id) { return document.getElementById(id); };
-  var form = $("tameshi-job");
-  if (!form) return;
-  var kind = "sekkei", mihon = "", timer = null;
-  var NAMES = { sekkei: "設計書とマニュアル", chousa: "関係するアプリの調べ" };
+  var forms = document.querySelectorAll("form.tameshi-form");
+  if (!forms.length) return;
+  var timer = null;
+  var NAMES = { sekkei: "設計書とマニュアル", chousa: "今あるアプリを探す" };
   var STATUS = { waiting: "待っています", running: "進めています", done: "できました", error: "止まりました" };
   function token() { try { return sessionStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
   function auth() { return { Authorization: "Bearer " + token() }; }
@@ -171,44 +192,54 @@
     if (text) e.textContent = text;
     return e;
   }
-  function note(text, bad) {
-    var n = $("tameshi-job-note");
+  function part(kind, sel) {
+    var place = document.getElementById(kind);
+    return place && place.querySelector(sel);
+  }
+  function note(kind, text, bad) {
+    var n = part(kind, ".tameshi-job-note");
     n.textContent = text || "";
     n.classList.toggle("bad", !!bad);
   }
 
-  form.querySelectorAll("button[data-kind]").forEach(function (b) {
-    b.addEventListener("click", function () { kind = b.dataset.kind; mihon = b.dataset.mihon || ""; });
-  });
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var files = $("tameshi-files").files;
-    if (!files.length && !mihon) return note("資料を選んでください", true);
-    var data = new FormData();
-    data.append("kind", kind);
-    if (mihon) data.append("mihon", "1");
-    data.append("note", $("tameshi-note").value);
-    Array.prototype.forEach.call(files, function (f) { data.append("files", f); });
-    note("送っています");
-    fetch(API + "/api/jobs", { method: "POST", headers: auth(), body: data }).then(function (r) {
-      return r.json().catch(function () { return {}; }).then(function (d) {
-        if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.join("、") : (d.detail || "うまくいきませんでした"));
-        return d;
-      });
-    }).then(function () {
-      note("始めました。下で進み具合を見られます");
-      if (window.kaiseki) kaiseki.event("tameshi", { value: kind });
-      list();
-    }).catch(function (err) { note(err.message, true); });
+  forms.forEach(function (form) {
+    var kind = form.dataset.kind, mihon = "";
+    form.querySelectorAll("button[type=submit]").forEach(function (b) {
+      b.addEventListener("click", function () { mihon = b.dataset.mihon || ""; });
+    });
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var files = form.elements.files.files, text = form.elements.note.value;
+      if (!files.length && !mihon && !(kind === "chousa" && text.trim())) {
+        return note(kind, kind === "chousa" ? "何度も頼んでいることを書くか、資料を選んでください" : "資料を選んでください", true);
+      }
+      var data = new FormData();
+      data.append("kind", kind);
+      if (mihon) data.append("mihon", "1");
+      data.append("note", text);
+      Array.prototype.forEach.call(files, function (f) { data.append("files", f); });
+      note(kind, "送っています");
+      fetch(API + "/api/jobs", { method: "POST", headers: auth(), body: data }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.join("、") : (d.detail || "うまくいきませんでした"));
+          return d;
+        });
+      }).then(function () {
+        note(kind, "始めました。下で進み具合を見られます");
+        if (window.kaiseki) kaiseki.event("tameshi", { value: kind });
+        list();
+      }).catch(function (err) { note(kind, err.message, true); });
+    });
   });
 
   function list() {
     if (!token()) return;
     get("/api/jobs").then(function (r) { return r.json(); }).then(function (d) {
-      var box = $("tameshi-jobs");
-      box.innerHTML = "";
+      document.querySelectorAll(".tameshi-jobs").forEach(function (b) { b.innerHTML = ""; });
       var busy = false;
       d.jobs.forEach(function (j) {
+        var box = part(j.kind, ".tameshi-jobs");
+        if (!box) return;
         busy = busy || j.status === "waiting" || j.status === "running";
         var item = el("div", "tameshi-job");
         item.appendChild(el("p", "", NAMES[j.kind] + " ・ " + j.created + " ・ " + STATUS[j.status]));
@@ -266,7 +297,7 @@
   // the list shows once signed in; the page's own script signs in first
   var tries = 0;
   (function wait() {
-    if (!$("tameshi-use").hidden) return list();
+    if (!document.getElementById("tameshi-use").hidden) return list();
     if (++tries < 40) setTimeout(wait, 500);
   })();
 })();

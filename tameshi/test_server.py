@@ -174,6 +174,19 @@ class ServerTest(unittest.TestCase):
         self.assertIn("== High Climb", text)
         self.assertIn("https://highclimb.example/", text)
 
+    def test_searching_from_what_one_asks_again_and_again(self):
+        h = self.google("u5")
+        r = self.c.post("/api/jobs", data={"kind": "chousa", "note": "毎週、売上の表の集計を頼んでいる"}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        j = self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()
+        self.assertEqual(j["status"], "done", j)
+        first, second = self.gemini.seen[0][0][-1]["text"], self.gemini.seen[1][0][-1]["text"]
+        self.assertIn("売上の表の集計", first)
+        self.assertNotIn("<資料>", first)
+        self.assertIn("(== High Climb)", second)
+        # the design and manual still need materials
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "note": "集計"}, headers=h).status_code, 422)
+
     def test_the_sample_needs_no_upload(self):
         h = self.google("u9")
         r = self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h)

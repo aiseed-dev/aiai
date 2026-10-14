@@ -598,7 +598,7 @@ def tameshi_page():
     return f"""<article>
 <p class="kicker">試す</p>
 <h1>aiai を、Gemini で試す</h1>
-<p class="lead">サインインすると、手引きを読ませた Gemini と対話したり、自分の好みで今日のニュースを作らせたりできます。Gemini は Google Cloud で動きます。書いたことは Gemini に送り、このサイトには記録しません。1 日に使える回数があります。</p>
+<p class="lead">サインインすると、手引きを読ませた Gemini と対話し、今あるアプリを探させ、資料から設計書と利用者マニュアルを作らせ、自分の好みで今日のニュースを作らせることができます。Gemini は Google Cloud で動きます。書いたことは Gemini に送り、このサイトには記録しません。1 日に使える回数があります。</p>
 <section id="tameshi-in" class="tameshi-box">
   <h2>サインイン</h2>
   <div class="actions">
@@ -638,23 +638,40 @@ def tameshi_page():
       <button type="button" class="button" id="tameshi-copy">写す</button>
     </div>
   </section>
-  <section class="tameshi-box" id="tameshi-kaihatsu">
-    <h2>資料から、設計書と利用者マニュアルを作る。関係するアプリを調べる</h2>
-    <p class="fine">SKILL.md と参考の資料(.md、.adoc、.txt か、それを入れた ZIP)を渡します。設計書と利用者マニュアルは、Gemini 4 Argon が書き、画面の絵を Nano Banana が描き、最後に 2 つを照らし合わせます。調べる方は、Google 検索で公式サイトなどを読み、出典を付けます。数分かかります。作った物は 7 日で消します。</p>
-    <form id="tameshi-job">
-      <label class="tameshi-pick">資料 <input type="file" id="tameshi-files" multiple accept=".md,.adoc,.txt,.zip"></label>
-      <textarea id="tameshi-note" rows="2" maxlength="2000" placeholder="足したいこと(なくてもかまいません)" aria-label="足したいこと"></textarea>
+  <div id="tameshi-kaihatsu">
+  <section class="tameshi-box" id="chousa">
+    <h2>今あるアプリを探す</h2>
+    <p class="fine">AI に何度も頼んでいることを書くと、Gemini が、似たアプリを Google 検索で 3 つまで選び、公式サイト、ストアの説明、利用規約、料金のページを読んで、機能、料金、問題点を、出典を付けてまとめます。SKILL.md や参考の資料(.md、.adoc、.txt か、それを入れた ZIP)も足せます。数分かかります。作った物は 7 日で消します。</p>
+    <form class="tameshi-form" data-kind="chousa">
+      <textarea name="note" rows="3" maxlength="2000" placeholder="例: 毎週、売上の表を渡して、品目ごとの集計と先週との比べを頼んでいる" aria-label="何度も頼んでいること"></textarea>
+      <label class="tameshi-pick">資料(なくてもかまいません) <input type="file" name="files" multiple accept=".md,.adoc,.txt,.zip"></label>
       <div class="actions">
-        <button class="button primary" type="submit" data-kind="sekkei">設計書とマニュアルを作る</button>
-        <button class="button" type="submit" data-kind="chousa">関係するアプリを調べる</button>
+        <button class="button primary" type="submit">探す</button>
       </div>
-      <p class="fine">資料が手元に無ければ、架空の見本(パン屋の取り置きのアプリ)で試せます。
-        <button class="linkish" type="submit" data-kind="sekkei" data-mihon="1">見本で設計書とマニュアルを作る</button> ・
+      <p class="fine">架空の見本(パン屋の取り置きのアプリ)でも試せます。
+        <button class="linkish" type="submit" data-mihon="1">見本で探す</button> ・
         <a href="https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon">見本を見る</a></p>
     </form>
-    <p class="fine" id="tameshi-job-note" aria-live="polite"></p>
-    <div id="tameshi-jobs"></div>
+    <p class="fine tameshi-job-note" aria-live="polite"></p>
+    <div class="tameshi-jobs"></div>
   </section>
+  <section class="tameshi-box" id="sekkei">
+    <h2>資料から、設計書と利用者マニュアルを作る</h2>
+    <p class="fine">SKILL.md と参考の資料(.md、.adoc、.txt か、それを入れた ZIP)を渡します。Gemini 4 Argon が設計書と利用者マニュアルを書き、画面の絵を Nano Banana が描き、最後に 2 つを照らし合わせます。数分かかります。作った物は 7 日で消します。</p>
+    <form class="tameshi-form" data-kind="sekkei">
+      <label class="tameshi-pick">資料 <input type="file" name="files" multiple accept=".md,.adoc,.txt,.zip"></label>
+      <textarea name="note" rows="2" maxlength="2000" placeholder="足したいこと(なくてもかまいません)" aria-label="足したいこと"></textarea>
+      <div class="actions">
+        <button class="button primary" type="submit">設計書とマニュアルを作る</button>
+      </div>
+      <p class="fine">資料が手元に無ければ、架空の見本(パン屋の取り置きのアプリ)で試せます。
+        <button class="linkish" type="submit" data-mihon="1">見本で設計書とマニュアルを作る</button> ・
+        <a href="https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon">見本を見る</a></p>
+    </form>
+    <p class="fine tameshi-job-note" aria-live="polite"></p>
+    <div class="tameshi-jobs"></div>
+  </section>
+  </div>
 </div>
 </article>
 <script src="/tameshi.js" defer></script>"""

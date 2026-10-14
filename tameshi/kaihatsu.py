@@ -104,11 +104,14 @@ def sekkei(materials, note, folder, ask, draw, step):
 
 
 def chousa(materials, note, folder, ask, step):
-    """One adoc of the present state of the apps the materials concern, with sources."""
-    head = f"<資料>\n{materials}\n</資料>\n\n" + (f"<本人から>\n{note}\n</本人から>\n\n" if note else "")
+    """One adoc of the present state of the apps the materials concern, with sources.
+    Without materials, the note (what the person asks the AI again and again) says
+    what to look for."""
+    head = (f"<資料>\n{materials}\n</資料>\n\n" if materials else "") + (f"<本人から>\n{note}\n</本人から>\n\n" if note else "")
+    what = "資料が作ろうとしているアプリ" if materials else "本人が AI に何度も頼んでいること"
     step("調べるアプリを決める")
-    names, _ = ask([{"role": "user", "text": head + f"今日は {today()} です。資料が作ろうとしているアプリと、似たことをしている"
-                     f"今のアプリやサービスを、Google 検索で探し、{MAX_APPS} つまで選んでください。資料に名前が出ている物を"
+    names, _ = ask([{"role": "user", "text": head + f"今日は {today()} です。{what}と、似たことをしている"
+                     f"今のアプリやサービスを、Google 検索で探し、{MAX_APPS} つまで選んでください。資料や本人の言葉に名前が出ている物を"
                      "先にします。1 行に 1 つ、「名前 | 公式の URL | 選んだ理由」の形で書き、ほかは書きません。"}],
                    system=RULES, search=True, model=TEXT_MODEL, timeout=300)
     apps = [[x.strip() for x in line.split("|")] for line in names.splitlines() if line.count("|") >= 2][:MAX_APPS]
@@ -116,14 +119,16 @@ def chousa(materials, note, folder, ask, step):
     for name, url, why in (a[:3] for a in apps):
         step(f"調べる: {name}")
         text, found = ask([{"role": "user", "text": head + f"今日は {today()} です。「{name}」({url})の今を、Google 検索で、"
-                            "公式サイト、ストアの説明、利用規約、料金のページを読んで調べ、adoc の 1 つの節(== {name})に書いて"
-                            "ください。とは、運営者、規模、機能、料金、使っている外部サービス、問題点(利用者にとって、運営の作り)の順に、"
+                            f"公式サイト、ストアの説明、利用規約、料金のページを読んで調べ、adoc の 1 つの節(== {name})に書いて"
+                            "ください。運営者、規模、機能、料金、使っている外部サービス、問題点(利用者にとって、運営の作り)の順に書き、"
                             "表を使ってよいです。読んだ物に書いてあることだけを書き、推測で書きません。分からない所は、分からないと書きます。"
                             f"選んだ理由: {why}"}], system=RULES, search=True, model=TEXT_MODEL, max_tokens=16384, timeout=600)
         parts.append(clean(text))
         sources += found
     step("まとめる")
-    summary, _ = ask([{"role": "user", "text": head + "次の調べた結果から、資料のアプリが避けるべきことと、取り入れるとよいことを、"
+    ask_for = ("資料のアプリが避けるべきことと、取り入れるとよいこと" if materials
+               else "本人の頼みに、それぞれのアプリがどこまで応えるかと、足りない所")
+    summary, _ = ask([{"role": "user", "text": head + f"次の調べた結果から、{ask_for}を、"
                        "adoc の「== まとめ」の節として短く書いてください。\n\n" + "\n".join(parts)}],
                      system=RULES, model=TEXT_MODEL, timeout=600)
     seen, lines = set(), []
