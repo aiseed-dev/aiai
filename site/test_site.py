@@ -148,6 +148,8 @@ class BuildTest(unittest.TestCase):
                 self.assertTrue(any(e["u"].startswith(url + "#") and e["h"] and e["x"] for e in mine), url)
             self.assertTrue(any(e["u"] == "/tsukaikata.html#tools" and e["h"] == "一緒に使う物" and e["t"] == "使い方" for e in found))
             self.assertFalse(any(e["u"].startswith("/tsukaikata.html") and e["h"] == "知らせが出たとき" for e in found))
+            others = [e for e in found if e["u"] == "/tsukaikata.html#s17"][0]  # a table: its cells are apart
+            self.assertTrue(others["x"].startswith("手引き 使うとき Web サイトを作る 自分で"), others["x"])
             for name in ("aiai-tools", "officework", "weather"):  # the introductions of what is used with aiai
                 with open(os.path.join(out, "shoukai", f"{name}.html"), encoding="utf-8") as f:
                     shoukai = f.read()

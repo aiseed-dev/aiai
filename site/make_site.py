@@ -764,8 +764,11 @@ def kiji_pages(articles):
 def adoc_entries(url, title, sections):
     """[{u, t, h, x}] of a page made from AsciiDoc: its first paragraphs (no heading), then each section,
     whose address is <page>#<id of the section>."""
-    return [{"u": url, "t": title, "h": "", "x": plain(sections[0]["html"])}] + [
-        {"u": f"{url}#{x['id']}", "t": title, "h": x["title"], "x": plain(x["html"])} for x in sections[1:]]
+    def text(html_):  # the end of a cell, an item or a paragraph is a space, so words of two cells do not run together
+        return plain(re.sub(r"</(td|th|li|p|blockquote)>", " ", html_))
+
+    return [{"u": url, "t": title, "h": "", "x": text(sections[0]["html"])}] + [
+        {"u": f"{url}#{x['id']}", "t": title, "h": x["title"], "x": text(x["html"])} for x in sections[1:]]
 
 
 def search_index(skills, kangaekata, days, articles=(), pages=()):
