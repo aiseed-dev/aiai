@@ -1061,8 +1061,8 @@ p.nagare-step.tsukuru { background: var(--accent); border-color: var(--accent); 
 .nagare-ya span { position: absolute; top: 0; left: calc(50% + 12px); font-size: 0.8rem; line-height: 26px; color: var(--muted); }
 @media (max-width: 600px) {
   .nagare { --c2: 104px; --gap: 26px; }
-  p.nagare-step, .nagare-step > summary, .nagare-q { padding: 9px 8px; font-size: 0.9rem; }
+  p.nagare-step, .nagare-step > summary, .nagare-q { padding: 9px 6px; font-size: 0.86rem; }
   .nagare-side { padding: 6px 4px; font-size: 0.8rem; }
-  .nagare-try { margin-top: 6px; padding: 4px 9px; font-size: 0.8rem; }
+  .nagare-try { margin-top: 7px; padding: 4px 6px; font-size: 0.75rem; letter-spacing: 0; }
   .nagare-setsumei { padding: 12px 14px; }
 }
