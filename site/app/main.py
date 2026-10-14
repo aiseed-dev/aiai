@@ -58,6 +58,9 @@ def load_skills(folder):
             text = read(os.path.join(folder, f))
             name, desc, body = split_skill(text)
             title = next((ln[2:].strip() for ln in body.splitlines() if ln.startswith("# ")), name)
+            lead = os.path.join(folder, f[:-3] + ".lead.txt")  # the first paragraph of its README, written for people
+            if os.path.exists(lead):
+                desc = read(lead).strip()
             out[name or f[:-3]] = (title, desc, text)
     return out
 

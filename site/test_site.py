@@ -75,6 +75,15 @@ x < y
 """
 
 
+class LeadTest(unittest.TestCase):
+    def test_the_first_paragraph_of_a_readme(self):
+        import make_assets
+        self.assertEqual(make_assets.first_paragraph("# 題\n\nはじめの\n段落です。\n\n次の段落です。\n"), "はじめの段落です。")
+        self.assertEqual(make_assets.first_paragraph("# 題\n## 小見出し\n\n本文 `code` です。"), "本文 `code` です。")
+        self.assertEqual(make_assets.first_paragraph("# 題\n\n- 箇条から始まる\n"), "")
+        self.assertEqual(make_assets.first_paragraph(""), "")
+
+
 class AdocTest(unittest.TestCase):
     def test_the_manual_subset(self):
         title, sections = make_site.read_adoc(ADOC, "/i/")
@@ -150,6 +159,11 @@ class BuildTest(unittest.TestCase):
             self.assertFalse(any(e["u"].startswith("/tsukaikata.html") and e["h"] == "知らせが出たとき" for e in found))
             others = [e for e in found if e["u"] == "/tsukaikata.html#s17"][0]  # a table: its cells are apart
             self.assertTrue(others["x"].startswith("手引き 使うとき Web サイトを作る 自分で"), others["x"])
+            # a guide page opens with the first paragraph of its README.md; a guide with none keeps its description
+            with open(os.path.join(out, "skills", "rireki.html"), encoding="utf-8") as f:
+                self.assertIn('<p class="lead">AI とのチャットの履歴から、何度も頼んでいることを見つけます。', f.read())
+            with open(os.path.join(out, "skills", "genba.html"), encoding="utf-8") as f:
+                self.assertIn('<p class="lead">現場で撮った写真を VLM', f.read())
             for name in ("aiai-tools", "officework", "weather"):  # the introductions of what is used with aiai
                 with open(os.path.join(out, "shoukai", f"{name}.html"), encoding="utf-8") as f:
                     shoukai = f.read()

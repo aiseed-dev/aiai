@@ -18,6 +18,8 @@ import os
 import re
 import shutil
 
+from make_assets import first_paragraph
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT = os.path.join(HERE, "public")
@@ -553,7 +555,11 @@ def load_skills():
             m = re.search(r"^# (.+)$", body, re.M)
             title = m[1].strip() if m else name
             body = body[:m.start()] + body[m.end():] if m else body
-            skills[name] = (step_of.get(name, ""), title, front.get("description", ""), raw, body)
+            # the lead is the first paragraph of the guide's README.md, written for people; the description of the
+            # SKILL.md is for the AI that chooses a guide, so it is used only when there is no README
+            readme = os.path.join(dirpath, "README.md")
+            lead = first_paragraph(read(readme)) if os.path.exists(readme) else ""
+            skills[name] = (step_of.get(name, ""), title, lead or front.get("description", ""), raw, body)
     order = [n for _, names in STEPS for n in names]
     return dict(sorted(skills.items(), key=lambda kv: order.index(kv[0]) if kv[0] in order else len(order)))
 

@@ -27,6 +27,21 @@ def join_lines(lines):
     return out
 
 
+def first_paragraph(readme):
+    """The first paragraph of a README.md, joined into one line: what a person reads first about a guide.
+    A README that opens with a list, a table or code gives ''."""
+    lines, i = readme.splitlines(), 0
+    while i < len(lines) and (not lines[i].strip() or lines[i].startswith("#")):
+        i += 1
+    para = []
+    while i < len(lines) and lines[i].strip():
+        if lines[i].startswith(("|", "```", "- ", "* ", "1. ", "#")):
+            return "" if not para else join_lines(para)
+        para.append(lines[i])
+        i += 1
+    return join_lines(para)
+
+
 def inline(text):
     """Markdown of one line of AsciiDoc: URL[label] becomes a link, *bold* becomes **bold**."""
     # a <name> in a sentence is a name, not a tag; code is left as it is
@@ -113,6 +128,13 @@ def main():
         if "SKILL.md" in filenames:
             name = os.path.basename(dirpath)
             shutil.copyfile(os.path.join(dirpath, "SKILL.md"), os.path.join(OUT, name + ".md"))
+            readme = os.path.join(dirpath, "README.md")
+            if os.path.exists(readme):  # the first paragraph of its README, for the list of guides (plain text)
+                with open(readme, encoding="utf-8") as f:
+                    lead = first_paragraph(f.read()).replace("`", "")
+                if lead:
+                    with open(os.path.join(OUT, name + ".lead.txt"), "w", encoding="utf-8") as g:
+                        g.write(lead + "\n")
             n += 1
     shutil.copyfile(os.path.join(ROOT, "news", "好み.adoc"), os.path.join(ASSETS, "tastes.adoc"))
     manual = os.path.join(ASSETS, "manual")
