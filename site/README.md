@@ -6,7 +6,7 @@
 | `make_site.py` | Web のページを `public/` に作ります。トップページ、手引きごとのページ(頭の文は `README.md` の初めの段落、中身、「写す」、ZIP)、使い方(利用者マニュアル `tameshi/docs/manual.adoc` から)、紹介(`shoukai/*.adoc`)、考え方(`app/assets/kangaekata.md`)、記事(`kiji/*.md`)、ニュース(`news/*.adoc`)、探す、読まれ方の記録と直し方の記録、検索の目録(`sagasu.json`)、見つからないページ。`public/` はリポジトリに入れません。標準ライブラリだけ |
 | `test_site.py` | `make_site.py` の確かめ |
 | `test_app.py`、`test_tameshi_view.py` | アプリの立ち上がりの題と、「作る」のタブの道の確かめ(Flet と FastAPI がある所で動く) |
-| `app/main.py` | Flet の画面。手引き(一覧。開いて「写す」で写し、自分の AI に貼る)、作る、使い方、考え方、お知らせ、相談のタブ。中身の幅は、PC で 960 px までです。同じコードを `flet build` で iPhone と Android のアプリにする予定です |
+| `app/main.py` | Flet の画面。手引き(一覧。開いて「スキルをコピー」でコピーし、自分の AI に貼る)、作る、使い方、考え方、お知らせ、相談のタブ。中身の幅は、PC で 960 px までです。同じコードを `flet build` で iPhone と Android のアプリにする予定です |
 | `app/tameshi_view.py` | 作るのタブ。流れの 2、3、5、6、8 と、手引きを読ませた Gemini との対話、今日のニュースの欄。`tameshi/server.py` の API と話します |
 | `app/manual_view.py` | 使い方のタブ。利用者マニュアル(`app/assets/manual/`)を出します |
 | `app/glyphs.py` | Web のアプリで日本語の字が抜けないよう、タブを初めて出すときに、使う字を先に読み込みます |

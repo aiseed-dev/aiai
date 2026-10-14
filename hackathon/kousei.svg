@@ -17,7 +17,7 @@
   <!-- people -->
   <rect x="40" y="130" width="300" height="120" rx="16" class="box"/>
   <text x="62" y="170" class="t">読む人(ブラウザー)</text>
-  <text x="62" y="200" class="s">手引きを写して、自分の AI に</text>
+  <text x="62" y="200" class="s">スキルをコピーして、自分の AI に</text>
   <text x="62" y="226" class="s">Cookie なしで読まれ方を記録</text>
   <rect x="40" y="280" width="300" height="130" rx="16" class="box"/>
   <text x="62" y="320" class="t">サインインした人</text>
