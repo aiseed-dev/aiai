@@ -17,11 +17,15 @@ AI 時代の AI 活用法
 ほかに、転職や、AI の時代に何を学ぶかを考える手引きと、履歴書、開業の届出、就農の計画、
 自然農法の経営計画のように、決まった形の書類を AI と一緒に作る物があります。
 
-サイトは https://aiai.aiseed.dev/ です。Google Cloud の Compute Engine で動かしています。
-Gemini 3.8 Flash(Vertex AI)が、サイトの中の検索で合うページを選び、読まれ方の記録とサーバーの
-攻撃の記録を毎日読んで、所見を書き、サイトを少しずつ自動で直します。サインインした人は、手引きを
-読ませた Gemini と対話し、資料から Gemini 4 Argon に設計書と画面の絵付きの利用者マニュアルを作らせ、
-関係するアプリの今を Google 検索で調べさせられます([tameshi](tameshi/))。考えたことは、記事「ドローンが戦争を変えたように、AI は
+サイトは https://aiai.aiseed.dev/ です。Google Cloud の Compute Engine で動かしています。トップページの
+流れの段の「Gemini で試す」から、アプリの「作る」のタブに入り、流れのうち、今あるアプリを探す、どう良く
+するかを考える、今あるアプリの課題を集める、設計書とマニュアルを作る、テストの手順を作る、を Gemini
+(Vertex AI)に頼めます。調べて書く仕事は Gemini 4 Argon が段を分けて進め、画面の絵は Nano Banana 2.1 が
+描きます。一人ずつと全体に 1 日の回数の上限があり、書いたことは記録しません([tameshi](tameshi/))。
+毎日、Gemini 3.8 Flash が、読まれ方の記録とサーバーの攻撃の記録を読んで所見を書き、決めた範囲の中で
+サイトを少しずつ自動で直します。サイトの中の検索では、合うページの番号だけを選びます([kaiseki](kaiseki/))。
+構成図は [hackathon/kousei.svg](hackathon/kousei.svg)、「作る」の設計書と利用者マニュアルは
+[tameshi/docs/](tameshi/docs/) にあります。考えたことは、記事「ドローンが戦争を変えたように、AI は
 ソフトウェアを変える」(https://aiai.aiseed.dev/kiji/hackathon-2026-10.html)に書きました。
 
 会社や団体にも売るなら、会社の仕事を知り、それに合うシステムを作るためのスキルを
@@ -223,8 +227,11 @@ GitHub の画面では表になります。表計算やワープロのソフト�
 | [news](news/) | aiai ニュース。空き家、民泊、クライミングジムなどに共通する、VLM(画像を読む AI)と、VLM をこれから使える建物の機器と鳥獣対策のニュースを毎日まとめる |
 | [soudan](soudan/) | セカンドオピニオン(研究として、募集に応じた人だけが使う)。自分の AI と作った転職の考え、何を学ぶかの考え、履歴書、起業の企画書を、ほかの会社の AI のモデルに見てもらい、相談と出来事を記録する(試作) |
 | [office](office/) | officework の簡易版。書類を書いて直すための、リボンの設定ファイルと Python のボタンだけ |
-| [site](site/) | aiai のサイトとアプリ。トップページは HTML と CSS、`/app/` は Flet の画面(スキルの一覧、写してあなたの AI に貼る、考え方、お知らせ)。同じ画面を `flet build` でアプリにできる形にしている |
-| [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`kakunin.py`(出典を確かめ直す物を出す)、`houkoku.py`(報告の下書き)、`office_kit.py`(office のボタンが使う) |
+| [site](site/) | aiai のサイトとアプリ。トップページ、手引き、使い方のような読むページは HTML と CSS(`make_site.py` が作る)、`/app/` は Flet の画面(手引き、作る、使い方、考え方、お知らせ、相談)。同じ画面を `flet build` でアプリにできる形にしている |
+| [tameshi](tameshi/) | サイトで aiai を Gemini で試す仕組み。アプリの「作る」のタブが使う道(`server.py`)と、段を分けて進める仕事(`kaihatsu.py`。今あるアプリを探す、課題を集める、設計書とマニュアルを作る、テストの手順を作る)。設計書と利用者マニュアル(PDF もある)は `docs/` |
+| [shoukai](shoukai/) | 一緒に使う物(aiai tools、officework、個人開発気象統計)の紹介。サイトの `/shoukai/` に出る |
+| [hackathon](hackathon/) | 第 5 回 Agentic AI Hackathon の提出の下書き(`teishutsu.md`)、構成図(`kousei.svg`)、「作る」の見本の資料(`mihon/`) |
+| [tools](tools/) | `todoke.py`(書類ごとのデータを作る、受け取って確かめる)、`kakunin.py`(出典を確かめ直す物を出す)、`houkoku.py`(報告の下書き)、`office_kit.py`(office のボタンが使う)、`kougeki.py`(サーバーが受けた攻撃を数える)、`kaiseki_matome.py` と `kaiseki_jidou.py`(読まれ方を毎日まとめ、サイトを自動で直す)、`manual_pdf.py`(利用者マニュアルの PDF を作る) |
 
 見本の人、店、数字は、すべて架空です。
 
@@ -249,7 +256,11 @@ officework の Issues に報告します。
   `website/sample/build.py`、`moushikomi/`(偽の Apple と Google を相手にしたテストと、Web の画面を
   押して確かめること)、`soudan/`(偽の Apple と Google、偽のモデルを相手にしたテスト)、
   `site/`(トップページとアプリの画面を、ブラウザーで押して確かめること。セカンドオピニオンの
-  タブは、偽の Apple と Google、偽のモデルで)
+  タブは、偽の Apple と Google、偽のモデルで)、`site/` と `tameshi/` を Compute Engine の VM で
+  https://aiai.aiseed.dev/ として動かすこと(本番と同じ写しで、テストアカウントと本物の Gemini を使い、
+  「今あるアプリを探す」から「課題を集める」へ進むまでを確かめました)
+- 試験: `site/`、`tameshi/`、`moushikomi/`、`soudan/`、`kaiseki/`、`tools/` の `test_*.py`、合わせて 108 件が
+  通ることを確かめました(2026-10-14)
 - まだ確かめていない物:
   - Cloudflare Pages での公開と、お問い合わせの関数
   - `moushikomi/` を本物の Apple と Google で使うこと。iPhone と Android のアプリへの書き出し
