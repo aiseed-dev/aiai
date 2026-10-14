@@ -6,6 +6,7 @@ aiai writes them, and a build of the whole site into a temporary folder.
 """
 import json
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -32,6 +33,21 @@ class MarkdownTest(unittest.TestCase):
         self.assertIn("<code>&lt;x&gt;</code>", out)
         self.assertIn('<a href="https://example.jp/b">https://example.jp/b</a>', out)
         self.assertIn("&lt;b&gt;", out)
+
+    def test_sources_of_an_article_are_small_lines(self):
+        text = "(Rust、https://www.rust-lang.org/ 。Go 、https://go.dev/ )\n\n(補足です)\n\n本文です(https://x.example/)"
+        out = make_site.markdown(text, sources=True)
+        self.assertIn('<p class="src">(Rust', out)
+        self.assertIn("<p>(補足です)</p>", out)
+        self.assertIn("<p>本文です(", out)
+        self.assertNotIn('class="src"', make_site.markdown(text))
+
+    def test_the_longest_word_of_the_figure_fits_its_box_with_room(self):
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures", "tokui.svg"), encoding="utf-8") as f:
+            svg = f.read()
+        box = int(re.search(r'<rect x="10" y="98" width="(\d+)"', svg)[1])
+        longest = max(len(t) for t in re.findall(r"<text[^>]*>([^<]+)</text>", svg))
+        self.assertGreaterEqual(box - longest * 13.5, 30)  # room left and right, at the figure's small size (13.5 px a character)
 
     def test_table_and_code_block(self):
         out = make_site.markdown("| a | b |\n|---|---|\n| 1 | 2 |\n\n```\nx < y\n```")
@@ -148,6 +164,8 @@ class BuildTest(unittest.TestCase):
                          "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "tsukaikata.html", "tameshi.html",
                          "tsukaikata/manual.pdf", "eizou.html"):
                 self.assertTrue(os.path.exists(os.path.join(out, path)), path)
+            with open(os.path.join(out, "kiji", "mamoru.html"), encoding="utf-8") as f:  # where an article's claims come from is small and light
+                self.assertIn('<p class="src">(', f.read())
             with open(os.path.join(out, "sagasu.json"), encoding="utf-8") as f:
                 found = json.load(f)
             # the usage page and the introductions are searched like guides and articles: the first paragraphs, then each section
@@ -234,7 +252,6 @@ class BuildTest(unittest.TestCase):
                 self.assertIn('data-to="/kaiseki" data-ask="no"', text)
                 self.assertNotIn("/katsuyou.html", text)
             # one footer for every page, with the same links; the menu marks the page that is open
-            import re
             footer = re.search(r"<footer>.*?</footer>", top, re.S)[0]
             self.assertIn("一緒に使う物</a>", footer)
             self.assertNotIn("aiai-tools", footer)

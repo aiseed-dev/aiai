@@ -634,6 +634,8 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
   cursor: pointer;
 }
 .areas button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.news-day h2 a { color: inherit; text-decoration: none; }
+.news-day h2 a:hover { text-decoration: underline; }
 .news-day li { display: flex; gap: 10px; align-items: baseline; margin: 6px 0; }
 .news-day li .chip { flex: none; }
 .news-day[hidden], .news-day li[hidden] { display: none; }
@@ -677,7 +679,7 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 
 .news-entry { padding: 8px 0 20px; border-bottom: 1px solid var(--line); }
 .news-entry h2 { margin-top: 28px; }
-.news-entry .src { font-size: 0.85rem; color: var(--muted); }
+.news-entry .src, .prose p.src { font-size: 0.85rem; color: var(--muted); }
 .news-day ul { margin: 0; }
 
 /* ---- belief band ---------------------------------------------------- */

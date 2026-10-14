@@ -131,8 +131,9 @@ def figure(name):
     return f'<figure class="fig">{read(path)}</figure>' if os.path.exists(path) else ""
 
 
-def markdown(text):
-    """HTML of Markdown as aiai writes it. A line {{fig:name}} puts in a diagram."""
+def markdown(text, sources=False):
+    """HTML of Markdown as aiai writes it. A line {{fig:name}} puts in a diagram. With sources, a paragraph that is
+    one parenthesis holding a URL (where a claim comes from) is a small, light line, as the news shows its sources."""
     lines, out, i = text.splitlines(), [], 0
     while i < len(lines):
         line = lines[i]
@@ -173,7 +174,9 @@ def markdown(text):
             while (j < len(lines) and lines[j].strip() and not lines[j].startswith(("#", "```", "|"))
                    and not LIST_ITEM.match(lines[j])):
                 j += 1
-            out.append(f"<p>{inline(join_lines(lines[i:j]))}</p>")
+            para = join_lines(lines[i:j])
+            note = sources and re.fullmatch(r"[((].*[))]", para, re.S) and "http" in para
+            out.append(f'<p class="src">{inline(para)}</p>' if note else f"<p>{inline(para)}</p>")
             i = j
     return "\n".join(out)
 
@@ -776,7 +779,7 @@ def kiji_pages(articles):
 <h1>{html.escape(title)}</h1>
 <p class="lead">{inline(sub)}</p>
 {AUTO_NOTE if auto else ""}
-<div class="prose">{markdown(body)}</div>
+<div class="prose">{markdown(body, sources=True)}</div>
 {annai_html(f"/kiji/{slug}.html")}
 </article>""", sub)
         rows.append(f'<li><a href="/kiji/{slug}.html">{html.escape(title)}</a><br><span class="fine">{inline(sub)}</span></li>')
