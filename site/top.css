@@ -1010,3 +1010,11 @@ footer strong { color: var(--fg); }
 .mokuji-list a { font-weight: 700; text-decoration: none; }
 .mokuji-list span { display: block; color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
 @media (max-width: 600px) { .mokuji-list { grid-template-columns: 1fr; } }
+
+/* The top page's flow diagram and the grouped table of contents */
+.flow-fig { max-width: 440px; margin: 10px auto 20px; }
+.flow-guide { justify-content: center; }
+.mokuji-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 32px; }
+.mokuji-groups h3 { margin: 6px 0 2px; font-size: 1rem; color: var(--muted); }
+.mokuji-groups .mokuji-list { grid-template-columns: 1fr; }
+@media (max-width: 880px) { .mokuji-groups { grid-template-columns: 1fr; } }
