@@ -184,6 +184,14 @@ class BuildTest(unittest.TestCase):
                          "短い記事を書くことを 1 までです", "リンクは、このサイトの中だけです", "プログラムが確かめてから使います", "<code>STOP</code>", "<h2>記録</h2>"):
                 self.assertIn(text, kiroku)
             self.assertLess(kiroku.index("自動の直しの決まり"), kiroku.index("<h2>記録</h2>"))
+            # the button of a guide page copies the skill; what is said under it, and after pressing, are in the words of the flow
+            with open(os.path.join(out, "skills", "rireki.html"), encoding="utf-8") as f:
+                rireki = f.read()
+            self.assertIn('type="button" data-copy="skill-src">スキルをコピー</button>', rireki)
+            self.assertIn('<p class="fine">コピーして、ふだん使っている AI のチャットに貼ります。AI に「スキル」として登録しておくこともできます(Claude は ZIP、Gemini は SKILL.md か ZIP)。</p>', rireki)
+            self.assertIn("コピーしました。ふだん使っている AI に貼ってください", rireki)
+            self.assertNotIn("手引きを写す", rireki)
+            self.assertNotIn("「写す」", rireki)
             # a guide page opens with the first paragraph of its README.md; a guide with none keeps its description
             with open(os.path.join(out, "skills", "rireki.html"), encoding="utf-8") as f:
                 self.assertIn('<p class="lead">AI とのチャットの履歴から、何度も頼んでいることを見つけます。', f.read())

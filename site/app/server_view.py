@@ -118,10 +118,10 @@ class ServerView:
 
         async def copy(ev):
             await clipboard.set(r["adoc"])
-            self.page.show_dialog(ft.SnackBar(ft.Text("写しました")))
+            self.page.show_dialog(ft.SnackBar(ft.Text("コピーしました")))
 
         out = [ft.Text(f"{r['day']} の記録({r['host']}、{r['when'][11:16]} に数えた直近 {r['hours']} 時間)", size=16, weight=ft.FontWeight.BOLD),
-               ft.Row([ft.OutlinedButton("adoc を写す", icon=ft.Icons.CONTENT_COPY, on_click=copy)])]
+               ft.Row([ft.OutlinedButton("コピー", icon=ft.Icons.CONTENT_COPY, on_click=copy)])]
         if r.get("ai"):
             text = r["ai"]["text"] or f"読めませんでした: {r['ai'].get('error', '')}"
             out.append(self.card(f"AI の所見({r['ai']['model']})", [ft.Text(text, selectable=True),

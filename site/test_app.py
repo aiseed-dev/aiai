@@ -79,7 +79,17 @@ class MainTextTest(unittest.TestCase):
         with open(os.path.join(HERE, "app", "main.py"), encoding="utf-8") as f:
             main = f.read()
         self.assertIn('label="手引き"', main)
-        self.assertIn("手引きを写して、ふだん使っている AI に貼ると", main)
+        self.assertIn("スキルをコピーして、ふだん使っている AI に貼ると", main)
+        self.assertIn('ft.FilledButton("スキルをコピー"', main)  # the button of a guide
+        self.assertIn("コピーしました。ふだん使っている AI に貼ってください", main)
+        self.assertIn("スキルが使えないときは、「スキルをコピー」でチャットに貼ります。", main)
+        self.assertNotIn("写す", main)
+        for view in ("tameshi_view.py", "kiroku_view.py", "server_view.py"):  # other things are copied with a button called コピー
+            with open(os.path.join(HERE, "app", view), encoding="utf-8") as f:
+                text = f.read()
+            self.assertIn('OutlinedButton("コピー"', text, view)
+            self.assertNotIn('"写す"', text, view)
+            self.assertNotIn("写しました", text, view)
         self.assertIn('("1", "手引きを選ぶ")', main)
         self.assertIn("MAX_WIDTH = 960", main)
 

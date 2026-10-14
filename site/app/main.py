@@ -139,7 +139,7 @@ async def main(page: ft.Page):
         return ft.Row([ft.Container(ft.Column([
             ft.Text("aiai", size=30, weight=ft.FontWeight.W_800, color=ft.Colors.WHITE),
             ft.Text("AI 時代の AI 活用法", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=16),
-            ft.Text("主役は、あなたの AI。手引きを写して、ふだん使っている AI に貼ると、AI があなたに聞きながら一緒に作ります。",
+            ft.Text("主役は、あなたの AI。スキルをコピーして、ふだん使っている AI に貼ると、AI があなたに聞きながら一緒に作ります。",
                     color=ft.Colors.with_opacity(0.92, ft.Colors.WHITE), size=13),
             steps], spacing=10),
             padding=20, border_radius=22, expand=True,  # in a row, so the frame is as wide as the list under it
@@ -171,18 +171,18 @@ async def main(page: ft.Page):
 
         async def copy(e):
             await clipboard.set(text)
-            page.show_dialog(ft.SnackBar(ft.Text("写しました。あなたの AI に貼ってください")))
+            page.show_dialog(ft.SnackBar(ft.Text("コピーしました。ふだん使っている AI に貼ってください")))
 
         _, _, md = split_skill(text)
         zip_url = f"{SITE}/skills/{name}.zip"
         show([ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, tooltip="一覧に戻る", on_click=lambda e: show_list()),
                       ft.Row([ft.OutlinedButton("ZIP", icon=ft.Icons.DOWNLOAD, tooltip="スキルとして上げる ZIP",
                                                 action=ft.OpenUrl(zip_url, target=ft.UrlTarget.BLANK)),
-                              ft.FilledButton("写す", icon=ft.Icons.CONTENT_COPY, on_click=copy)], spacing=8)],
+                              ft.FilledButton("スキルをコピー", icon=ft.Icons.CONTENT_COPY, on_click=copy)], spacing=8)],
                      alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
               note(desc),
               note("ChatGPT、Claude、Gemini では、スキルとして上げて使えます(Claude は ZIP、Gemini は SKILL.md か ZIP)。"
-                   "スキルが使えないときは、「写す」でチャットに貼ります。"),
+                   "スキルが使えないときは、「スキルをコピー」でチャットに貼ります。"),
               ft.Divider(), markdown(md)])
 
     def show_kangaekata():

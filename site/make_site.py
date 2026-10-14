@@ -568,11 +568,6 @@ def skill_source(skills):
 
 
 
-HOW_TO_LOAD = ("「写す」で写して、ふだん使っている AI のチャットに貼ります。貼るほかに、AI に「スキル」として登録しておくこともできます。"
-               "Claude は ZIP を、Gemini は SKILL.md か ZIP を上げます。ChatGPT は、スキルが使えるワークスペースで入れます。"
-               "Microsoft 365 Copilot は、企業用の場合は、管理者に言ってもらってください。")
-
-
 def load_skills():
     """{name: (step, title, description, raw text, body)} of every SKILL.md; the
     name is the folder's, as the ZIP at /skills/<name>.zip uses it."""
@@ -642,10 +637,10 @@ def skill_page(name, step, title, description, raw, body):
 <h1>{html.escape(title)}</h1>
 <p class="lead">{inline(description)}</p>
 <div class="actions">
-  <button class="button primary" type="button" data-copy="skill-src">手引きを写す</button>
+  <button class="button primary" type="button" data-copy="skill-src">スキルをコピー</button>
   <a class="button" href="/skills/{name}.zip" download>ZIP をダウンロード</a>
 </div>
-<p class="fine">写して、ふだん使っている AI のチャットに貼ります。AI に「スキル」として登録しておくこともできます(Claude は ZIP、Gemini は SKILL.md か ZIP)。</p>
+<p class="fine">コピーして、ふだん使っている AI のチャットに貼ります。AI に「スキル」として登録しておくこともできます(Claude は ZIP、Gemini は SKILL.md か ZIP)。</p>
 <div class="prose people">
 {for_people(body)}
 </div>

@@ -460,9 +460,9 @@ class TameshiView:
 
         async def copy(e):
             await self.clipboard.set(d["adoc"])
-            self.say(self.news_note, "写しました")
+            self.say(self.news_note, "コピーしました")
 
-        self.news_out.controls = [ft.Text(d["adoc"], selectable=True, size=13), ft.OutlinedButton("写す", icon=ft.Icons.CONTENT_COPY, on_click=copy)]
+        self.news_out.controls = [ft.Text(d["adoc"], selectable=True, size=13), ft.OutlinedButton("コピー", icon=ft.Icons.CONTENT_COPY, on_click=copy)]
         self.news_out.visible = True
         self.count_left(d)
         self.say(self.news_note, "")

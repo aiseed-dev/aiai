@@ -128,11 +128,11 @@ class KirokuView:
         async def copy(ev):
             await clipboard.set(text)
             self.page.show_dialog(ft.SnackBar(ft.Text(said)))
-        return ft.OutlinedButton("写す", icon=ft.Icons.CONTENT_COPY, on_click=copy)
+        return ft.OutlinedButton("コピー", icon=ft.Icons.CONTENT_COPY, on_click=copy)
 
     async def make_handout(self, e):
         """Writes the handout next to the person's home folder, since the app runs on
-        their PC, and shows where it is; 写す copies it for pasting instead."""
+        their PC, and shows where it is; コピー copies it for pasting instead."""
         with open(os.path.join(ASSETS, "skills", "rireki.md"), encoding="utf-8") as f:
             skill = f.read()
         text = kiroku.handout(skill, self.messages)
@@ -142,9 +142,9 @@ class KirokuView:
         self.result.controls = [
             ft.Divider(),
             ft.Row([ft.Text("材料のファイルができました", size=18, weight=ft.FontWeight.BOLD),
-                    self.copy_button(text, "材料を写しました")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                    self.copy_button(text, "コピーしました")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Text(self.handout_path, selectable=True),
-            self.note(f"{len(text):,} 字。使っている AI のチャットに、このファイルを上げるか、「写す」で貼ります。"
+            self.note(f"{len(text):,} 字。使っている AI のチャットに、このファイルを上げるか、「コピー」で貼ります。"
                       "ファイルは、このまま、ほかの人には渡さないでください。")]
         self.page.update()
 
@@ -169,7 +169,7 @@ class KirokuView:
             self.page.update()
             return
         self.result.controls = [ft.Divider(), ft.Row([ft.Text("報告書", size=18, weight=ft.FontWeight.BOLD),
-                                                       self.copy_button(r["report"], "報告書を写しました")],
+                                                       self.copy_button(r["report"], "コピーしました")],
                                                       alignment=ft.MainAxisAlignment.SPACE_BETWEEN)]
         if r["status"] == "failed":
             self.result.controls.append(ft.Text(f"{r['done']}/{r['steps'] - 1} の項目までで止まりました: {r['error']}",
