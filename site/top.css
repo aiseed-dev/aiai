@@ -995,7 +995,9 @@ footer strong { color: var(--fg); }
 /* Step 3 on the try page: the complaint first, in the person's own words */
 .kaizen-start .tameshi-pick { margin-bottom: 10px; }
 .kaizen-start input, .kaizen-start textarea, .kaizen-start select { display: block; width: 100%; margin-top: 6px; }
-#kaizen-app { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+#kaizen-app, .tameshi-form input[name=name] { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+/* Steps 2, 5 and 6: the name of a field is over the field, as in step 3 */
+.tameshi-form .tameshi-pick select, .tameshi-form .tameshi-pick textarea, .tameshi-form .tameshi-pick input:not([type=file]) { display: block; width: 100%; margin: 6px 0 0; }
 #kaizen-again { margin-top: 4px; }
 @media (max-width: 880px) { .tameshi-box { scroll-margin-top: 116px; } }
 

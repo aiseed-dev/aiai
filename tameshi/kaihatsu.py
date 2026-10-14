@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""The two longer jobs of tameshi/server.py, which Gemini does in steps
+"""The three longer jobs of tameshi/server.py, which Gemini does in steps
 from the materials a person gives (a SKILL.md and its references):
 
     sekkei  the design document, the user manual with one picture per screen,
@@ -7,6 +7,10 @@ from the materials a person gives (a SKILL.md and its references):
             the materials list
     chousa  the present state of the apps the materials concern, found with
             Google Search, with the pages read as sources
+    kadai   the problems of those apps, for their users and in how they are
+            run, read from the pages Google Search finds, as one reference
+            (references/<name>-analysis.adoc, step 5 of rireki/SKILL.md) that
+            sekkei can read
 
 Each step is one call to Gemini (Gemini 4 Argon for the text, Nano Banana
 for the pictures), so the steps can be seen while the job runs. The files
@@ -21,6 +25,7 @@ import zoneinfo
 TEXT_MODEL = os.environ.get("TAMESHI_TEXT_MODEL", "gemini-4-argon")
 MAX_SCREENS = 8
 MAX_APPS = 3
+NAME = re.compile(r"[a-z0-9-]{1,40}")  # the name of the app to make, which names the file kadai writes
 TOKYO = zoneinfo.ZoneInfo("Asia/Tokyo")
 
 RULES = """あなたは、本人が渡した資料に従って、アプリの文書を書く係です。
@@ -51,6 +56,16 @@ def write(folder, path, data):
     os.makedirs(os.path.dirname(full), exist_ok=True)
     with open(full, "wb" if isinstance(data, bytes) else "w", **({} if isinstance(data, bytes) else {"encoding": "utf-8"})) as f:
         f.write(data)
+
+
+def source_list(sources):
+    """The pages read, as an adoc list with each page once."""
+    seen, lines = set(), []
+    for title, url in sources:
+        if url not in seen:
+            seen.add(url)
+            lines.append(f"* {url}[{title or url}]")
+    return "\n".join(lines)
 
 
 def sekkei(materials, note, folder, ask, draw, step):
@@ -131,11 +146,50 @@ def chousa(materials, note, folder, ask, step):
     summary, _ = ask([{"role": "user", "text": head + f"次の調べた結果から、{ask_for}を、"
                        "adoc の「== まとめ」の節として短く書いてください。\n\n" + "\n".join(parts)}],
                      system=RULES, model=TEXT_MODEL, timeout=600)
-    seen, lines = set(), []
-    for title, url in sources:
-        if url not in seen:
-            seen.add(url)
-            lines.append(f"* {url}[{title or url}]")
     doc = (f"= 関係するアプリの今\n:toc:\n:toc-title: 目次\n\n{today()} に、Gemini が Google 検索で公式サイトなどを読んでまとめました。\n\n"
-           + "\n".join(parts) + "\n" + clean(summary) + "\n== 読んだ資料\n\n" + "\n".join(lines) + "\n")
+           + "\n".join(parts) + "\n" + clean(summary) + "\n== 読んだ資料\n\n" + source_list(sources) + "\n")
     write(folder, f"chousa/{today()}.adoc", doc)
+
+
+def kadai(research, materials, note, name, folder, ask, step):
+    """references/<name>-analysis.adoc, step 5 of rireki/SKILL.md: the problems of the apps that
+    the research (what chousa found) and the materials name, for their users and in how they are
+    run, each with the pages it was read from, and what the app to make avoids. When no app is
+    named, apps that do the same are looked for first. The note is the person's own complaint."""
+    if not NAME.fullmatch(name):  # the name is part of the path written below
+        raise ValueError("the name of the app is not usable")
+    head = ((f"<調べた結果>\n{research}\n</調べた結果>\n\n" if research else "")
+            + (f"<資料>\n{materials}\n</資料>\n\n" if materials else "")
+            + (f"<本人から>\n{note}\n</本人から>\n\n" if note else ""))
+    step("課題を調べるアプリを決める")
+    names, _ = ask([{"role": "user", "text": head + f"今日は {today()} です。調べた結果や資料に名前が出ているアプリやサービスを、"
+                     f"{MAX_APPS} つまで選んでください。名前が出ていなければ(架空のアプリしか無いときなど)、資料が作ろうとしている"
+                     "アプリと似たことをしている今のアプリやサービスを、Google 検索で探して選んでください。"
+                     "1 行に 1 つ、「名前 | 公式の URL」の形で書き、ほかは書きません。"}],
+                   system=RULES, search=True, model=TEXT_MODEL, timeout=300)
+    apps = []
+    for line in names.splitlines():
+        if "|" in line:
+            who, url = (x.strip() for x in (line.split("|") + [""])[:2])
+            if who:
+                apps.append((who, url))
+    parts, sources = [], []
+    for who, url in apps[:MAX_APPS]:
+        step(f"課題を調べる: {who}")
+        text, found = ask([{"role": "user", "text": head + f"今日は {today()} です。「{who}」" + (f"({url})" if url else "")
+                            + "の課題を、Google 検索で、公式サイト、利用規約、料金のページ、ストアの説明と評価、"
+                            "公表された障害や情報の漏えいの発表を読んで調べ、"
+                            f"adoc の 1 つの節(== {who})に書いてください。節の中は、「=== 利用者にとっての問題点」と"
+                            "「=== 運営の作りの問題点」の 2 つに分けます。問題点ごとに、何が起きるかと、どのページに書いてあったかを"
+                            "書きます。読んだ物に書いてあることだけを書き、推測で書きません。分からない所は、分からないと書きます。"}],
+                           system=RULES, search=True, model=TEXT_MODEL, max_tokens=16384, timeout=600)
+        parts.append(clean(text))
+        sources += found
+    step("防ぐことをまとめる")
+    summary, _ = ask([{"role": "user", "text": head + "次の調べた結果と、本人の不満と、資料にある問題点から、作るアプリで防ぐことを、"
+                       "adoc の「== 作るアプリで防ぐこと」の節として書いてください。番号付きの一覧(. で始まる行)にします。"
+                       "それぞれに、どのアプリのどの問題点か、本人の不満があれば、そのどれに当たるかも書きます。\n\n"
+                       + "\n".join(parts)}], system=RULES, model=TEXT_MODEL, timeout=600)
+    doc = (f"= {name} の今あるアプリの課題\n:toc:\n:toc-title: 目次\n\n{today()} に、Gemini が Google 検索で公式サイトなどを読んでまとめました。\n\n"
+           + "\n".join(parts) + "\n" + clean(summary) + "\n== 読んだ資料\n\n" + source_list(sources) + "\n")
+    write(folder, f"references/{name}-analysis.adoc", doc)

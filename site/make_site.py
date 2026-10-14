@@ -643,7 +643,7 @@ def tameshi_page():
     <h2>今あるアプリを探す</h2>
     <p class="fine">AI に何度も頼んでいることを書くと、Gemini が、似たアプリを Google 検索で 3 つまで選び、公式サイト、ストアの説明、利用規約、料金のページを読んで、機能、料金、問題点を、出典を付けてまとめます。SKILL.md や参考の資料(.md、.adoc、.txt か、それを入れた ZIP)も足せます。数分かかります。作った物は 7 日で消します。</p>
     <form class="tameshi-form" data-kind="chousa">
-      <textarea name="note" rows="3" maxlength="2000" placeholder="例: 毎週、売上の表を渡して、品目ごとの集計と先週との比べを頼んでいる" aria-label="何度も頼んでいること"></textarea>
+      <label class="tameshi-pick">何度も頼んでいること <textarea name="note" rows="3" maxlength="2000" placeholder="例: 毎週、売上の表を渡して、品目ごとの集計と先週との比べを頼んでいる"></textarea></label>
       <label class="tameshi-pick">資料(なくてもかまいません) <input type="file" name="files" multiple accept=".md,.adoc,.txt,.zip"></label>
       <div class="actions">
         <button class="button primary" type="submit">探す</button>
@@ -675,10 +675,29 @@ def tameshi_page():
     </div>
     <p class="fine" id="kaizen-note" aria-live="polite"></p>
   </section>
+  <section class="tameshi-box" id="kadai">
+    <h2>今あるアプリの課題を集める</h2>
+    <p class="fine">「今あるアプリを探す」の結果か、渡した資料に出てくるアプリについて、使う人にとっての問題点と、運営の作りの問題点を、Gemini が Google 検索で公式サイトや利用規約などを読んで、出典を付けてまとめます。アプリの名前が出てこなければ、似たことをしているアプリを探してから調べます。できる物は、手引きの手順 5 の資料(references/&lt;名前&gt;-analysis.adoc)です。数分かかります。作った物は 7 日で消します。</p>
+    <form class="tameshi-form" data-kind="kadai">
+      <label class="tameshi-pick">読ませる結果 <select name="research"><option value="">読ませない</option></select></label>
+      <label class="tameshi-pick">作るアプリの名前(英数字とハイフン。資料のファイルの名前に使います) <input name="name" autocomplete="off" autocapitalize="none" placeholder="例: toriooki"></label>
+      <label class="tameshi-pick">3 で分かった不満(あれば) <textarea name="note" rows="3" maxlength="2000" placeholder="例: 前の週の表が残らないので、先週との比べを毎回自分で作っている"></textarea></label>
+      <label class="tameshi-pick">資料(なくてもかまいません) <input type="file" name="files" multiple accept=".md,.adoc,.txt,.zip"></label>
+      <div class="actions">
+        <button class="button primary" type="submit">集める</button>
+      </div>
+      <p class="fine">架空の見本(パン屋の取り置きのアプリ)でも試せます。
+        <button class="linkish" type="submit" data-mihon="1">見本で集める</button> ・
+        <a href="https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon">見本を見る</a></p>
+    </form>
+    <p class="fine tameshi-job-note" aria-live="polite"></p>
+    <div class="tameshi-jobs"></div>
+  </section>
   <section class="tameshi-box" id="sekkei">
-    <h2>資料から、設計書と利用者マニュアルを作る</h2>
-    <p class="fine">SKILL.md と参考の資料(.md、.adoc、.txt か、それを入れた ZIP)を渡します。Gemini 4 Argon が設計書と利用者マニュアルを書き、画面の絵を Nano Banana が描き、最後に 2 つを照らし合わせます。数分かかります。作った物は 7 日で消します。</p>
+    <h2>設計書と利用者マニュアルを作る</h2>
+    <p class="fine">作るアプリの SKILL.md と参考の資料(.md、.adoc、.txt か、それを入れた ZIP)を渡します。SKILL.md は、手引き「度々聞いていることを、アプリにする」の「アプリの SKILL.md の形」に沿って、自分の AI と書きます。上の「今あるアプリの課題を集める」の資料も読ませられます。Gemini 4 Argon が設計書と利用者マニュアルを書き、画面の絵を Nano Banana が描き、最後に 2 つを照らし合わせます。数分かかります。作った物は 7 日で消します。</p>
     <form class="tameshi-form" data-kind="sekkei">
+      <label class="tameshi-pick">読ませる課題の資料 <select name="kadai"><option value="">読ませない</option></select></label>
       <label class="tameshi-pick">資料 <input type="file" name="files" multiple accept=".md,.adoc,.txt,.zip"></label>
       <textarea name="note" rows="2" maxlength="2000" placeholder="足したいこと(なくてもかまいません)" aria-label="足したいこと"></textarea>
       <div class="actions">

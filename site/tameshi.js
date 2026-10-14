@@ -50,7 +50,7 @@
   // A step of the flow on the top page links here (/tameshi.html#chousa). Go there once
   // signed in, also after the trip to Apple or Google, which drops the #.
   var GOTO = "aiai.tameshi.goto", PLACES = { chousa: "今あるアプリを探す", kaizen: "どう良くするかを考える",
-    sekkei: "設計書と利用者マニュアルを作る" };
+    kadai: "今あるアプリの課題を集める", sekkei: "設計書と利用者マニュアルを作る" };
   var aim = location.hash.slice(1);
   try {
     if (PLACES[aim]) sessionStorage.setItem(GOTO, aim);
@@ -63,7 +63,7 @@
     aim = "";
     if (!place || place.closest("[hidden]")) return;
     place.scrollIntoView({ block: "start", behavior: "instant" });
-    var box = place.querySelector("textarea");
+    var box = place.querySelector("input[name=name], textarea");  // the first field to type in
     if (box) box.focus({ preventScroll: true });
   }
 
@@ -73,7 +73,7 @@
       $("tameshi-use").hidden = false;
       $("tameshi-who").textContent = me.provider === "test" ? "テストアカウント" : (me.email || me.provider);
       $("tameshi-left").textContent = "今日あと: 対話 " + me.left.chat + " 回、ニュース " + me.left.news + " 回、アプリ探し "
-        + me.left.chousa + " 回、設計書 " + me.left.sekkei + " 回";
+        + me.left.chousa + " 回、課題 " + me.left.kadai + " 回、設計書 " + me.left.sekkei + " 回";
       $("tameshi-kaihatsu").hidden = !me.kaihatsu;
       arrive();
     });
@@ -171,14 +171,20 @@
   });
 })();
 
-// The longer jobs: the apps there are now (#chousa), and the design and manual
-// from materials (#sekkei). Each section has its form and its own list of jobs.
+// The longer jobs: the apps there are now (#chousa), their problems (#kadai), and the
+// design and manual from materials (#sekkei). Each section has its form and its own list of jobs.
 (function () {
   var API = "/tameshi", KEY = "aiai.tameshi.token";
   var forms = document.querySelectorAll("form.tameshi-form");
   if (!forms.length) return;
   var timer = null;
-  var NAMES = { sekkei: "設計書とマニュアル", chousa: "今あるアプリを探す" };
+  var NAMES = { sekkei: "設計書とマニュアル", chousa: "今あるアプリを探す", kadai: "今あるアプリの課題を集める" };
+  // What a form needs before it is sent, in the words of the server's refusal
+  var ENOUGH = {
+    chousa: "何度も頼んでいることを書くか、資料を選んでください",
+    kadai: "読ませる結果を選ぶか、資料を選んでください",
+    sekkei: "SKILL.md と参考の資料を選ぶか、見本で試してください"
+  };
   var STATUS = { waiting: "待っています", running: "進めています", done: "できました", error: "止まりました" };
   function token() { try { return sessionStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
   function auth() { return { Authorization: "Bearer " + token() }; }
@@ -211,15 +217,13 @@
     });
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      var files = form.elements.files.files, text = form.elements.note.value;
-      if (!files.length && !mihon && !(kind === "chousa" && text.trim())) {
-        return note(kind, kind === "chousa" ? "何度も頼んでいることを書くか、資料を選んでください" : "資料を選んでください", true);
-      }
-      var data = new FormData();
+      var fields = form.elements, files = fields.files.files;
+      var given = files.length || mihon || (kind === "chousa" && fields.note.value.trim()) || (kind === "kadai" && fields.research.value);
+      if (!given) return note(kind, ENOUGH[kind], true);
+      var data = new FormData(form);  // the fields this form has: research, name, kadai, note and files
+      if (!files.length) data.delete("files");  // a file field with no file is sent as an empty part, which the server refuses
       data.append("kind", kind);
       if (mihon) data.append("mihon", "1");
-      data.append("note", text);
-      Array.prototype.forEach.call(files, function (f) { data.append("files", f); });
       note(kind, "送っています");
       fetch(API + "/api/jobs", { method: "POST", headers: auth(), body: data }).then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (d) {
@@ -282,6 +286,22 @@
           $k("kaizen-fuman").focus({ preventScroll: true });
         });
         body.appendChild(go);
+        var gather = el("button", "button", "この結果で、課題を集める");
+        gather.type = "button";
+        gather.addEventListener("click", function () {
+          part("kadai", "select[name=research]").value = id;
+          jump("kadai", "input[name=name]");
+        });
+        body.appendChild(gather);
+      }
+      if (j.kind === "kadai") {
+        var make = el("button", "button", "この資料で、設計書とマニュアルを作る");
+        make.type = "button";
+        make.addEventListener("click", function () {
+          part("sekkei", "select[name=kadai]").value = id;
+          jump("sekkei");
+        });
+        body.appendChild(make);
       }
       var pics = el("div", "tameshi-pics");
       j.files.forEach(function (path) {
@@ -313,17 +333,28 @@
   // what one of their searches found.
   var $k = function (id) { return document.getElementById(id); };
   var talk = [];
-  function researches(jobs) {
-    var sel = $k("kaizen-job");
+  // The selects that read a finished job are made again with every list, keeping the choice
+  function pick(sel, kind, jobs) {
     if (!sel) return;
     var keep = sel.value, found = false;
     sel.length = 1;
     jobs.forEach(function (j) {
-      if (j.kind !== "chousa" || j.status !== "done") return;
-      sel.add(new Option("今あるアプリを探す ・ " + j.created, j.id));
+      if (j.kind !== kind || j.status !== "done") return;
+      sel.add(new Option(NAMES[kind] + " ・ " + j.created, j.id));
       found = found || j.id === keep;
     });
     sel.value = found ? keep : "";
+  }
+  function researches(jobs) {
+    pick($k("kaizen-job"), "chousa", jobs);                   // step 3 reads a search
+    pick(part("kadai", "select[name=research]"), "chousa", jobs);  // step 5 reads a search
+    pick(part("sekkei", "select[name=kadai]"), "kadai", jobs);     // step 6 reads the problems gathered
+  }
+  // Go to the head of a section, which stops below the bar above, and into its first field
+  function jump(place, first) {
+    document.getElementById(place).scrollIntoView({ block: "start", behavior: "instant" });
+    var box = first && part(place, first);
+    if (box) box.focus({ preventScroll: true });
   }
   function kaizenNote(text, bad) {
     $k("kaizen-note").textContent = text || "";

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Tries server.py: sign-in with the fake Google of moushikomi/fake_id.py and
-the test account, the dialogue with a guide, the news, the design and research
-jobs from uploaded materials, and the limits, with a fake Gemini.
+the test account, the dialogue with a guide, the news, the design, research and
+problem-gathering jobs from uploaded materials, and the limits, with a fake Gemini.
 
     python tameshi/test_server.py
 """
@@ -22,6 +22,7 @@ import fake_id  # noqa: E402
 from fake_id import code  # noqa: E402
 
 sys.path.insert(0, HERE)
+import kaihatsu  # noqa: E402
 import server  # noqa: E402
 
 PAGE = "https://aiai.example/tameshi.html"
@@ -38,6 +39,13 @@ class FakeGemini:
             return json.dumps({"screens": [{"id": "screen-01", "name": "課題一覧", "parts": ["課題一覧", "課題を登録"]}]}), []
         if schema:
             return json.dumps({"report": "== 確かめ\n\n合っています。", "manual": "= 利用者マニュアル\n\nimage::images/screen-01.png[課題一覧]"}), []
+        if search and "名前が出ていなければ" in text:  # kadai: which apps
+            return "High Climb | https://highclimb.example", []
+        if search and "の課題を、Google 検索で" in text:  # kadai: the problems of one app (the same page twice)
+            return ("== High Climb\n\n=== 利用者にとっての問題点\n\n. 取り消しは電話だけ。\n\n=== 運営の作りの問題点\n\n. 預かる情報が多い。",
+                    [("highclimb.example", "https://highclimb.example/"), ("利用規約", "https://highclimb.example/")])
+        if not search and "作るアプリで防ぐことを、adoc の" in text:  # kadai: what to avoid
+            return "== 作るアプリで防ぐこと\n\n. 取り消しを、アプリからできるようにする。", []
         if search and "名前 | 公式の URL" in text:
             return "High Climb | https://highclimb.example | 資料に出てくる", []
         if search and "今を、Google 検索で" in text:
@@ -211,6 +219,183 @@ class ServerTest(unittest.TestCase):
         r = self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h)
         self.assertEqual(r.status_code, 200, r.text)
         self.assertIn("こむぎ堂", self.gemini.seen[0][0][-1]["text"])
+
+    def assertRefused(self, r, status, detail):
+        self.assertEqual((r.status_code, r.json().get("detail")), (status, detail), r.text)
+
+    def restart(self, env=None, **more):
+        """The server again on the same files, with other settings or jobs that wait."""
+        self.app.state.db.db.close()
+        self.app = server.create_app(self.env | (env or {}), model=self.gemini, **more)
+        self.c = TestClient(self.app, follow_redirects=False)
+
+    def search_of(self, h):
+        """A finished research job of this person, for the problems job to read."""
+        r = self.job(h, "chousa", files=[("files", ("SKILL.md", "# 架空のアプリ".encode(), "text/markdown"))])
+        self.assertEqual(r.status_code, 200, r.text)
+        return r.json()["id"]
+
+    def test_gathering_the_problems_of_the_apps_that_were_found(self):
+        h = self.google("u10")
+        found = self.search_of(h)
+        before = len(self.gemini.seen)
+        r = self.c.post("/api/jobs", data={"kind": "kadai", "research": found, "name": "Toriooki",
+                                           "note": "取り消しがアプリでできない"}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        j = self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()
+        self.assertEqual(j["status"], "done", j)
+        # the name, lowercased, names the reference of step 5
+        self.assertEqual(j["files"], ["references/toriooki-analysis.adoc"])
+        self.assertEqual([x["name"] for x in j["steps"]],
+                         ["課題を調べるアプリを決める", "課題を調べる: High Climb", "防ぐことをまとめる"])
+        text = self.c.get(f"/api/jobs/{r.json()['id']}/file", params={"path": j["files"][0]}, headers=h).text
+        self.assertTrue(text.startswith("= toriooki の今あるアプリの課題\n"), text)
+        for want in ("== High Climb", "=== 利用者にとっての問題点", "=== 運営の作りの問題点", "== 作るアプリで防ぐこと",
+                     "== 読んだ資料", "https://highclimb.example/"):
+            self.assertIn(want, text)
+        self.assertEqual(text.count("* https://highclimb.example/["), 1)  # a page read twice is listed once
+        # the first request has what the search found and the person's own words; Google Search is on for the
+        # first two steps and off for the last
+        asks = self.gemini.seen[before:]
+        self.assertEqual([a[2] for a in asks], [True, True, False])
+        self.assertIn("課題と記録のアプリです。", asks[0][0][-1]["text"])
+        self.assertIn("取り消しがアプリでできない", asks[0][0][-1]["text"])
+        self.assertEqual(asks[0][1], kaihatsu.RULES)
+        # the app's name is in the request, not the place for it
+        self.assertIn("「High Climb」(https://highclimb.example)の課題を", asks[1][0][-1]["text"])
+        self.assertIn("(== High Climb)", asks[1][0][-1]["text"])
+        self.assertIn("=== 利用者にとっての問題点", asks[2][0][-1]["text"])
+        for contents, _, _ in asks:
+            self.assertNotRegex(contents[-1]["text"], r"\{(who|name|url|app)\}")
+        # it is a job in the list, and in its ZIP
+        self.assertEqual([x["kind"] for x in self.c.get("/api/jobs", headers=h).json()["jobs"]], ["kadai", "chousa"])
+        z = zipfile.ZipFile(io.BytesIO(self.c.get(f"/api/jobs/{r.json()['id']}/zip", headers=h).content))
+        self.assertEqual(z.namelist(), ["references/toriooki-analysis.adoc"])
+
+    def test_gathering_the_problems_from_the_sample_or_from_materials(self):
+        h = self.google("u11")
+        before = len(self.gemini.seen)
+        r = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        # no name given: the name: of the SKILL.md in the sample
+        self.assertEqual(self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()["files"],
+                         ["references/toriooki-analysis.adoc"])
+        first = self.gemini.seen[before][0][-1]["text"]
+        self.assertIn("こむぎ堂", first)
+        self.assertNotIn("<調べた結果>", first)
+        # materials alone, with a SKILL.md that names the app
+        r = self.job(h, "kadai", files=[("files", ("mirai.zip", materials_zip(), "application/zip"))])
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()["files"], ["references/app-analysis.adoc"])
+
+    def test_gathering_the_problems_needs_something_to_read_and_a_usable_name(self):
+        h = self.google("u12")
+        # no search chosen, no materials, no sample: the note alone is not enough
+        r = self.c.post("/api/jobs", data={"kind": "kadai", "note": "不満です"}, headers=h)
+        self.assertRefused(r, 422, "読ませる結果を選ぶか、資料を選んでください")
+        # the name is letters, digits and hyphens, 40 at most (capitals are lowered)
+        for bad in ("to_riooki", "とりおき", "a" * 41, "../x", "to riooki"):
+            with self.subTest(name=bad):
+                r = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1", "name": bad}, headers=h)
+                self.assertRefused(r, 422, "名前は英数字とハイフンで、40 字までで書いてください")
+        r = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1", "name": "A" * 40}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()["files"],
+                         ["references/" + "a" * 40 + "-analysis.adoc"])
+        # none of the refusals used up a try: the one job did
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["kadai"], 1)
+
+    def test_only_a_finished_search_of_ones_own_can_be_read(self):
+        h = self.google("u13")
+        mine = self.search_of(h)
+        sent = {"kind": "kadai", "mihon": "1", "research": mine}
+        # another person's search is no search at all
+        self.assertEqual(self.c.post("/api/jobs", data=sent, headers=self.google("u14")).status_code, 404)
+        self.assertEqual(self.c.post("/api/jobs", data=sent | {"research": "nai"}, headers=h).status_code, 404)
+        # a job that is not a search
+        gathered = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h).json()["id"]
+        r = self.c.post("/api/jobs", data=sent | {"research": gathered}, headers=h)
+        self.assertRefused(r, 422, "読ませられるのは、できあがった「今あるアプリを探す」の結果です")
+        # a search that is not finished
+        self.restart(run=lambda fn: None)
+        waiting = self.c.post("/api/jobs", data={"kind": "chousa", "note": "毎週の集計"}, headers=h).json()["id"]
+        self.assertEqual(self.c.get(f"/api/jobs/{waiting}", headers=h).json()["status"], "waiting")
+        r = self.c.post("/api/jobs", data=sent | {"research": waiting}, headers=h)
+        self.assertRefused(r, 422, "読ませられるのは、できあがった「今あるアプリを探す」の結果です")
+
+    def test_the_design_job_reads_the_problems_that_were_gathered(self):
+        h = self.google("u15")
+        gathered = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h).json()["id"]
+        skill = [("files", ("SKILL.md", "# 架空のアプリ".encode(), "text/markdown"))]
+        before = len(self.gemini.seen)
+        r = self.c.post("/api/jobs", data={"kind": "sekkei", "kadai": gathered}, files=skill, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()["status"], "done")
+        # the request that writes the design has the SKILL.md and the reference, by the name of its path
+        sent = self.gemini.seen[before][0][-1]["text"]
+        self.assertIn("設計書 docs/design.adoc", sent)
+        self.assertIn("# 架空のアプリ", sent)
+        self.assertIn('<ファイル name="references/toriooki-analysis.adoc">', sent)
+        self.assertIn("== 作るアプリで防ぐこと", sent)
+        self.assertIn("取り消しを、アプリからできるようにする。", sent)
+
+    def test_the_design_job_needs_materials_even_with_the_problems(self):
+        h = self.google("u16")
+        gathered = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h).json()["id"]
+        # the problems alone are not enough: the SKILL.md is what says what to make
+        r = self.c.post("/api/jobs", data={"kind": "sekkei", "kadai": gathered}, headers=h)
+        self.assertRefused(r, 422, "SKILL.md と参考の資料を選ぶか、見本で試してください")
+        r = self.c.post("/api/jobs", data={"kind": "sekkei"}, headers=h)
+        self.assertRefused(r, 422, "SKILL.md と参考の資料を選ぶか、見本で試してください")
+        # another person's problems are no problems at all
+        skill = [("files", ("SKILL.md", "# 架空のアプリ".encode(), "text/markdown"))]
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "kadai": gathered}, files=skill,
+                                     headers=self.google("u17")).status_code, 404)
+        # a job that does not gather problems
+        search = self.search_of(h)
+        r = self.c.post("/api/jobs", data={"kind": "sekkei", "kadai": search}, files=skill, headers=h)
+        self.assertRefused(r, 422, "読ませられるのは、できあがった「今あるアプリの課題を集める」の資料です")
+        # none of this used the day's design job
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["sekkei"], 1)
+
+    def test_the_refusals_of_a_job_say_what_is_missing(self):
+        h = self.google("u18")
+        r = self.c.post("/api/jobs", data={"kind": "chousa"}, headers=h)
+        self.assertRefused(r, 422, "何度も頼んでいることを書くか、資料を選んでください")
+        # materials that cannot be read are another matter
+        r = self.job(h, "chousa", files=[("files", ("a.sh", b"x", "text/plain"))])
+        self.assertRefused(r, 422, "資料が入っていません(.md、.adoc、.txt か、それを入れた ZIP)")
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "nani"}, headers=h).json()["detail"], "何をするかを選んでください")
+
+    def test_the_counts_and_the_limits_include_the_problems_job(self):
+        h = self.google("u19")
+        left = self.c.get("/api/me", headers=h).json()["left"]
+        self.assertEqual(left, {"chat": 3, "news": 1, "sekkei": 1, "chousa": 2, "kadai": 2})
+        for n in (1, 0):
+            self.assertEqual(self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h).status_code, 200)
+            self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["kadai"], n)
+        r = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h)
+        self.assertRefused(r, 429, "今日の分(2 回)は使い終わりました。明日またどうぞ")
+        # the limit is one person's: another person's own is not used
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=self.google("u20")).status_code, 200)
+
+    def test_the_day_counts_the_problems_job_among_all_the_jobs(self):
+        self.restart(env={"TAMESHI_JOBS_PER_DAY": "2"}, run=lambda fn: fn())
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=self.google("u21")).status_code, 200)
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=self.google("u22")).status_code, 200)
+        r = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=self.google("u23"))
+        self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
+        # the dialogue is not a job
+        self.assertEqual(self.chat(self.google("u23")).status_code, 200)
+
+    def test_the_name_of_the_app_falls_back_to_the_skill_md(self):
+        m = server.materials_of
+        self.assertEqual(server.skill_name(m([("toriooki/SKILL.md", b"---\nname: Toriooki\n---\n# x")])), "toriooki")
+        self.assertEqual(server.skill_name(m([("SKILL.md", b"---\r\nname: 'my-app'\r\n---\r\n# x")])), "my-app")
+        self.assertEqual(server.skill_name(m([("SKILL.md", "---\nname: 取り置き\n---\n".encode())])), "app")
+        self.assertEqual(server.skill_name(m([("notes.md", b"---\nname: x\n---\n")])), "app")
+        self.assertEqual(server.skill_name(m([("SKILL.md", b"# no front matter")])), "app")
+        self.assertEqual(server.skill_name(""), "app")
 
     def test_jobs_are_only_for_the_owner_and_the_allowed(self):
         h = self.google("u1")

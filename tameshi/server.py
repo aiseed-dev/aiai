@@ -2,12 +2,15 @@
 """Tries aiai on the site with Gemini, for people who sign in: a dialogue
 with Gemini that has read one of the guides, today's news made by Gemini
 with Google Search from the person's own tastes (as news/SKILL.md says),
-two longer jobs from what the person gives (tameshi/kaihatsu.py): the
+three longer jobs from what the person gives (tameshi/kaihatsu.py): the
 present state of the apps that do what the person asks the AI again and
-again, and, from a SKILL.md and its references, the design document and the
-user manual with a picture per screen; and a dialogue on how those apps
-could be better, which can read what the first job found. Gemini runs on Google Cloud (site/gemini.py). It is mounted at
-/tameshi by site/server.py; the screen is /tameshi.html.
+again; the problems of those apps (or of the apps the materials name), as
+the reference of step 5 of rireki/SKILL.md; and, from a SKILL.md and its
+references, the design document and the user manual with a picture per
+screen. A dialogue on how those apps could be better can read what the
+first job found, and the third job can read what the second made. Gemini
+runs on Google Cloud (site/gemini.py). It is mounted at /tameshi by
+site/server.py; the screen is /tameshi.html.
 
 People sign in with Apple or Google (the sign-in of moushikomi/server.py).
 For reviewers who cannot use those, one test account signs in with an ID
@@ -25,7 +28,9 @@ the repository:
     TAMESHI_DAY_LIMIT       Gemini calls everyone together may make a day (default 600)
     TAMESHI_SEKKEI_PER_DAY  design jobs one person may start a day (default 1)
     TAMESHI_CHOUSA_PER_DAY  research jobs one person may start a day (default 2)
-    TAMESHI_JOBS_PER_DAY    jobs everyone together may start a day (default 10)
+    TAMESHI_KADAI_PER_DAY   jobs that gather the problems of apps one person may start a day (default 2)
+    TAMESHI_JOBS_PER_DAY    jobs everyone together may start a day (default 10; design, research and
+                            problems count together)
     TAMESHI_KAIHATSU_EMAILS sign-in emails that may start jobs (space separated); empty
                             means everyone who signs in. The test account always may
     TAMESHI_JOBS            the folder of the jobs' files (default jobs/ next to DB);
@@ -135,11 +140,15 @@ def guides(root=ROOT):
     return out
 
 
+JOB_KINDS = ("sekkei", "chousa", "kadai")  # the longer jobs; they share the day's limit for jobs
 MATERIAL_EXTS = (".md", ".adoc", ".txt")
 MATERIAL_BYTES = 2_000_000     # all the files of one job, unpacked
 MATERIAL_FILES = 50
 JOB_DAYS = 7
 MIHON = os.path.join(ROOT, "hackathon", "mihon")  # a made-up sample of materials
+# the front matter of a SKILL.md among the materials of materials_of(), and the name: in it
+SKILL_FRONT = re.compile(r'<ファイル name="(?:[^"\n]*/)?SKILL\.md">\n---\r?\n(.*?)\r?\n---', re.S)
+SKILL_NAME = re.compile(r"""^name:[ \t]*["']?([^\s"']+)["']?[ \t]*\r?$""", re.M)
 
 
 def materials_of(uploads):
@@ -169,6 +178,16 @@ def materials_of(uploads):
     return "\n\n".join(parts)
 
 
+def skill_name(materials):
+    """The name: in the front matter of a SKILL.md among the materials, when it can name a
+    file; app when there is none."""
+    for m in SKILL_FRONT.finditer(materials):
+        n = SKILL_NAME.search(m[1])
+        if n and kaihatsu.NAME.fullmatch(n[1].lower()):
+            return n[1].lower()
+    return "app"
+
+
 def create_app(env=None, providers=None, model=None, draw=None, run=None):
     """model(contents, system=..., search=..., **more) -> (text, sources), and
     draw(prompt) -> PNG bytes: Gemini unless given. run(fn) starts a job; a
@@ -182,7 +201,8 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
     ask = model or gemini.generate
     test_id, test_password = env.get("TAMESHI_TEST_ID", ""), env.get("TAMESHI_TEST_PASSWORD", "")
     per_day = {"chat": int(env.get("TAMESHI_CHAT_PER_DAY", "30")), "news": int(env.get("TAMESHI_NEWS_PER_DAY", "3")),
-               "sekkei": int(env.get("TAMESHI_SEKKEI_PER_DAY", "1")), "chousa": int(env.get("TAMESHI_CHOUSA_PER_DAY", "2"))}
+               "sekkei": int(env.get("TAMESHI_SEKKEI_PER_DAY", "1")), "chousa": int(env.get("TAMESHI_CHOUSA_PER_DAY", "2")),
+               "kadai": int(env.get("TAMESHI_KADAI_PER_DAY", "2"))}
     day_limit = int(env.get("TAMESHI_DAY_LIMIT", "600"))
     jobs_per_day = int(env.get("TAMESHI_JOBS_PER_DAY", "10"))
     makers = {e.lower() for e in env.get("TAMESHI_KAIHATSU_EMAILS", "").split()}
@@ -226,8 +246,9 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         if used(s["provider"], s["sub"], kind) >= per_day[kind]:
             raise HTTPException(429, f"今日の分({per_day[kind]} 回)は使い終わりました。明日またどうぞ")
         everyone = db.one("SELECT COALESCE(SUM(n), 0) FROM uses WHERE day = ? AND provider != '-'", (today(),))[0]
-        jobs = db.one("SELECT COALESCE(SUM(n), 0) FROM uses WHERE day = ? AND kind IN ('sekkei', 'chousa')", (today(),))[0]
-        if everyone >= day_limit or (kind in ("sekkei", "chousa") and jobs >= jobs_per_day):
+        marks = ", ".join("?" * len(JOB_KINDS))
+        jobs = db.one(f"SELECT COALESCE(SUM(n), 0) FROM uses WHERE day = ? AND kind IN ({marks})", (today(), *JOB_KINDS))[0]
+        if everyone >= day_limit or (kind in JOB_KINDS and jobs >= jobs_per_day):
             raise HTTPException(429, "今日の受け付けは終わりました。明日またどうぞ")
         db.run("INSERT INTO uses VALUES (?, ?, ?, ?, 1) ON CONFLICT (day, provider, sub, kind) DO UPDATE SET n = n + 1",
                (today(), s["provider"], s["sub"], kind))
@@ -291,14 +312,43 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
             out += [os.path.relpath(os.path.join(dirpath, n), folder) for n in names]
         return sorted(out)
 
+    def research_of(jid, s):
+        """What a finished research job (chousa) of this person's found, as text: its chousa/*.adoc."""
+        row = job_row(jid, s)
+        folder = os.path.join(jobs_dir, row["id"], "chousa")
+        if row["kind"] != "chousa" or row["status"] != "done" or not os.path.isdir(folder):
+            raise HTTPException(422, "読ませられるのは、できあがった「今あるアプリを探す」の結果です")
+        text = "\n\n".join(read(os.path.join(folder, n)) for n in sorted(os.listdir(folder)) if n.endswith(".adoc"))
+        return text[:RESEARCH_CHARS]
+
+    def problems_of(jid, s):
+        """The references (references/*.adoc) of a finished job that gathers problems (kadai) of this
+        person's: [(path, bytes)]."""
+        row = job_row(jid, s)
+        if row["kind"] != "kadai" or row["status"] != "done":
+            raise HTTPException(422, "読ませられるのは、できあがった「今あるアプリの課題を集める」の資料です")
+        out = []
+        for path in job_files(jid):
+            if os.path.dirname(path) == "references" and path.endswith(".adoc"):
+                with open(os.path.join(jobs_dir, jid, path), "rb") as f:
+                    out.append((path, f.read()))
+        return out
+
     @app.post("/api/jobs")
-    async def new_job(kind: str = Form(...), note: str = Form(""), mihon: str = Form(""),
+    async def new_job(kind: str = Form(...), note: str = Form(""), mihon: str = Form(""), research: str = Form(""),
+                      name: str = Form(""), kadai: str = Form(""),
                       files: list[UploadFile] | None = File(None), authorization: str = Header("")):
         s = person(authorization)
-        if kind not in ("sekkei", "chousa"):
+        if kind not in JOB_KINDS:
             raise HTTPException(422, "何をするかを選んでください")
         if not may_make(s):
             raise HTTPException(403, "この機能は、使える人を決めています")
+        # the search whose result kadai reads, and the problems whose references sekkei reads
+        found = research_of(research, s) if kind == "kadai" and research else ""
+        kept = problems_of(kadai, s) if kind == "sekkei" and kadai else []
+        name = name.strip().lower()
+        if kind == "kadai" and name and not kaihatsu.NAME.fullmatch(name):
+            raise HTTPException(422, "名前は英数字とハイフンで、40 字までで書いてください")
         uploads = []
         if mihon == "1":
             # the made-up sample of the repository (hackathon/mihon), for reviewers and first tries
@@ -311,10 +361,17 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
             if len(data) > MATERIAL_BYTES:
                 raise HTTPException(422, "資料が大きすぎます(2 MB まで)")
             uploads.append((os.path.basename(f.filename or "資料"), data))
-        if kind == "chousa" and not uploads and note.strip():
-            materials = ""  # what the person asks the AI again and again, written in the note
-        else:
-            materials = materials_of(uploads)
+        if kind == "chousa" and not uploads and not note.strip():
+            raise HTTPException(422, "何度も頼んでいることを書くか、資料を選んでください")
+        if kind == "kadai" and not uploads and not research:
+            raise HTTPException(422, "読ませる結果を選ぶか、資料を選んでください")
+        if kind == "sekkei" and not uploads:
+            raise HTTPException(422, "SKILL.md と参考の資料を選ぶか、見本で試してください")
+        uploads += [(f"references/{os.path.basename(path)}", data) for path, data in kept]
+        # what the person asks the AI again and again, or the search chosen, needs no materials
+        materials = materials_of(uploads) if uploads else ""
+        if kind == "kadai" and not name:
+            name = skill_name(materials)
         take(s, kind)
         jid = secrets.token_urlsafe(12)
         folder = os.path.join(jobs_dir, jid)
@@ -335,6 +392,8 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
             try:
                 if kind == "sekkei":
                     kaihatsu.sekkei(materials, note[:2000], folder, ask, paint, step)
+                elif kind == "kadai":
+                    kaihatsu.kadai(found, materials, note[:2000], name, folder, ask, step)
                 else:
                     kaihatsu.chousa(materials, note[:2000], folder, ask, step)
                 status, error = "done", ""
@@ -426,12 +485,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         contents = dialogue_of(b)
         research = ""
         if b.get("job"):
-            row = job_row(str(b["job"]), s)
-            folder = os.path.join(jobs_dir, row["id"], "chousa")
-            if row["kind"] != "chousa" or row["status"] != "done" or not os.path.isdir(folder):
-                raise HTTPException(422, "読ませられるのは、できあがった「今あるアプリを探す」の結果です")
-            text = "\n\n".join(read(os.path.join(folder, n)) for n in sorted(os.listdir(folder)) if n.endswith(".adoc"))
-            research = KAIZEN_RESEARCH.format(text=text[:RESEARCH_CHARS])
+            research = KAIZEN_RESEARCH.format(text=research_of(str(b["job"]), s))
         if "rireki" not in all_guides:
             raise HTTPException(404, "手引きが見つかりません")
         return answer(s, contents, KAIZEN_RULES.format(guide=all_guides["rireki"][1], research=research))
