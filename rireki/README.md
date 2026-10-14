@@ -22,9 +22,9 @@ AI とのチャットの履歴から、要るアプリを考えます。今あ�
 | | 1 スキル | 2 PC の道具の記録 | 3 書き出し |
 |---|---|---|---|
 | ChatGPT | できる。ベータで、ワークスペースの持ち主が有効にする | Codex: `~/.codex/history.jsonl` | ZIP |
-| Claude | できる。Free から Enterprise まで。コードの実行を有効にする。フォルダーごと ZIP にして上げる | Claude Code、デスクトップアプリの Claude Code と Cowork: `~/.claude/projects/` | ZIP |
+| Claude | できる。Free から Enterprise まで。コードの実行を有効にする。フォルダーごと ZIP にして上げる | Claude Code、デスクトップアプリの Claude Code と Cowork: `~/.claude/projects/` | ZIP(公式の説明に形式の記載は無い。個人は Settings の Privacy から、Team と Enterprise は Primary Owner だけ) |
 | Gemini | できる。18 歳以上、個人の Google アカウント。順に提供が広がっている途中 | Gemini CLI: `~/.gemini/tmp/<プロジェクトの印>/chats/` | Google Takeout(公式の説明は未確認) |
-| Microsoft 365 Copilot | 企業用の場合は、管理者に言ってもらってください。スキル(Agent Builder)は試しの段階で、組織が Microsoft Frontier Program に入っていて、Copilot のライセンスがあること。使えるエージェントは管理者が決める。Information Barriers を使う組織では使えない | 企業用の場合は、管理者に言ってもらってください(PC に読める記録を残すという説明が見つからない) | 企業用の場合は、管理者に言ってもらってください。履歴(プロンプトと答え)は組織のコンテンツとして保存され、管理者が Content search と Microsoft Purview で見られ、保持の期間を決める。本人は消せるが、本人が書き出す手順は見つからない。個人の Microsoft アカウントなら、プライバシーダッシュボードから CSV |
+| Microsoft 365 Copilot | 企業用の場合は、管理者に言ってもらってください。スキル(Agent Builder)は試しの段階で、組織が Microsoft Frontier Program に入っていて、Copilot のライセンスがあるか、従量課金で使えること。使えるエージェントは管理者が決める。Information Barriers を使う組織では使えない | 企業用の場合は、管理者に言ってもらってください(PC に読める記録を残すという説明が見つからない) | 企業用の場合は、管理者に言ってもらってください。履歴(プロンプトと答え)は組織のコンテンツとして保存され、管理者が Content search と Microsoft Purview で見られ、保持の期間を決める。本人は消せるが、本人が書き出す手順は見つからない。個人の Microsoft アカウントなら、プライバシーダッシュボードから CSV |
 
 アプリの「ZIP」は、Claude の形(`<名前>/SKILL.md`)です。Microsoft 365 Copilot には
 `/skills/<名前>.zip?for=m365`(`SKILL.md` をいちばん上に置く形)を使います。
@@ -43,4 +43,4 @@ Microsoft「Manage your Copilot activity history in the privacy dashboard」
 (https://support.microsoft.com/en-us/privacy/manage-your-copilot-activity-history-in-the-privacy-dashboard)、
 Microsoft Learn「Data, Privacy, and Security for Microsoft Copilot」
 (https://learn.microsoft.com/en-us/microsoft-365/copilot/microsoft-365-copilot-privacy)。
-2026-10-03 に確かめました。
+2026-10-14 に確かめました。
