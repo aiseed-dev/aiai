@@ -69,6 +69,9 @@ aiai の「度々聞いていることを、アプリにする」は、AI に何
 * 秘密の値(Google と Apple の鍵、テストアカウントのパスワード)は、リポジトリに置きません。VM の
   `~/aiai-server/tameshi/secrets.env` に置きます
 * Gemini の答えは、画面に文字のまま出します(HTML として出しません)。答えには Markdown の記号を使わせません
+* `site/server.py` は、すべての答えに、安全のためのヘッダーを付けます: `Strict-Transport-Security: max-age=31536000`、
+  `X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、`X-Frame-Options: SAMEORIGIN`、
+  `Permissions-Policy: camera=(), microphone=(), geolocation=()`。uvicorn の `server` のヘッダーは出しません
 
 == 3. 全体の構成
 
