@@ -157,6 +157,24 @@ def load_soudan():
     return mod
 
 
+def brand_index(assets):
+    """Flet's index.html with aiai's name as its title, put in the app's assets (app/assets/index.html, which
+    is not kept in the repository). Flet takes an index.html from the app's assets before its own, so the page
+    is called aiai while the app loads, not Flet. It is made from the Flet that is installed, so it follows
+    an upgrade. Without Flet's web package, nothing is written and the page keeps Flet's title."""
+    try:
+        import flet_web
+        with open(os.path.join(flet_web.get_package_web_dir(), "index.html"), encoding="utf-8") as f:
+            text = f.read()
+    except (ImportError, OSError):
+        return
+    text = re.sub(r"<title>.*?</title>", "<title>aiai</title>", text, count=1)
+    text = re.sub(r'(<meta name="apple-mobile-web-app-title" content=")[^"]*', r"\1aiai", text, count=1)
+    text = re.sub(r'(<meta name="description" content=")[^"]*', r"\1aiai — AI 時代の AI 活用法", text, count=1)
+    with open(os.path.join(assets, "index.html"), "w", encoding="utf-8") as f:
+        f.write(text)
+
+
 def create_app(soudan=None, tameshi=None):
     import flet as ft
 
@@ -187,7 +205,9 @@ def create_app(soudan=None, tameshi=None):
         app.mount("/soudan", soudan)
     if tameshi is not None:
         app.mount("/tameshi", tameshi)
-    app.mount("/app", ft.run(screen, export_asgi_app=True, assets_dir=os.path.join(HERE, "app", "assets")))
+    assets = os.path.join(HERE, "app", "assets")
+    brand_index(assets)
+    app.mount("/app", ft.run(screen, export_asgi_app=True, assets_dir=assets))
     app.mount("/", Pages(directory=os.path.join(HERE, "public"), html=True))
     return app
 

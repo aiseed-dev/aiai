@@ -31,7 +31,8 @@ GROUPS = [("AI の活用法", ["rireki", "website", "moushikomi", "genba", "kais
 ICONS = {"rireki": ft.Icons.HISTORY, "tenshoku": ft.Icons.WORK_OUTLINE, "gakusei": ft.Icons.SCHOOL, "genba": ft.Icons.PHOTO_CAMERA,
          "website": ft.Icons.LANGUAGE, "moushikomi": ft.Icons.EVENT_AVAILABLE, "keikaku": ft.Icons.GRASS,
          "kaiseki": ft.Icons.INSIGHTS, "kanri": ft.Icons.SHIELD_OUTLINED, "news": ft.Icons.NEWSPAPER}
-STEPS = [("1", "スキルを選ぶ"), ("2", "あなたの AI に貼る"), ("3", "対話しながら作る")]
+STEPS = [("1", "手引きを選ぶ"), ("2", "あなたの AI に貼る"), ("3", "対話しながら作る")]
+MAX_WIDTH = 960  # the screen's content is at most this wide on a PC, and in the middle
 
 
 def read(path):
@@ -94,7 +95,14 @@ async def main(page: ft.Page):
     clipboard = ft.Clipboard()
     prefs = ft.SharedPreferences()
     body = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO, spacing=12)
-    frame = ft.Container(body, padding=16, expand=True)
+    frame = ft.Container(body, padding=16)  # its width is set by fit(): no expand, which would fill the row
+    # on a PC the content is at most MAX_WIDTH wide, in the middle, the head's frame with it; the width follows the window
+    column = ft.Row([frame], alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.STRETCH, expand=True)
+
+    def fit(e=None):
+        frame.width = min(page.width, MAX_WIDTH) if page.width else MAX_WIDTH
+        page.update()
+    page.on_resize = fit
 
     def heading(text):
         return ft.Text(text, size=22, weight=ft.FontWeight.BOLD)
@@ -128,15 +136,15 @@ async def main(page: ft.Page):
             ft.Text(t, color=ft.Colors.WHITE, size=13)], spacing=6, tight=True),
             padding=ft.Padding.symmetric(vertical=6, horizontal=10), border_radius=999, bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.WHITE))
             for n, t in STEPS], wrap=True, spacing=8, run_spacing=8)
-        return ft.Container(ft.Column([
+        return ft.Row([ft.Container(ft.Column([
             ft.Text("aiai", size=30, weight=ft.FontWeight.W_800, color=ft.Colors.WHITE),
             ft.Text("AI 時代の AI 活用法", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=16),
-            ft.Text("主役は、あなたの AI。スキルを写して、ふだん使っている AI に貼ると、AI があなたに聞きながら一緒に作ります。",
+            ft.Text("主役は、あなたの AI。手引きを写して、ふだん使っている AI に貼ると、AI があなたに聞きながら一緒に作ります。",
                     color=ft.Colors.with_opacity(0.92, ft.Colors.WHITE), size=13),
             steps], spacing=10),
-            padding=20, border_radius=22,
+            padding=20, border_radius=22, expand=True,  # in a row, so the frame is as wide as the list under it
             gradient=ft.LinearGradient(begin=ft.Alignment.TOP_LEFT, end=ft.Alignment.BOTTOM_RIGHT,
-                                       colors=["#0b5c56", "#0f766e"]))
+                                       colors=["#0b5c56", "#0f766e"]))])
 
     def group_header(text):
         return ft.Container(ft.Text(text, size=13, weight=ft.FontWeight.BOLD, color=ft.Colors.PRIMARY),
@@ -261,7 +269,7 @@ async def main(page: ft.Page):
             await open_soudan()
 
     page.navigation_bar = ft.NavigationBar(
-        destinations=[ft.NavigationBarDestination(icon=ft.Icons.MENU_BOOK, label="スキル"),
+        destinations=[ft.NavigationBarDestination(icon=ft.Icons.MENU_BOOK, label="手引き"),
                       ft.NavigationBarDestination(icon=ft.Icons.AUTO_AWESOME, label="作る"),
                       ft.NavigationBarDestination(icon=ft.Icons.HELP_OUTLINE, label="使い方")]
         + ([ft.NavigationBarDestination(icon=ft.Icons.HISTORY, label="記録"),
@@ -273,7 +281,8 @@ async def main(page: ft.Page):
                       ft.NavigationBarDestination(icon=ft.Icons.FORUM_OUTLINED, label="相談")],
         on_change=change)
     page.on_route_change = route_change
-    page.add(ft.SafeArea(frame, expand=True))
+    page.add(ft.SafeArea(column, expand=True))
+    fit()
     if await tameshi.take_route(page.route):
         await open_tameshi()
     elif await soudan.take_code(page.route):

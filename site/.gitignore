@@ -1,9 +1,14 @@
 # The app's own assets are kept (the root .gitignore drops assets/ folders)
 !app/assets/
+# aiai's own images for the app's loading screen, tab icon and home-screen icon (the root .gitignore drops *.png)
+!app/assets/favicon.png
+!app/assets/icons/*.png
 # Copied from the skills, the news tastes and the user manual by make_assets.py
 app/assets/skills/
 app/assets/tastes.adoc
 app/assets/manual/
+# Made by site/server.py from the Flet that is installed, with aiai as its title
+app/assets/index.html
 __pycache__/
 # Built from the repository by make_site.py
 public/
