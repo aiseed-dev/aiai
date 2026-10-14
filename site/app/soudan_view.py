@@ -4,11 +4,11 @@ enter the invitation code and agree, consult one or two models, rate their answe
 one's record. It talks to soudan/server.py over HTTP. Settings:
 
     AIAI_SOUDAN        the second-opinion server as people reach it
-                       (default http://127.0.0.1:8020/soudan); sign-in links use it
+                       (default AIAI_SITE + /soudan); sign-in links use it
     AIAI_SOUDAN_API    the same server as this app reaches it, when that differs
                        (on the web, the app runs on the server: 127.0.0.1)
     AIAI_RETURN        where sign-in comes back to: the app's web address or
-                       the app's own link (default http://127.0.0.1:8020/app/)
+                       the app's own link (default AIAI_SITE + /app/)
 """
 import os
 import urllib.parse
@@ -16,9 +16,10 @@ import urllib.parse
 import flet as ft
 import httpx
 
-PUBLIC = os.environ.get("AIAI_SOUDAN", "http://127.0.0.1:8020/soudan").rstrip("/")
+SITE = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
+PUBLIC = (os.environ.get("AIAI_SOUDAN") or SITE + "/soudan").rstrip("/")
 API = os.environ.get("AIAI_SOUDAN_API", PUBLIC).rstrip("/")
-RETURN = os.environ.get("AIAI_RETURN", "http://127.0.0.1:8020/app/")
+RETURN = os.environ.get("AIAI_RETURN") or SITE + "/app/"
 TOKEN_KEY = "aiai.soudan.token"
 NAMES = {"apple": "Apple でサインイン", "google": "Google でサインイン"}
 

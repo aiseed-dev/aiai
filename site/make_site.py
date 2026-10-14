@@ -191,6 +191,7 @@ def adoc_inline(text):
         return f"\x00{len(keep) - 1}\x00"
 
     text = re.sub(r"`([^`]+)`", lambda m: hold(f"<code>{html.escape(m[1])}</code>"), text)
+    text = re.sub(r"\^([^\s^]+)\^", lambda m: hold(f"<sup>{html.escape(m[1])}</sup>"), text)  # a note's number, ^[1]^
     text = ADOC_LINK.sub(lambda m: hold(f'<a href="{html.escape(m[1])}">{adoc_inline(m[2]) or html.escape(m[1])}</a>'), text)
     text = URL.sub(lambda m: hold(f'<a href="{html.escape(m[0])}">{html.escape(m[0])}</a>'), text)
     text = html.escape(text)
@@ -316,6 +317,7 @@ def read_adoc(text, images="images/"):
     return title, sections
 
 
+SHOUKAI = os.path.join(ROOT, "shoukai")  # introductions of what is used with aiai: shoukai/<name>.adoc
 MANUAL = os.path.join(ROOT, "tameshi", "docs", "manual.adoc")
 USAGE_SECTIONS = ("手引きを AI に読ませる", "アプリを作る流れ", "ほかの手引き", "一緒に使う物")
 
@@ -343,6 +345,31 @@ def usage_page(text):
 <p>くわしい使い方は、<a href="/app/">アプリの「使い方」</a>と、<a href="/tsukaikata/manual.pdf">利用者マニュアルの PDF</a> にあります。</p>
 </div>
 </article>"""
+
+
+def shoukai_pages(folder=SHOUKAI):
+    """{shoukai/<name>.html: page} of each introduction (an adoc read as the manual is read): its title,
+    a list of its sections, and the text. A folder or a file that is not there gives no page."""
+    pages = {}
+    if not os.path.isdir(folder):
+        return pages
+    for name in sorted(os.listdir(folder)):
+        if not name.endswith(".adoc"):
+            continue
+        title, sections = read_adoc(read(os.path.join(folder, name)))
+        toc = '<ol class="toc">' + "".join(f'<li><a href="#{x["id"]}">{adoc_inline(x["title"])}</a></li>'
+                                           for x in sections[1:] if x["level"] == 2) + "</ol>"
+        body = "\n".join(f'<h{x["level"]} id="{x["id"]}">{adoc_inline(x["title"])}</h{x["level"]}>\n{x["html"]}' for x in sections[1:])
+        pages[f"shoukai/{name[:-5]}.html"] = page(title, f"""<article class="shoukai">
+<p class="kicker">一緒に使う物</p>
+<h1>{adoc_inline(title)}</h1>
+{toc}
+<div class="prose">
+{sections[0]["html"]}
+{body}
+</div>
+</article>""", f"{title}の紹介")
+    return pages
 
 
 # ---- reading the news -------------------------------------------------------------------
@@ -893,6 +920,8 @@ def main():
     # the usage page is the short form of the user manual; its figures and its PDF are copied beside it
     write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)), "手引きを AI に読ませる方法と、アプリを作る流れ"))
     docs = os.path.dirname(MANUAL)
+    for path, text in shoukai_pages().items():
+        write(os.path.join(OUT, path), text)
     for name in sorted(os.listdir(os.path.join(docs, "images"))):
         os.makedirs(os.path.join(OUT, "tsukaikata", "images"), exist_ok=True)
         shutil.copyfile(os.path.join(docs, "images", name), os.path.join(OUT, "tsukaikata", "images", name))

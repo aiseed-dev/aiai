@@ -19,6 +19,7 @@ from kaiseki_view import KaisekiView
 from soudan_view import SoudanView
 from tameshi_view import TameshiView
 from manual_view import manual_controls
+from glyphs import preload
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 # Where a skill's ZIP can be fetched (site/server.py serves /skills/<name>.zip)
@@ -196,8 +197,14 @@ async def main(page: ft.Page):
     async def show_tameshi():
         await tameshi.render()
 
-    def show_manual():
-        show(manual_controls(os.path.join(ASSETS, "manual"), markdown, heading, SITE))
+    manual_drawn = []
+
+    async def show_manual():
+        controls = manual_controls(os.path.join(ASSETS, "manual"), markdown, heading, SITE)
+        if not manual_drawn:  # the first time, the browser needs a moment to fetch the glyphs of the manual
+            manual_drawn.append(True)
+            await preload(show, read(os.path.join(ASSETS, "manual", "manual.md")) if os.path.exists(os.path.join(ASSETS, "manual", "manual.md")) else "")
+        show(controls)
 
     async def show_soudan():
         show([ft.ProgressRing()])

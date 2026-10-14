@@ -91,6 +91,7 @@ class AdocTest(unittest.TestCase):
         self.assertIn("<th>段</th><th>すること</th>", body)
         self.assertIn("<td>1 見つける</td><td>履歴から</td>", body)
         self.assertIn("<pre><code>x &lt; y</code></pre>", sections[2]["html"])
+        self.assertIn("<sup>[1]</sup>", make_site.adoc_inline("本文です。^[1]^"))
 
 
 NEWS = """= aiai ニュース 2026-09-30
@@ -138,6 +139,12 @@ class BuildTest(unittest.TestCase):
                          "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "tsukaikata.html", "tameshi.html",
                          "tsukaikata/images/nagare.svg", "tsukaikata/manual.pdf", "eizou.html"):
                 self.assertTrue(os.path.exists(os.path.join(out, path)), path)
+            for name in ("aiai-tools", "officework", "weather"):  # the introductions of what is used with aiai
+                with open(os.path.join(out, "shoukai", f"{name}.html"), encoding="utf-8") as f:
+                    shoukai = f.read()
+                self.assertIn('<ol class="toc">', shoukai)
+                self.assertIn("<h1>", shoukai)
+                self.assertNotIn("^[", shoukai)
             self.assertFalse(os.path.exists(os.path.join(out, "katsuyou.html")))  # server.py sends it to 使い方
             self.assertFalse(os.path.exists(os.path.join(out, "tameshi.js")))
             with open(os.path.join(out, "tameshi.html"), encoding="utf-8") as f:  # the old page sends # places to the app

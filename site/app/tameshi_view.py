@@ -13,7 +13,7 @@ soudan_view.py). On the phone only the test account signs in. Settings:
 
     AIAI_TAMESHI      the server as people reach it (default AIAI_SITE + /tameshi); sign-in links use it
     AIAI_TAMESHI_API  the same server as this app reaches it, when that differs
-    AIAI_RETURN       the app's address, where sign-in comes back to (default http://127.0.0.1:8020/app/)
+    AIAI_RETURN       the app's address, where sign-in comes back to (default AIAI_SITE + /app/)
 """
 import asyncio
 import os
@@ -21,11 +21,12 @@ import urllib.parse
 
 import flet as ft
 import httpx
+from glyphs import preload
 
 SITE = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
 PUBLIC = os.environ.get("AIAI_TAMESHI", SITE + "/tameshi").rstrip("/")
 API = os.environ.get("AIAI_TAMESHI_API", PUBLIC).rstrip("/")
-RETURN = os.environ.get("AIAI_RETURN", "http://127.0.0.1:8020/app/").rstrip("/") + "/"
+RETURN = (os.environ.get("AIAI_RETURN") or SITE + "/app/").rstrip("/") + "/"
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 MIHON_URL = "https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon"
 SIGN_IN = {"google": "Google でサインイン", "apple": "Apple でサインイン"}
@@ -128,7 +129,8 @@ class TameshiView:
         """The tab: built once, then shown again as it was. Goes to the place the person was sent to."""
         async with self.lock:
             if not self.built:
-                self.show([ft.ProgressRing()])
+                with open(__file__, encoding="utf-8") as f:
+                    await preload(self.show, f.read())  # this tab's own words, so none of them loses a character
                 await self.build()
             await self.refresh()
             self.show([self.root])
