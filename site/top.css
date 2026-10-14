@@ -893,5 +893,6 @@ p.nagare-step.tsukuru { background: var(--accent); border-color: var(--accent); 
 .card-link span { display: block; margin-top: 2px; color: var(--muted); font-size: 0.88rem; }
 .card-more { margin: 14px 0 0; }
 .nagare-note { margin: 0 0 8px; text-align: center; }
+.nagare-start { justify-content: center; margin: 16px 0 0; }
 @media (max-width: 880px) { .card-links { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .card-links { grid-template-columns: 1fr; } }

@@ -180,6 +180,21 @@ class BuildTest(unittest.TestCase):
                 self.assertIn(text, top)
             self.assertNotIn('nagare-step tsukuru">作る<', top)
             self.assertEqual(top.count('class="nagare-try"'), 5)
+            # the head: the name and the theme and no button; the flow's heading; the one main button under the flow; cards
+            for text in ("<h1>", "aiai —", "AI 活用法", "いまの AI は、アプリの設計もコードも書けるようになりました", "AI に何度も頼むことを、アプリにする",
+                         "設計書とコードは AI が書きます。人は、何を作るかを決め、AI が書いた物を確かめます", "<h2>ほかのページ</h2>",
+                         "色の付いた段は、Gemini で試せます"):
+                self.assertIn(text, top)
+            self.assertNotIn("主役は、あなたの AI", top)
+            self.assertNotIn("flow-guide", top)
+            head, rest = top.split('<section id="skills"')
+            self.assertNotIn('class="button', head.split("<main>")[1])
+            self.assertEqual(top.count('href="/skills/rireki.html">手引きを読んで、始める'), 1)
+            self.assertLess(rest.index("色の付いた段は、Gemini で試せます"), rest.index("手引きを読んで、始める"))
+            self.assertEqual(top.count('class="card-link"'), 6)
+            for href in ("/tsukaikata.html", "/kangaekata.html", "/kiji/", "/news/", "/eizou.html", "/tsukaikata.html#tools", "/kaiseki/", "/sagasu.html"):
+                self.assertIn(f'href="{href}"', top)
+            self.assertNotIn("<script", top.split('<section id="mokuji"')[1].split("</main>")[0])
             for place in ("chousa", "kaizen", "kadai", "sekkei", "tesuto"):  # the 作る tab of the app, by the field's name
                 self.assertIn(f'class="nagare-try" href="/app/tameshi/{place}"', top)
             self.assertNotIn("/tameshi.html", top)
