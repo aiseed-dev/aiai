@@ -180,8 +180,8 @@ class BuildTest(unittest.TestCase):
             # a guide page opens with the first paragraph of its README.md; a guide with none keeps its description
             with open(os.path.join(out, "skills", "rireki.html"), encoding="utf-8") as f:
                 self.assertIn('<p class="lead">AI とのチャットの履歴から、何度も頼んでいることを見つけます。', f.read())
-            with open(os.path.join(out, "skills", "genba.html"), encoding="utf-8") as f:
-                self.assertIn('<p class="lead">現場で撮った写真を VLM', f.read())
+            with open(os.path.join(out, "skills", "toriooki.html"), encoding="utf-8") as f:  # the sample has no README.md
+                self.assertIn('<p class="lead">架空のパン屋「こむぎ堂」の', f.read())
             for name in ("aiai-tools", "officework", "weather"):  # the introductions of what is used with aiai
                 with open(os.path.join(out, "shoukai", f"{name}.html"), encoding="utf-8") as f:
                     shoukai = f.read()

@@ -5,7 +5,7 @@ aiai tools は、会社や団体の IT を、OSS と AI で自分の側に置く
 aiai で、自分の AI と一緒に自分のアプリや Web を作れるようになった人が、会社や団体の仕事も
 受けるときに使います。
 
-リポジトリ:: https://github.com/aiseed-dev/aiai-tools (2026-10-14 に確かめました)
+リポジトリ: https://github.com/aiseed-dev/aiai-tools (2026-10-14 に確かめました)
 
 == aiai tools とは
 
