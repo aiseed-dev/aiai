@@ -36,6 +36,7 @@
     keep("");
     $("tameshi-in").hidden = false;
     $("tameshi-use").hidden = true;
+    if (PLACES[aim]) note("tameshi-in-note", "サインインすると、「" + PLACES[aim] + "」に進みます");
   }
   function note(id, text, bad) {
     var el = $(id);
