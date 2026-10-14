@@ -146,7 +146,7 @@ def load_tameshi():
     site = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
     db = os.environ.get("AIAI_TAMESHI_DB") or os.path.join(os.path.expanduser("~"), "aiai-server", "tameshi", "tameshi.db")
     os.makedirs(os.path.dirname(db), exist_ok=True)
-    return mod.create_app(dict(os.environ) | {"BASE_URL": site + "/tameshi", "RETURN_URLS": site + "/tameshi.html", "DB": db})
+    return mod.create_app(dict(os.environ) | {"BASE_URL": site + "/tameshi", "RETURN_URLS": site + "/app/tameshi", "DB": db})
 
 
 def load_soudan():

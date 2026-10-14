@@ -314,146 +314,12 @@ h1 {
 
 /* the example dialogue */
 
-.chat {
-  margin: 0;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  box-shadow: var(--shadow);
-  padding: 18px 18px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.chat-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--muted);
-  padding: 0 4px 10px;
-  border-bottom: 1px solid var(--line);
-}
-
-.chat-head .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
-
-.skill-chip {
-  margin-left: auto;
-  padding: 1px 10px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-deep);
-  font-size: 0.78rem;
-}
-
-.msg {
-  max-width: 88%;
-  padding: 10px 14px;
-  border-radius: 16px;
-  font-size: 0.93rem;
-  line-height: 1.7;
-}
-
-.msg.you {
-  align-self: flex-end;
-  background: var(--accent);
-  color: var(--bg);
-  border-bottom-right-radius: 4px;
-}
-
-.msg.ai {
-  align-self: flex-start;
-  background: var(--bg-2);
-  border-bottom-left-radius: 4px;
-}
-
-.msg p { margin: 0; }
-.msg-label { color: var(--muted); font-size: 0.85rem; }
-
-.finding {
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-left: 3px solid var(--accent);
-  background: var(--card);
-  border-radius: 8px;
-}
-
-.finding-title { font-weight: 700; }
-.finding-why { font-size: 0.85rem; color: var(--muted); margin-top: 4px !important; }
-
-.finding-why span {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 0 7px;
-  border-radius: 6px;
-  background: var(--accent-soft);
-  color: var(--accent-deep);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.chat figcaption { font-size: 0.75rem; color: var(--muted); text-align: right; }
-
 /* the four steps above the dialogue; the shown one is filled */
-.chat-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-
-.chat-steps button {
-  width: 100%;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 700;
-  padding: 6px 4px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-.chat-steps b { margin-right: 4px; }
-
-.chat-steps button[aria-pressed="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--bg);
-}
-
-.chat-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 330px;
-}
-
-.msg.enter { animation: rise 0.45s ease both; }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
-
-.msg.typing { display: flex; gap: 5px; padding: 14px 16px; animation: rise 0.3s ease both; }
-
-.msg.typing i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--muted);
-  animation: blink 1s infinite ease-in-out;
-}
-
-.msg.typing i:nth-child(2) { animation-delay: 0.15s; }
-.msg.typing i:nth-child(3) { animation-delay: 0.3s; }
 
 @keyframes blink {
   0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
@@ -465,16 +331,6 @@ h1 {
 /* ---- the path: know, think, make, start ------------------------------- */
 
 .path { padding: 48px 0 56px; }
-
-.path-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  counter-reset: none;
-}
 
 .step {
   display: flex;
@@ -512,7 +368,6 @@ h1 {
 }
 
 .step h3 { margin: 0; font-size: 1.3rem; }
-.step-what { margin: 0 0 4px; color: var(--muted); font-size: 0.92rem; }
 
 .skill {
   display: grid;
@@ -866,7 +721,6 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 .promise h3 { margin: 12px 0 6px; }
 .promise p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 
-
 .pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -906,22 +760,21 @@ footer strong { color: var(--fg); }
 
 @media (max-width: 880px) {
   .hero { grid-template-columns: 1fr; padding: 48px 0 40px; }
-  .vlm, .chat { max-width: 560px; width: 100%; justify-self: center; }
+  .vlm { max-width: 560px; width: 100%; justify-self: center; }
   .dialog { grid-template-columns: 1fr; }
   .steps > ol, .grid, .pair, .howto, .promise, .example, .load ul { grid-template-columns: 1fr; }
   .people .items { columns: 1; }
-  .path-steps { grid-template-columns: 1fr 1fr; }
+
   .step:nth-child(2)::after { display: none; }
   .steps > ol::before { display: none; }
-  .chat-steps { grid-template-columns: 1fr 1fr; }
+
   .bar { flex-wrap: wrap; row-gap: 6px; }
   .menu { order: 3; width: 100%; margin-left: 0; gap: 15px; overflow-x: auto; }
   .open { margin-left: auto; }
 }
 
 @media (max-width: 600px) {
-  .chat-body { min-height: 380px; }
-  .path-steps { grid-template-columns: 1fr; }
+
   .step::after { display: none; }
 }
 
@@ -960,22 +813,7 @@ footer strong { color: var(--fg); }
 .tool-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 @media (max-width: 880px) { .tool-cards { grid-template-columns: 1fr; } }
 
-/* Trying aiai with Gemini (tameshi.html) */
-.tameshi-box { margin: 26px 0; padding: 20px; background: var(--bg-2); border-radius: var(--radius); }
-.tameshi-box h2 { margin-top: 0; font-size: 1.15rem; }
-.tameshi-test { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
-.tameshi-test .fine { width: 100%; margin: 0; }
-.tameshi-test input, .tameshi-box textarea, .tameshi-pick select { font: inherit; padding: 10px 12px; border-radius: 10px;
-  border: 1px solid var(--line); background: var(--card); color: var(--fg); min-width: 0; }
-.tameshi-box textarea { width: 100%; resize: vertical; }
-#tameshi-news .button { margin-top: 10px; }
-.tameshi-pick { display: block; margin-bottom: 12px; }
-.tameshi-log { display: flex; flex-direction: column; gap: 10px; max-height: 460px; overflow-y: auto; margin-bottom: 10px; }
-.tameshi-log .msg { white-space: pre-wrap; }
-#tameshi-news-text { white-space: pre-wrap; background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-  padding: 14px; font-size: 0.85rem; max-height: 520px; overflow: auto; }
 .fine.bad { color: #d9534f; }
-.linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
 
 /* "Next to read": lines Gemini added from the record (tools/kaiseki_jidou.py) */
 .annai { margin: 28px 0 0; padding: 14px 18px; border-left: 4px solid var(--accent); background: var(--bg-2); border-radius: 10px; }
@@ -984,30 +822,12 @@ footer strong { color: var(--fg); }
 
 /* hidden means hidden, whatever display a class gives */
 [hidden] { display: none !important; }
-.tameshi-job { margin: 16px 0; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
-.tameshi-job > p { margin: 0 0 6px; font-weight: 700; }
-.tameshi-steps { margin: 0 0 8px; padding-left: 1.3em; font-size: 0.9rem; color: var(--muted); }
-.tameshi-job pre { white-space: pre-wrap; font-size: 0.82rem; max-height: 480px; overflow: auto; }
-.tameshi-pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
-.tameshi-pics img { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
-.tameshi-form input[type=file] { font: inherit; margin-top: 6px; }
-.tameshi-form textarea { margin: 8px 0; }
-.tameshi-box { scroll-margin-top: 76px; }
-/* Step 3 on the try page: the complaint first, in the person's own words */
-.kaizen-start .tameshi-pick { margin-bottom: 10px; }
-.kaizen-start input, .kaizen-start textarea, .kaizen-start select { display: block; width: 100%; margin-top: 6px; }
-#kaizen-app, .tameshi-form input[name=name] { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
-/* Steps 2, 5 and 6: the name of a field is over the field, as in step 3 */
-.tameshi-form .tameshi-pick select, .tameshi-form .tameshi-pick textarea, .tameshi-form .tameshi-pick input:not([type=file]) { display: block; width: 100%; margin: 6px 0 0; }
-#kaizen-again { margin-top: 4px; }
-@media (max-width: 880px) { .tameshi-box { scroll-margin-top: 116px; } }
 
 /* The flow of the first use on the top page, and the page of all uses (katsuyou.html) */
 .flow-list .step h3 { font-size: 1.05rem; }
 .try { align-self: flex-start; font-size: 0.82rem; font-weight: 700; color: var(--accent); text-decoration: none;
   padding: 3px 10px; border: 1px solid var(--accent); border-radius: 999px; }
 .try:hover { background: var(--accent-soft); }
-.katsuyou .path-steps { margin-top: 18px; }
 
 /* The top page: the hero's words, the flow, and the cards to the other pages */
 .hero.simple { grid-template-columns: 1fr; padding-bottom: 24px; }

@@ -26,7 +26,7 @@ sys.path.insert(0, HERE)
 import kaihatsu  # noqa: E402
 import server  # noqa: E402
 
-PAGE = "https://aiai.example/tameshi.html"
+PAGE = "https://aiai.example/app/tameshi"
 
 
 class FakeGemini:

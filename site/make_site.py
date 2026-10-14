@@ -760,128 +760,26 @@ SEARCH_PAGE = """<article>
 </article>
 <script src="/sagasu.js" defer></script>"""
 
-def tameshi_page():
-    """/tameshi.html: try aiai with Gemini after signing in (tameshi/server.py, at /tameshi)."""
-    tastes = html.escape(read(os.path.join(ROOT, "news", "好み.adoc")))
-    return f"""<article>
-<p class="kicker">試す</p>
-<h1>aiai を、Gemini で試す</h1>
-<p class="lead">サインインすると、手引きを読ませた Gemini と対話し、今あるアプリを探させ、その不満からどう良くするかを一緒に考え、資料から設計書と利用者マニュアルを作らせ、自分の好みで今日のニュースを作らせることができます。Gemini は Google Cloud で動きます。書いたことは Gemini に送り、このサイトには記録しません。1 日に使える回数があります。</p>
-<section id="tameshi-in" class="tameshi-box">
-  <h2>サインイン</h2>
-  <div class="actions">
-    <a class="button primary" id="tameshi-google" hidden>Google でサインイン</a>
-    <a class="button" id="tameshi-apple" hidden>Apple でサインイン</a>
-  </div>
-  <form id="tameshi-test" class="tameshi-test" hidden>
-    <p class="fine">審査用のテストアカウント</p>
-    <input id="tameshi-id" autocomplete="username" placeholder="ID" aria-label="ID">
-    <input id="tameshi-password" type="password" autocomplete="current-password" placeholder="パスワード" aria-label="パスワード">
-    <button class="button" type="submit">入る</button>
-  </form>
-  <p class="fine" id="tameshi-in-note" aria-live="polite"></p>
-</section>
-<div id="tameshi-use" hidden>
-  <p class="fine"><span id="tameshi-who"></span> ・ <span id="tameshi-left"></span> ・ <button type="button" class="linkish" id="tameshi-out">サインアウト</button></p>
-  <section class="tameshi-box">
-    <h2>手引きを読ませた Gemini と対話する</h2>
-    <label class="tameshi-pick">手引き <select id="tameshi-guide"></select></label>
-    <div id="tameshi-log" class="tameshi-log" aria-live="polite"></div>
-    <form id="tameshi-chat" class="sagasu">
-      <textarea id="tameshi-say" rows="2" maxlength="4000" placeholder="例: 始めたいです" aria-label="書くこと"></textarea>
-      <button class="button primary" type="submit">送る</button>
-    </form>
-    <p class="fine" id="tameshi-chat-note" aria-live="polite"></p>
-  </section>
-  <section class="tameshi-box">
-    <h2>今日のニュースを作らせる</h2>
-    <p class="fine">分野、地域、件数、扱わない物を書きます。下は aiai のニュースの好みです。書き替えて使えます。</p>
-    <form id="tameshi-news">
-      <textarea id="tameshi-tastes" rows="10" maxlength="4000" aria-label="好み">{tastes}</textarea>
-      <button class="button primary" type="submit">作る</button>
-    </form>
-    <p class="fine" id="tameshi-news-note" aria-live="polite"></p>
-    <div id="tameshi-news-out" hidden>
-      <pre id="tameshi-news-text"></pre>
-      <button type="button" class="button" id="tameshi-copy">写す</button>
-    </div>
-  </section>
-  <div id="tameshi-kaihatsu">
-  <section class="tameshi-box" id="chousa">
-    <h2>今あるアプリを探す</h2>
-    <p class="fine">AI に何度も頼んでいることを書くと、Gemini が、似たアプリを Google 検索で 3 つまで選び、公式サイト、ストアの説明、利用規約、料金のページを読んで、機能、料金、問題点を、出典を付けてまとめます。SKILL.md や参考の資料(.md、.adoc、.txt か、それを入れた ZIP)も足せます。数分かかります。作った物は 7 日で消します。</p>
-    <form class="tameshi-form" data-kind="chousa">
-      <label class="tameshi-pick">何度も頼んでいること <textarea name="note" rows="3" maxlength="2000" placeholder="例: 毎週、売上の表を渡して、品目ごとの集計と先週との比べを頼んでいる"></textarea></label>
-      <label class="tameshi-pick">資料(なくてもかまいません) <input type="file" name="files" multiple accept=".md,.adoc,.txt,.zip"></label>
-      <div class="actions">
-        <button class="button primary" type="submit">探す</button>
-      </div>
-      <p class="fine">架空の見本(パン屋の取り置きのアプリ)でも試せます。
-        <button class="linkish" type="submit" data-mihon="1">見本で探す</button> ・
-        <a href="https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon">見本を見る</a></p>
-    </form>
-    <p class="fine tameshi-job-note" aria-live="polite"></p>
-    <div class="tameshi-jobs"></div>
-  </section>
-  <section class="tameshi-box" id="kaizen">
-    <h2>どう良くするかを考える</h2>
-    <p class="fine">今あるアプリを使ってみて、不満な所を具体的に書きます。どのアプリの、どの場面で、何が困るのかが分からないと、Gemini も一緒に考えられません。Gemini は、手引き「度々聞いていることを、アプリにする」の手順 3 に沿って、聞きながら、どうなればよいかを一緒に考えます。上の「今あるアプリを探す」の結果を読ませることもできます。対話は記録しません。</p>
-    <form id="kaizen-start" class="kaizen-start">
-      <label class="tameshi-pick">読ませる結果 <select id="kaizen-job"><option value="">読ませない</option></select></label>
-      <label class="tameshi-pick">使ったアプリ <input id="kaizen-app" maxlength="200" placeholder="例: 集計のアプリ"></label>
-      <label class="tameshi-pick">困った場面と、困ったこと <textarea id="kaizen-fuman" rows="3" maxlength="2000" required placeholder="例: 毎週、売上の表を渡して集計させている。前の週の表が残らないので、先週との比べを毎回自分で作っている"></textarea></label>
-      <label class="tameshi-pick">どうなればよいか(分かれば) <textarea id="kaizen-hoshii" rows="2" maxlength="1000" placeholder="例: 先週の表を残し、比べた表も一緒に出してほしい"></textarea></label>
-      <button class="button primary" type="submit">考える</button>
-    </form>
-    <div id="kaizen-talk" hidden>
-      <div id="kaizen-log" class="tameshi-log" aria-live="polite"></div>
-      <form id="kaizen-chat" class="sagasu">
-        <textarea id="kaizen-say" rows="2" maxlength="4000" aria-label="書くこと"></textarea>
-        <button class="button primary" type="submit">送る</button>
-      </form>
-      <button type="button" class="linkish" id="kaizen-again">初めから</button>
-    </div>
-    <p class="fine" id="kaizen-note" aria-live="polite"></p>
-  </section>
-  <section class="tameshi-box" id="kadai">
-    <h2>今あるアプリの課題を集める</h2>
-    <p class="fine">「今あるアプリを探す」の結果か、渡した資料に出てくるアプリについて、使う人にとっての問題点と、運営の作りの問題点を、Gemini が Google 検索で公式サイトや利用規約などを読んで、出典を付けてまとめます。アプリの名前が出てこなければ、似たことをしているアプリを探してから調べます。できる物は、手引きの手順 5 の資料(references/&lt;名前&gt;-analysis.adoc)です。数分かかります。作った物は 7 日で消します。</p>
-    <form class="tameshi-form" data-kind="kadai">
-      <label class="tameshi-pick">読ませる結果 <select name="research"><option value="">読ませない</option></select></label>
-      <label class="tameshi-pick">作るアプリの名前(英数字とハイフン。資料のファイルの名前に使います) <input name="name" autocomplete="off" autocapitalize="none" placeholder="例: toriooki"></label>
-      <label class="tameshi-pick">3 で分かった不満(あれば) <textarea name="note" rows="3" maxlength="2000" placeholder="例: 前の週の表が残らないので、先週との比べを毎回自分で作っている"></textarea></label>
-      <label class="tameshi-pick">資料(なくてもかまいません) <input type="file" name="files" multiple accept=".md,.adoc,.txt,.zip"></label>
-      <div class="actions">
-        <button class="button primary" type="submit">集める</button>
-      </div>
-      <p class="fine">架空の見本(パン屋の取り置きのアプリ)でも試せます。
-        <button class="linkish" type="submit" data-mihon="1">見本で集める</button> ・
-        <a href="https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon">見本を見る</a></p>
-    </form>
-    <p class="fine tameshi-job-note" aria-live="polite"></p>
-    <div class="tameshi-jobs"></div>
-  </section>
-  <section class="tameshi-box" id="sekkei">
-    <h2>設計書と利用者マニュアルを作る</h2>
-    <p class="fine">作るアプリの SKILL.md と参考の資料(.md、.adoc、.txt か、それを入れた ZIP)を渡します。SKILL.md は、手引き「度々聞いていることを、アプリにする」の「アプリの SKILL.md の形」に沿って、自分の AI と書きます。上の「今あるアプリの課題を集める」の資料も読ませられます。Gemini 4 Argon が設計書と利用者マニュアルを書き、画面の絵を Nano Banana が描き、最後に 2 つを照らし合わせます。数分かかります。作った物は 7 日で消します。</p>
-    <form class="tameshi-form" data-kind="sekkei">
-      <label class="tameshi-pick">読ませる課題の資料 <select name="kadai"><option value="">読ませない</option></select></label>
-      <label class="tameshi-pick">資料 <input type="file" name="files" multiple accept=".md,.adoc,.txt,.zip"></label>
-      <textarea name="note" rows="2" maxlength="2000" placeholder="足したいこと(なくてもかまいません)" aria-label="足したいこと"></textarea>
-      <div class="actions">
-        <button class="button primary" type="submit">設計書とマニュアルを作る</button>
-      </div>
-      <p class="fine">資料が手元に無ければ、架空の見本(パン屋の取り置きのアプリ)で試せます。
-        <button class="linkish" type="submit" data-mihon="1">見本で設計書とマニュアルを作る</button> ・
-        <a href="https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon">見本を見る</a></p>
-    </form>
-    <p class="fine tameshi-job-note" aria-live="polite"></p>
-    <div class="tameshi-jobs"></div>
-  </section>
-  </div>
-</div>
-</article>
-<script src="/tameshi.js" defer></script>"""
+# /tameshi.html was the page of the 作る tab before the tab was in the app. The address after the # does not
+# reach the server, so this page reads it and sends the person to the same place in the app.
+TAMESHI_MOVED = """<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>作る — aiai</title>
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="3; url=/app/tameshi">
+<script>
+  var place = location.hash.slice(1);
+  location.replace("/app/tameshi" + (/^[a-z]+$/.test(place) ? "/" + place : ""));
+</script>
+</head>
+<body>
+<p>アプリの「作る」に移ります。移らないときは、<a href="/app/tameshi">こちら</a>を開いてください。</p>
+</body>
+</html>
+"""
 
 
 NOT_FOUND = """<article>
@@ -957,8 +855,7 @@ def main():
     write(os.path.join(OUT, "index.html"), top.replace("</body>", KAISEKI_TAGS + "\n</body>"))
     shutil.copyfile(os.path.join(HERE, "top.css"), os.path.join(OUT, "top.css"))
     for src, name in ((os.path.join(ROOT, "kaiseki", "kaiseki.js"), "kaiseki.js"),
-                      (os.path.join(HERE, "kaiseki-aiai.js"), "kaiseki-aiai.js"), (os.path.join(HERE, "sagasu.js"), "sagasu.js"),
-                      (os.path.join(HERE, "tameshi.js"), "tameshi.js")):
+                      (os.path.join(HERE, "kaiseki-aiai.js"), "kaiseki-aiai.js"), (os.path.join(HERE, "sagasu.js"), "sagasu.js")):
         shutil.copyfile(src, os.path.join(OUT, name))
     skills = load_skills()
     for name, s in skills.items():
@@ -989,7 +886,7 @@ def main():
         write(os.path.join(OUT, path), text)
     write(os.path.join(OUT, "sagasu.html"), page("探す", SEARCH_PAGE, "aiai のサイトの中を探す"))
     write(os.path.join(OUT, "404.html"), page("見つかりません", NOT_FOUND))
-    write(os.path.join(OUT, "tameshi.html"), page("Gemini で試す", tameshi_page(), "手引きを読ませた Gemini と対話し、好みでニュースを作らせる"))
+    write(os.path.join(OUT, "tameshi.html"), TAMESHI_MOVED)
     # the pages the top page's table of contents leads to (hand-written, as the top page is)
     write(os.path.join(OUT, "eizou.html"), page("写真や映像を読む AI", read(os.path.join(HERE, "eizou.html")),
                                                  "畑のカメラの映像を AI が読み、記録する例"))

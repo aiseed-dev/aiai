@@ -135,10 +135,13 @@ class BuildTest(unittest.TestCase):
             make_site.main()
             for path in ("index.html", "top.css", "kangaekata.html", "news/index.html", "news/2026-09-30.html",
                          "skills/rireki.html", "skills/keikaku.html", "sagasu.html", "sagasu.json", "404.html",
-                         "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "tsukaikata.html",
+                         "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "tsukaikata.html", "tameshi.html",
                          "tsukaikata/images/nagare.svg", "tsukaikata/manual.pdf", "eizou.html"):
                 self.assertTrue(os.path.exists(os.path.join(out, path)), path)
             self.assertFalse(os.path.exists(os.path.join(out, "katsuyou.html")))  # server.py sends it to 使い方
+            self.assertFalse(os.path.exists(os.path.join(out, "tameshi.js")))
+            with open(os.path.join(out, "tameshi.html"), encoding="utf-8") as f:  # the old page sends # places to the app
+                self.assertIn('"/app/tameshi" + (', f.read())
             # the page 使い方 is the short form of the manual: the four sections, the figure, the links to the rest
             with open(os.path.join(out, "tsukaikata.html"), encoding="utf-8") as f:
                 usage = f.read()
@@ -159,16 +162,9 @@ class BuildTest(unittest.TestCase):
                 self.assertIn(text, top)
             self.assertNotIn('nagare-step tsukuru">作る<', top)
             self.assertEqual(top.count('class="nagare-try"'), 5)
-            # the head: the name and the theme, one button to the guide; the flow's heading; cards, not a table of contents
-            for text in ("<h1>", "aiai —", "AI 活用法", 'href="/skills/rireki.html">手引きを見る', "AI に何度も頼むことを、アプリにする",
-                         "<h2>ほかのページ</h2>", "色の付いた段は、Gemini で試せます"):
-                self.assertIn(text, top)
-            self.assertNotIn("主役は、あなたの AI", top)
-            self.assertNotIn("flow-guide", top)
-            self.assertEqual(top.count('class="card-link"'), 6)
-            for href in ("/tsukaikata.html", "/kangaekata.html", "/kiji/", "/news/", "/eizou.html", "/tsukaikata.html#tools", "/kaiseki/", "/sagasu.html"):
-                self.assertIn(f'href="{href}"', top)
-            self.assertNotIn("<script", top.split('<section id="mokuji"')[1].split("</main>")[0])
+            for place in ("chousa", "kaizen", "kadai", "sekkei", "tesuto"):  # the 作る tab of the app, by the field's name
+                self.assertIn(f'class="nagare-try" href="/app/tameshi/{place}"', top)
+            self.assertNotIn("/tameshi.html", top)
             with open(os.path.join(out, "news", "index.html"), encoding="utf-8") as f:
                 self.assertIn("架空の見出し", f.read())
             with open(os.path.join(out, "skills", "rireki.html"), encoding="utf-8") as f:

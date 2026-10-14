@@ -11,7 +11,8 @@ screen; and, from the design and the manual, the procedure for testing the
 app. A dialogue on how those apps could be better can read what the first
 job found, the third job can read what the second made, and the fourth can
 read what the third made. Gemini runs on Google Cloud (site/gemini.py). It
-is mounted at /tameshi by site/server.py; the screen is /tameshi.html.
+is mounted at /tameshi by site/server.py; the screen is the 作る tab of the app (site/app/tameshi_view.py,
+at /app/tameshi).
 
 People sign in with Apple or Google (the sign-in of moushikomi/server.py).
 For reviewers who cannot use those, one test account signs in with an ID

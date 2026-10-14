@@ -17,6 +17,8 @@ from news_view import NewsView
 from server_view import ServerView
 from kaiseki_view import KaisekiView
 from soudan_view import SoudanView
+from tameshi_view import TameshiView
+from manual_view import manual_controls
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 # Where a skill's ZIP can be fetched (site/server.py serves /skills/<name>.zip)
@@ -188,6 +190,15 @@ async def main(page: ft.Page):
     soudan = SoudanView(page, prefs, show)
     await soudan.start()
 
+    # The 作る tab: the steps of the flow that Gemini does. The address /tameshi/<place> opens it
+    tameshi = TameshiView(page, show, body)
+
+    async def show_tameshi():
+        await tameshi.render()
+
+    def show_manual():
+        show(manual_controls(os.path.join(ASSETS, "manual"), markdown, heading, SITE))
+
     async def show_soudan():
         show([ft.ProgressRing()])
         await soudan.render()
@@ -216,7 +227,7 @@ async def main(page: ft.Page):
 
     # The records tab reads this PC and the news tab writes to it, so they are there only
     # when the app runs on the person's own PC; elsewhere the news is read-only
-    tabs = [show_list] + ([show_kiroku, show_server, show_kaiseki] if LOCAL else []) + [show_kangaekata, show_news_edit if LOCAL else show_news, show_soudan]
+    tabs = [show_list, show_tameshi, show_manual] + ([show_kiroku, show_server, show_kaiseki] if LOCAL else []) + [show_kangaekata, show_news_edit if LOCAL else show_news, show_soudan]
 
     async def change(e):
         result = tabs[e.control.selected_index]()
@@ -227,13 +238,22 @@ async def main(page: ft.Page):
         page.navigation_bar.selected_index = tabs.index(show_soudan)
         await show_soudan()
 
+    async def open_tameshi():
+        page.navigation_bar.selected_index = tabs.index(show_tameshi)
+        await show_tameshi()
+
     async def route_change(e):
-        # Coming back from sign-in: the code is in the address
-        if await soudan.take_code(e.route):
+        # /tameshi/<place>, also coming back from sign-in with the code in the address
+        if await tameshi.take_route(e.route):
+            await open_tameshi()
+        # Coming back from the second opinion's sign-in: the code is in the address
+        elif await soudan.take_code(e.route):
             await open_soudan()
 
     page.navigation_bar = ft.NavigationBar(
-        destinations=[ft.NavigationBarDestination(icon=ft.Icons.MENU_BOOK, label="スキル")]
+        destinations=[ft.NavigationBarDestination(icon=ft.Icons.MENU_BOOK, label="スキル"),
+                      ft.NavigationBarDestination(icon=ft.Icons.AUTO_AWESOME, label="作る"),
+                      ft.NavigationBarDestination(icon=ft.Icons.HELP_OUTLINE, label="使い方")]
         + ([ft.NavigationBarDestination(icon=ft.Icons.HISTORY, label="記録"),
             ft.NavigationBarDestination(icon=ft.Icons.SHIELD_OUTLINED, label="サーバー"),
             ft.NavigationBarDestination(icon=ft.Icons.INSIGHTS, label="解析")] if LOCAL else [])
@@ -244,7 +264,9 @@ async def main(page: ft.Page):
         on_change=change)
     page.on_route_change = route_change
     page.add(ft.SafeArea(frame, expand=True))
-    if await soudan.take_code(page.route):
+    if await tameshi.take_route(page.route):
+        await open_tameshi()
+    elif await soudan.take_code(page.route):
         await open_soudan()
     else:
         show_list()
