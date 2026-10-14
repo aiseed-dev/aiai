@@ -223,6 +223,9 @@ class BuildTest(unittest.TestCase):
             button = '<button class="nagare-try" type="button" data-copy="skill-src" data-said="skill-said" data-fallback="/skills/rireki.html">スキルをコピー</button>'
             self.assertEqual(usage.count(button), 1)  # the same button, with the guide hidden in the page and the script
             self.assertIn('<textarea id="skill-src" hidden>', usage)
+            self.assertEqual(usage.count('class="nagare-try" type="button"'), 6)  # the same six buttons
+            self.assertEqual(usage.count('<textarea id="skill-src" hidden>'), 1)
+            self.assertIn('data-step="8"', usage)
             self.assertIn("navigator.clipboard.writeText", usage)
             for text in ("知らせが出たとき", "を使う前に", "<h2 id=\"s13\">8 テストする"):  # the rest of the manual is in the app
                 self.assertNotIn(text, usage)
@@ -263,7 +266,17 @@ class BuildTest(unittest.TestCase):
             self.assertNotIn('<a class="card-link" href="/news/">', top)
             # step 1 has a button that copies the guide, where the others have "Gemini で試す": the whole SKILL.md is in the page
             self.assertEqual(top.count(button), 1)
-            self.assertEqual(top.count('class="nagare-try" type="button"'), 1)
+            # and beside each step Gemini does, "スキルをコピー" stands left of "Gemini で試す": six buttons that copy the one guide
+            self.assertEqual(top.count('class="nagare-try" type="button"'), 6)
+            for n, place in ((2, "chousa"), (3, "kaizen"), (5, "kadai"), (6, "sekkei"), (8, "tesuto")):
+                pair = (f'<div class="nagare-btns">\n          <button class="nagare-try" type="button" data-copy="skill-src" data-said="skill-said-{n}" '
+                        f'data-step="{n}" data-fallback="/skills/rireki.html">スキルをコピー</button>\n          <a class="nagare-try" href="/app/tameshi/{place}">Gemini で試す</a>')
+                self.assertIn(pair, top)
+                self.assertIn(f'<span class="nagare-said" id="skill-said-{n}" role="status"></span>', top)
+            self.assertEqual(top.count("data-copy="), 6)
+            self.assertEqual(top.count('<textarea id="skill-src" hidden>'), 1)  # one hidden guide for all the buttons
+            # after pressing, a step after the first says which step to start from
+            self.assertIn('"コピーしました。ふだん使っている AI に貼り、「" + step + " から」と言ってください"', top)
             self.assertIn('<span class="nagare-said" id="skill-said" role="status"></span>', top)
             self.assertIn("右の「スキルをコピー」を押し、ふだん使っている AI のチャットに貼ると、AI があなたに聞きながら、1 から順に進めます。", top)
             hidden = re.search(r'<textarea id="skill-src" hidden>(.*?)</textarea>', top, re.S)[1]

@@ -841,7 +841,7 @@ footer strong { color: var(--fg); }
 
 /* The top page's flow: a step opens to its explanation, a step the site's Gemini can
    do has a button on its right, and a question branches to the right */
-.nagare { --c1: 470px; --c2: 128px; --gap: 40px; max-width: calc(var(--c1) + var(--gap) + var(--c2)); margin: 10px auto 24px; }
+.nagare { --c1: 470px; --c2: 290px; --gap: 40px; max-width: calc(var(--c1) + var(--gap) + var(--c2)); margin: 10px auto 24px; }
 .nagare-row { display: grid; grid-template-columns: minmax(0, 1fr) var(--c2); column-gap: var(--gap); align-items: center; }
 .nagare-step, .nagare-q { grid-column: 1; margin: 0; line-height: 1.5; letter-spacing: 0; }
 p.nagare-step, .nagare-step > summary, .nagare-q { padding: 10px 14px; text-align: center;
@@ -873,10 +873,14 @@ p.nagare-step.tsukuru { background: transparent; border-color: var(--accent); bo
   color: var(--accent); font-size: 0.86rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .nagare-try:hover { background: var(--accent-soft); }
 button.nagare-try { background: none; font-family: inherit; line-height: 1.5; cursor: pointer; }
+/* beside a step Gemini does: "スキルをコピー" and "Gemini で試す", side by side on a PC, one over the other on a phone */
+.nagare-btns { grid-column: 2; align-self: start; display: flex; gap: 8px; margin-top: 7px; }
+.nagare-btns .nagare-try { margin: 0; }
+.nagare-side { justify-self: start; width: 128px; }
 @media (min-width: 601px) { .nagare-try { min-width: 9.6em; text-align: center; } }  /* "スキルをコピー" is as wide as "Gemini で試す" */
 /* what the copy button of the first step says for 2.5 seconds, under it, over the next row */
 .nagare-row { position: relative; }
-.nagare-said { position: absolute; right: 0; top: calc(100% - 6px); z-index: 2; padding: 4px 10px; border: 1px solid var(--accent);
+.nagare-said { position: absolute; right: 0; top: calc(100% - 6px); z-index: 2; width: max-content; max-width: min(24em, 100%); padding: 4px 10px; border: 1px solid var(--accent);
   border-radius: 8px; background: var(--card); color: var(--accent); font-size: 0.8rem; box-shadow: var(--shadow); }
 .nagare-said:empty { display: none; }
 .nagare-ya { position: relative; height: 26px; margin-right: calc(var(--gap) + var(--c2)); }
@@ -888,7 +892,8 @@ button.nagare-try { background: none; font-family: inherit; line-height: 1.5; cu
   .nagare { --c2: 104px; --gap: 26px; }
   p.nagare-step, .nagare-step > summary, .nagare-q { padding: 9px 4px; font-size: 0.8rem; }
   .nagare-step > summary::after { margin-left: 6px; }
-  .nagare-side { padding: 6px 4px; font-size: 0.8rem; }
+  .nagare-side { padding: 6px 4px; font-size: 0.8rem; width: auto; }
+  .nagare-btns { flex-direction: column; gap: 4px; margin-top: 0; }
   .nagare-try { margin-top: 7px; padding: 4px 6px; font-size: 0.75rem; letter-spacing: 0; }
   .nagare-setsumei { padding: 12px 14px; }
 }

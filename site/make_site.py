@@ -589,7 +589,9 @@ document.querySelectorAll("[data-copy]").forEach(function (b) {
   b.addEventListener("click", function () {
     var text = document.getElementById(b.dataset.copy).value;
     var said = b.dataset.said && document.getElementById(b.dataset.said);
-    var msg = "コピーしました。ふだん使っている AI に貼ってください";
+    var step = b.dataset.step;  // a step after the first: the person tells the AI which step to start from
+    var msg = step ? "コピーしました。ふだん使っている AI に貼り、「" + step + " から」と言ってください"
+                   : "コピーしました。ふだん使っている AI に貼ってください";
     function done() {
       if (said) {
         said.textContent = msg;
