@@ -146,7 +146,7 @@ class BuildTest(unittest.TestCase):
             for path in ("index.html", "top.css", "kangaekata.html", "news/index.html", "news/2026-09-30.html",
                          "skills/rireki.html", "skills/keikaku.html", "sagasu.html", "sagasu.json", "404.html",
                          "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "tsukaikata.html", "tameshi.html",
-                         "tsukaikata/images/nagare.svg", "tsukaikata/manual.pdf", "eizou.html"):
+                         "tsukaikata/manual.pdf", "eizou.html"):
                 self.assertTrue(os.path.exists(os.path.join(out, path)), path)
             with open(os.path.join(out, "sagasu.json"), encoding="utf-8") as f:
                 found = json.load(f)
@@ -178,8 +178,15 @@ class BuildTest(unittest.TestCase):
             with open(os.path.join(out, "tsukaikata.html"), encoding="utf-8") as f:
                 usage = f.read()
             for text in ("手引きを AI に読ませる", "アプリを作る流れ", "ほかの手引き", "一緒に使う物", 'id="tools"',
-                         "/tsukaikata/images/nagare.svg", 'href="/app/"', 'href="/tsukaikata/manual.pdf"'):
+                         'class="nagare"', 'href="/app/"', 'href="/tsukaikata/manual.pdf"'):
                 self.assertIn(text, usage)
+            # the flow is the top page's, kept in one place: the same steps, the explanations that open, the buttons to the app
+            flow_of = lambda t: t[t.index('<div class="nagare">'):t.index("使い始める")]
+            with open(os.path.join(out, "index.html"), encoding="utf-8") as f:
+                self.assertEqual(flow_of(usage), flow_of(f.read()))
+            self.assertNotIn("nagare.svg", usage)
+            self.assertNotIn("nagare-foot", usage)
+            self.assertEqual(usage.count('class="nagare-try" href="/app/tameshi/'), 5)
             for text in ("知らせが出たとき", "を使う前に", "<h2 id=\"s13\">8 テストする"):  # the rest of the manual is in the app
                 self.assertNotIn(text, usage)
             with open(os.path.join(out, "index.html"), encoding="utf-8") as f:

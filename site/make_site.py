@@ -337,6 +337,13 @@ def usage_sections(text):
     return chosen
 
 
+def flow_html():
+    """The flow of the top page (site/index.html, between <!-- flow --> and <!-- /flow -->), without the note and the
+    button under its steps: the page 使い方 shows the same flow, so it is kept in one place."""
+    m = re.search(r"<!-- flow -->\s*(.*?)\s*<!-- /flow -->", read(os.path.join(HERE, "index.html")), re.S)
+    return re.sub(r'\s*<div class="nagare-foot">.*?</div>\s*</div>\s*$', "\n    </div>", m[1], flags=re.S)
+
+
 def usage_page(text):
     """The page 使い方: the short form of the user manual. Only its first paragraphs and the sections
     USAGE_SECTIONS (with their subsections) are on it; the whole manual is in the app, and a PDF."""
@@ -345,6 +352,8 @@ def usage_page(text):
     toc = '<ol class="toc">' + "".join(f'<li><a href="#{x["id"]}">{adoc_inline(x["title"])}</a></li>'
                                        for x in chosen if x["level"] == 2) + "</ol>"
     body = "\n".join(f'<h{x["level"]} id="{x["id"]}">{adoc_inline(x["title"])}</h{x["level"]}>\n{x["html"]}' for x in chosen)
+    # on the web the figure of the flow is the flow of the top page (the PDF and the app keep the picture)
+    body = re.sub(r'<figure class="fig"><img src="/tsukaikata/images/nagare\.svg"[^>]*></figure>', lambda m: flow_html(), body)
     return f"""<article class="tsukaikata">
 <h1>使い方</h1>
 {toc}
@@ -961,16 +970,14 @@ def main():
     # the pages the top page's table of contents leads to (hand-written, as the top page is)
     write(os.path.join(OUT, "eizou.html"), page("写真や映像を読む AI", read(os.path.join(HERE, "eizou.html")),
                                                  "畑のカメラの映像を AI が読み、記録する例"))
-    # the usage page is the short form of the user manual; its figures and its PDF are copied beside it
+    # the usage page is the short form of the user manual; its PDF is copied beside it (the flow is the top page's)
     write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)), "手引きを AI に読ませる方法と、アプリを作る流れ"))
     docs = os.path.dirname(MANUAL)
     shoukai = load_shoukai()
     for path, text in shoukai_pages(shoukai).items():
         write(os.path.join(OUT, path), text)
-    for name in sorted(os.listdir(os.path.join(docs, "images"))):
-        os.makedirs(os.path.join(OUT, "tsukaikata", "images"), exist_ok=True)
-        shutil.copyfile(os.path.join(docs, "images", name), os.path.join(OUT, "tsukaikata", "images", name))
     if os.path.exists(os.path.join(docs, "manual.pdf")):
+        os.makedirs(os.path.join(OUT, "tsukaikata"), exist_ok=True)
         shutil.copyfile(os.path.join(docs, "manual.pdf"), os.path.join(OUT, "tsukaikata", "manual.pdf"))
     write(os.path.join(OUT, "kaiseki", "index.html"), page("読まれ方の記録", KAISEKI_PAGE, "aiai のサイトが記録する物と送り先"))
     write(os.path.join(OUT, "kaiseki", "kiroku.html"), page("直し方の記録", kiroku_page(), "読まれ方の記録から、aiai のサイトをどう直したか"))
