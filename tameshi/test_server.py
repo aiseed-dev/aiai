@@ -178,8 +178,11 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.c.get(f"/api/jobs/{r.json()['id']}/file", params={"path": "../../t.db"}, headers=h).status_code, 404)
         z = zipfile.ZipFile(io.BytesIO(self.c.get(f"/api/jobs/{r.json()['id']}/zip", headers=h).content))
         self.assertIn("docs/manual.adoc", z.namelist())
-        # one a day
-        self.assertEqual(self.job(h, "sekkei").status_code, 429)
+        # the test account is shared by reviewers, so it has no limit of one person's (a person with Google has: one a day)
+        self.assertEqual(self.job(h, "sekkei").status_code, 200)
+        g = self.google("u43")
+        self.assertEqual(self.job(g, "sekkei").status_code, 200)
+        self.assertEqual(self.job(g, "sekkei").status_code, 429)
 
     def test_research_job_lists_its_sources(self):
         h = self.google("u1")
