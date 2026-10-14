@@ -992,6 +992,7 @@ footer strong { color: var(--fg); }
 .tameshi-form input[type=file] { font: inherit; margin-top: 6px; }
 .tameshi-form textarea { margin: 8px 0; }
 .tameshi-box { scroll-margin-top: 76px; }
+@media (max-width: 880px) { .tameshi-box { scroll-margin-top: 116px; } }
 
 /* The flow of the first use on the top page, and the page of all uses (katsuyou.html) */
 .flow-list .step h3 { font-size: 1.05rem; }
