@@ -1018,3 +1018,6 @@ footer strong { color: var(--fg); }
 .mokuji-groups h3 { margin: 6px 0 2px; font-size: 1rem; color: var(--muted); }
 .mokuji-groups .mokuji-list { grid-template-columns: 1fr; }
 @media (max-width: 880px) { .mokuji-groups { grid-template-columns: 1fr; } }
+
+/* The top heading breaks only between its phrases */
+.hero h1 .nb { display: inline-block; }
