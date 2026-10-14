@@ -87,6 +87,13 @@ class BuildTest(unittest.TestCase):
             with open(os.path.join(out, "index.html"), encoding="utf-8") as f:
                 top = f.read()
             self.assertIn("度々聞いていることを、アプリにする", top)
+            # the flow: steps 1 to 8, the two questions and the end; no step that is only "作る"
+            for text in ("1 何度も頼むことを見つける", "2 今あるアプリを探す", "不満はあるか", "3 どう良くするかを考える",
+                         "4 要望か、自分で作るか", "5 今あるアプリの課題を集める", "6 設計書とマニュアルを作る", "7 実装する",
+                         "8 テストする", "直す所はあるか", "使い始める"):
+                self.assertIn(text, top)
+            self.assertNotIn('nagare-step tsukuru">作る<', top)
+            self.assertEqual(top.count('class="nagare-try"'), 5)
             with open(os.path.join(out, "news", "index.html"), encoding="utf-8") as f:
                 self.assertIn("架空の見出し", f.read())
             with open(os.path.join(out, "skills", "rireki.html"), encoding="utf-8") as f:
