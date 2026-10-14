@@ -212,6 +212,29 @@ class BuildTest(unittest.TestCase):
             for text in (top, skill, usage):
                 self.assertIn('data-to="/kaiseki" data-ask="no"', text)
                 self.assertNotIn("/katsuyou.html", text)
+            # one footer for every page, with the same links; the menu marks the page that is open
+            import re
+            footer = re.search(r"<footer>.*?</footer>", top, re.S)[0]
+            self.assertIn("一緒に使う物</a>", footer)
+            self.assertNotIn("aiai-tools", footer)
+            pages = {"tsukaikata.html": "/tsukaikata.html", "news/index.html": "/news/", "news/2026-09-30.html": "/news/",
+                     "kangaekata.html": "/kangaekata.html", "kiji/index.html": "/kiji/", "sagasu.html": "/sagasu.html",
+                     "skills/rireki.html": "", "kaiseki/index.html": ""}
+            for path, current in pages.items():
+                with open(os.path.join(out, path), encoding="utf-8") as f:
+                    text = f.read()
+                self.assertEqual(re.search(r"<footer>.*?</footer>", text, re.S)[0], footer, path)
+                marked = re.findall(r'<a href="([^"]*)" aria-current="page">', text.split("</nav>")[0])
+                self.assertEqual(marked, [current] if current else [], path)
+            self.assertNotIn('aria-current', top)
+            # a small label that says what the heading says is not put over it
+            for path, label in (("tsukaikata.html", "使い方"), ("kiji/index.html", "記事"), ("sagasu.html", "探す"), ("kaiseki/index.html", "読まれ方の記録")):
+                with open(os.path.join(out, path), encoding="utf-8") as f:
+                    self.assertNotIn(f'<p class="kicker">{label}</p>', f.read(), path)
+            # under the steps, the sentence and the button sit in the flow, so they are centred on the column of steps
+            self.assertIn('<div class="nagare-foot">', top)
+            self.assertLess(top.index('<div class="nagare-foot">'), top.index("</section>", top.index('id="skills"')))
+            self.assertNotIn("card-more", top)
             with open(os.path.join(out, "sagasu.json"), encoding="utf-8") as f:
                 index = json.load(f)
             self.assertIn({"u": "/news/2026-09-30.html", "t": "ニュース 2026-09-30"},

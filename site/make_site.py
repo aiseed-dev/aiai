@@ -344,7 +344,6 @@ def usage_page(text):
                                        for x in chosen if x["level"] == 2) + "</ol>"
     body = "\n".join(f'<h{x["level"]} id="{x["id"]}">{adoc_inline(x["title"])}</h{x["level"]}>\n{x["html"]}' for x in chosen)
     return f"""<article class="tsukaikata">
-<p class="kicker">使い方</p>
 <h1>使い方</h1>
 {toc}
 <div class="prose">
@@ -448,7 +447,21 @@ def read(path):
         return f.read()
 
 
+def current_menu(path):
+    """The address of the menu item of the page that is open (the path under public/), or ''."""
+    rel = os.path.relpath(path, OUT)
+    for prefix, href in (("tsukaikata.html", "/tsukaikata.html"), ("news/", "/news/"), ("kangaekata.html", "/kangaekata.html"),
+                         ("kiji/", "/kiji/"), ("sagasu.html", "/sagasu.html")):
+        if rel == prefix or (prefix.endswith("/") and rel.startswith(prefix)):
+            return href
+    return ""
+
+
 def write(path, text):
+    href = current_menu(path)
+    if href:  # the menu shows which of its pages is open
+        text = re.sub(rf'(<nav class="menu">.*?)<a href="{re.escape(href)}">', lambda m: m[1] + f'<a href="{href}" aria-current="page">',
+                      text, count=1, flags=re.S)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
@@ -498,7 +511,7 @@ HEADER = """<header class="bar">
 
 FOOTER = """<footer>
   <p><strong>aiai</strong> AI 時代の AI 活用法</p>
-  <p class="small"><a href="/sagasu.html">探す</a> ・ <a href="/kaiseki/">読まれ方の記録</a> ・ <a href="https://github.com/aiseed-dev/aiai-tools">aiai tools</a></p>
+  <p class="small"><a href="/tsukaikata.html">使い方</a> ・ <a href="/news/">ニュース</a> ・ <a href="/kangaekata.html">考え方</a> ・ <a href="/kiji/">記事</a> ・ <a href="/sagasu.html">探す</a> ・ <a href="/tsukaikata.html#tools">一緒に使う物</a> ・ <a href="/kaiseki/">読まれ方の記録</a></p>
   <p class="small">文書は CC BY 4.0、コードは AGPL-3.0-or-later です。見本の人、店、数字は、すべて架空です。このサイトは、国や役所が作った物ではありません。</p>
 </footer>"""
 
@@ -754,7 +767,6 @@ def kiji_pages(articles):
         rows.append(f'<li><a href="/kiji/{slug}.html">{html.escape(title)}</a><br><span class="fine">{inline(sub)}</span></li>')
     if rows:
         pages["kiji/index.html"] = page("記事", f"""<article>
-<p class="kicker">記事</p>
 <h1>記事</h1>
 <div class="prose"><ul>{"".join(rows)}</ul></div>
 </article>""")
@@ -804,7 +816,6 @@ def search_index(skills, kangaekata, days, articles=(), pages=()):
 
 
 SEARCH_PAGE = """<article>
-<p class="kicker">探す</p>
 <h1>サイトの中を探す</h1>
 <form id="sagasu" class="sagasu" role="search">
   <input type="search" name="q" maxlength="100" placeholder="例: 転職、鳥獣害、サーバーの管理" aria-label="探す言葉">
@@ -843,7 +854,6 @@ NOT_FOUND = """<article>
 </article>"""
 
 KAISEKI_PAGE = """<article>
-<p class="kicker">読まれ方の記録</p>
 <h1>読まれ方の記録</h1>
 <div class="prose">
 <p>このサイトは、読む人がどこで読み、何を探しているかを記録します。その記録を AI に読ませ、ページを直し、足りないページを作ります。</p>
@@ -906,6 +916,7 @@ def main():
         top = re.sub(r"<!-- news -->.*?<!-- /news -->", lambda m: f"<!-- news -->{latest_news(days)}<!-- /news -->", top, flags=re.S)
     else:  # no news yet: no empty section on the top page
         top = re.sub(r"\s*<!-- news-section -->.*?<!-- /news-section -->", "", top, flags=re.S)
+    top = re.sub(r"<footer>.*?</footer>", lambda m: FOOTER, top, count=1, flags=re.S)  # one footer for all the pages
     write(os.path.join(OUT, "index.html"), top.replace("</body>", KAISEKI_TAGS + "\n</body>"))
     shutil.copyfile(os.path.join(HERE, "top.css"), os.path.join(OUT, "top.css"))
     for src, name in ((os.path.join(ROOT, "kaiseki", "kaiseki.js"), "kaiseki.js"),

@@ -891,8 +891,12 @@ p.nagare-step.tsukuru { background: var(--accent); border-color: var(--accent); 
 .card-link svg { display: block; color: var(--accent); margin-bottom: 8px; }
 .card-link strong { display: block; }
 .card-link span { display: block; margin-top: 2px; color: var(--muted); font-size: 0.88rem; }
-.card-more { margin: 14px 0 0; }
-.nagare-note { margin: 0 0 8px; text-align: center; }
+.nagare-note { margin: 14px 0 8px; text-align: center; }
 .nagare-start { justify-content: center; margin: 16px 0 0; }
+/* under the column of steps, not the page: the right column is left out, as under the explanations */
+.nagare-foot { margin-right: calc(var(--gap) + var(--c2)); }
+@media (max-width: 600px) { .nagare-foot { margin-right: 0; } }
+sup { line-height: 0; }
+.menu a[aria-current="page"] { color: var(--accent); font-weight: 700; }
 @media (max-width: 880px) { .card-links { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .card-links { grid-template-columns: 1fr; } }
