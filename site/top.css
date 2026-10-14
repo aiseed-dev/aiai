@@ -330,7 +330,7 @@ h1 {
 
 /* ---- the path: know, think, make, start ------------------------------- */
 
-.path { padding: 48px 0 56px; }
+.path { padding: 8px 0 56px; }
 
 .step {
   display: flex;
@@ -830,7 +830,7 @@ footer strong { color: var(--fg); }
 .try:hover { background: var(--accent-soft); }
 
 /* The top page: the hero's words, the flow, and the cards to the other pages */
-.hero.simple { grid-template-columns: 1fr; padding-bottom: 24px; }
+.hero.simple { grid-template-columns: 1fr; padding-top: 40px; padding-bottom: 8px; }
 .hero.simple .lead { max-width: 46em; }
 .mokuji { padding: 24px 0 64px; }
 

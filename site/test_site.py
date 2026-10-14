@@ -181,11 +181,15 @@ class BuildTest(unittest.TestCase):
             self.assertNotIn('nagare-step tsukuru">作る<', top)
             self.assertEqual(top.count('class="nagare-try"'), 5)
             # the head: the name and the theme and no button; the flow's heading; the one main button under the flow; cards
-            for text in ("<h1>", "aiai —", "AI 活用法", "いまの AI は、アプリの設計もコードも書けるようになりました", "AI に何度も頼むことを、アプリにする",
-                         "設計書とコードは AI が書きます。人は、何を作るかを決め、AI が書いた物を確かめます", "<h2>ほかのページ</h2>",
+            for text in ("<h1>", "aiai —", "AI 活用法", "いまの AI は、アプリの設計もコードも書けるようになりました", "<h2>ほかのページ</h2>",
                          "色の付いた段は、Gemini で試せます"):
                 self.assertIn(text, top)
             self.assertNotIn("主役は、あなたの AI", top)
+            # the flow follows the head at once: no heading or sentence of its own, but a name for readers of the page's parts
+            self.assertIn('<section id="skills" class="path" aria-label="AI に何度も頼むことを、アプリにする流れ">', top)
+            self.assertNotIn("<h2>AI に何度も頼む", top)
+            self.assertNotIn("設計書とコードは AI が書きます", top)
+            self.assertNotIn("section-lead", top)
             self.assertNotIn("flow-guide", top)
             head, rest = top.split('<section id="skills"')
             self.assertNotIn('class="button', head.split("<main>")[1])
