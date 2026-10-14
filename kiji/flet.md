@@ -39,11 +39,19 @@ TypeScript には、次の欠陥があります。
 - **部品の山に頼る。** 画面のためだけに、npm の部品をたくさん入れます。その部品が攻撃の的になります。
   2025 年 9 月には、自分で広がる「Shai-Hulud」という仕組みに、npm の 500 を超える部品が乗っ取られ、
   開発者の GitHub やクラウドの鍵が盗まれました
+- **自分では直せない。** 型を消すことと、型の仕組みを完全にしないことは、TypeScript が「目標にしない物」
+  として決めた方針です。拡張のための差し込み口(プラグイン)も、エディターでの書き心地を変えるためだけの
+  物で、型の確かめ方やコンパイルの仕方は変えられません。そのうえ、コンパイラーは Microsoft が Go で書き
+  直している最中で、ほかの道具から使うための API は、まだできていません
 
 (TypeScript「The Basics」の Erased Types、https://www.typescriptlang.org/docs/handbook/2/basic-types.html 。
 「Type Compatibility」の A Note on Soundness、https://www.typescriptlang.org/docs/handbook/type-compatibility.html 。
 米国 CISA「Widespread Supply Chain Compromise Impacting npm Ecosystem」2025-09-23、
 https://www.cisa.gov/news-events/alerts/2025/09/23/widespread-supply-chain-compromise-impacting-npm-ecosystem 。
+TypeScript「TypeScript Design Goals」の Non-goals、https://github.com/microsoft/TypeScript/wiki/TypeScript-Design-Goals 。
+「Writing a Language Service Plugin」、https://github.com/microsoft/TypeScript/wiki/Writing-a-Language-Service-Plugin 。
+Microsoft「A 10x Faster TypeScript」2025-03-11、https://devblogs.microsoft.com/typescript/typescript-native-port/ 。
+typescript-go の README(API は not ready)、https://github.com/microsoft/typescript-go 。
 Flet、https://github.com/flet-dev/flet 。AIseed Weather、https://github.com/aiseed-dev/weather 。
 2026-10-14 に確かめました)
 
@@ -53,4 +61,5 @@ Flet、https://github.com/flet-dev/flet 。AIseed Weather、https://github.com/a
 - Flet なら、画面も中身も同じ Python で書ける。Web、PC、スマートフォンのアプリにもなる
 - Flet の機能は、まだ十分ではない。でも、OSS なので、足りない部品や不具合は、AI と一緒に補える。
   補ったことは、試験と AI への決まりに書いておく
-- TypeScript は、型が動かす前に消え、型の仕組みもわざと完全にしていない。画面のために、部品の山にも頼る
+- TypeScript は、型が動かす前に消え、型の仕組みもわざと完全にしていない。画面のために、部品の山にも頼る。
+  足りない所があっても、使う人は直す側に回れない
