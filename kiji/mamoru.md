@@ -118,6 +118,52 @@ Jones・Vance・Dangl「Intracellular innate immune surveillance devices in plan
 断った行は sshd のログ。OpenSSH「Release Notes」の 9.8、https://www.openssh.org/releasenotes.html 。
 sshd_config(5) の PerSourcePenalties、https://man.openbsd.org/sshd_config 。2026-10-14 に確かめました)
 
+## 基幹システムも、Microsoft 365 も、Web サイトも
+
+この見方で見ると、いま仕事で使っているシステムは、自分で守っていません。
+
+**基幹システム**は、入られた後も、攻撃を検知せず、止めず、知らせていません。見張ることさえしていない
+例もあります。
+
+- 大阪急性期・総合医療センターは、患者の給食の委託先の給食センターにある VPN 機器から入られました。
+  そこに置かれていた病院のサーバーの ID とパスワードで、常時つながっていた RDP を通って、病院の
+  サーバーに入られました。セキュリティのログの監視は、できていませんでした。電子カルテを含む基幹
+  システムが再開したのは 43 日目、全体が戻ったのは 73 日目です
+- つるぎ町立半田病院は、VPN 装置のソフトウェアを導入から一度も更新しておらず、そこから入られたと
+  考えられています。すべての PC の管理者のアカウントが共通で、ログオンに何度失敗しても止める設定
+  (ロックアウト)は、ありませんでした。通常の診療に戻るまで、2 か月あまりかかりました
+
+**Web サイト**は、守りを外に置いています。WordPress の公式の説明は、ログインの試行を、WAF や CDN、
+Web サーバー、またはプラグインで制限するよう勧めています。aiai の Web サーバー(Caddy)も、`.env` を
+探す要求を記録するだけで、断ってはいません。
+
+**Microsoft 365** は、守る働きを持っています。Entra ID のスマートロックアウトは、すべての利用者で常に
+動いていて、パスワードを 10 回間違えるとアカウントを止め、止めた状態を、すべてのデータセンターで
+共有します。継続的アクセス評価(CAE)は、アカウントの停止やパスワードの変更、危険の検知を、Exchange、
+SharePoint、Teams に、遅くても 15 分ほどで知らせます。
+
+ただ、この働きは、すべて Microsoft の中心に集まっています。2023 年には、Microsoft の署名の鍵 1 つが
+盗まれ、別の欠陥と合わさって、世界中のほぼどの Exchange Online のアカウントにも入れる状態になりました。
+22 の組織と、500 人を超える人のメールボックスに入られました。Microsoft は、自分では気付きませんでした。
+最初に見つけたのは、被害を受けた米国務省です。メールボックスへのアクセスの記録に、自分で作った規則を
+かけて見つけました。その記録は、当時、上位のライセンスを買った組織しか読めませんでした。米国の
+サイバー安全審査会(CSRB)は、この侵入は防げたもので、起きてはならなかった、と結論しています。
+
+植物は、それぞれの細胞が守ります。守りを 1 か所に集めると、そこが破られたとき、使う側は、自分の
+記録を読めなければ、気付くこともできません。
+
+(大阪急性期・総合医療センター「調査報告書」2023-03-28、https://www.gh.opho.jp/pdf/report_v01.pdf 。
+つるぎ町立半田病院「コンピュータウイルス感染事案 有識者会議調査報告書」2022-06-07、
+https://www.handa-hospital.jp/topics/2022/0616/report_01.pdf 。
+WordPress「Brute Force Attacks」、https://developer.wordpress.org/advanced-administration/security/brute-force/ 。
+Microsoft Learn「Prevent Attacks Using Smart Lockout」、
+https://learn.microsoft.com/en-us/entra/identity/authentication/howto-password-smart-lockout 。
+Microsoft Learn「Continuous access evaluation in Microsoft Entra」、
+https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-continuous-access-evaluation 。
+Cyber Safety Review Board「Review of the Summer 2023 Microsoft Exchange Online Intrusion」2024 年、
+https://www.cisa.gov/sites/default/files/2025-03/CSRBReviewOfTheSummer2023MEOIntrusion508.pdf 。
+2026-10-14 に確かめました)
+
 ## 重要さに応じて、強さを決める
 
 守りには費用がかかります。強くしすぎると、正しく使う人まで止めてしまいます。人の免疫で、動き出す
@@ -159,4 +205,6 @@ aiai では、アプリを作る前に、手引き(SKILL.md)に、何を作り�
   いるわけではない
 - アプリも、重要さに応じて、自分で検知し、対抗し、仲間に知らせる働きを持つ。人や AI が常に見張るだけ
   では、おかしい
+- 基幹システムも Web サイトも、自分で守っていない。Microsoft 365 は守りを中心に集めていて、そこが
+  破られると、使う側は自分の記録を読めなければ気付くこともできない
 - 人と AI は、記録を読んで、守りの決まりを直す
