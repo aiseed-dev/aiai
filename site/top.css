@@ -989,8 +989,9 @@ footer strong { color: var(--fg); }
 .tameshi-job pre { white-space: pre-wrap; font-size: 0.82rem; max-height: 480px; overflow: auto; }
 .tameshi-pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
 .tameshi-pics img { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
-#tameshi-files { font: inherit; margin-top: 6px; }
-#tameshi-note { margin: 8px 0; }
+.tameshi-form input[type=file] { font: inherit; margin-top: 6px; }
+.tameshi-form textarea { margin: 8px 0; }
+.tameshi-box { scroll-margin-top: 76px; }
 
 /* The flow of the first use on the top page, and the page of all uses (katsuyou.html) */
 .flow-list .step h3 { font-size: 1.05rem; }
@@ -1011,8 +1012,7 @@ footer strong { color: var(--fg); }
 .mokuji-list span { display: block; color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
 @media (max-width: 600px) { .mokuji-list { grid-template-columns: 1fr; } }
 
-/* The top page's flow diagram and the grouped table of contents */
-.flow-fig { max-width: 440px; margin: 10px auto 20px; }
+/* The top page's grouped table of contents */
 .flow-guide { justify-content: center; }
 .mokuji-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 32px; }
 .mokuji-groups h3 { margin: 6px 0 2px; font-size: 1rem; color: var(--muted); }
@@ -1021,3 +1021,48 @@ footer strong { color: var(--fg); }
 
 /* The top heading breaks only between its phrases */
 .hero h1 .nb { display: inline-block; }
+
+/* The top page's flow: a step opens to its explanation, a step the site's Gemini can
+   do has a button on its right, and a question branches to the right */
+.nagare { --c2: 128px; --gap: 40px; max-width: calc(380px + var(--gap) + var(--c2)); margin: 10px auto 24px; }
+.nagare-row { display: grid; grid-template-columns: minmax(0, 1fr) var(--c2); column-gap: var(--gap); align-items: center; }
+.nagare-step, .nagare-q { grid-column: 1; margin: 0; line-height: 1.5; letter-spacing: 0; }
+p.nagare-step, .nagare-step > summary, .nagare-q { padding: 10px 14px; text-align: center;
+  border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); }
+p.nagare-step.gemini, .nagare-step.gemini > summary { background: var(--accent-soft); border-color: var(--accent); }
+p.nagare-step.tsukuru { background: var(--accent); border-color: var(--accent); border-radius: 999px; color: var(--bg); font-weight: 700; }
+.nagare-q { border-radius: 999px; background: var(--bg-2); }
+.nagare-step > summary { cursor: pointer; list-style: none; }
+.nagare-step > summary::-webkit-details-marker { display: none; }
+.nagare-step > summary::after { content: ""; display: inline-block; width: 7px; height: 7px; margin-left: 10px; vertical-align: 3px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform 0.15s ease; }
+.nagare-step[open] > summary::after { vertical-align: -1px; transform: rotate(-135deg); }
+.nagare-step > summary:hover { border-color: var(--accent); }
+.nagare-setsumei { margin: 8px calc(-1 * (var(--gap) + var(--c2))) 0 0; padding: 14px 18px; border: 1px solid var(--line);
+  border-radius: 12px; background: var(--card); font-size: 0.93rem; line-height: 1.8; letter-spacing: 0.02em; }
+.nagare-setsumei p, .nagare-setsumei ul { margin: 0 0 8px; }
+.nagare-setsumei ul { padding-left: 1.2em; }
+.nagare-setsumei .fine { margin: 10px 0 0; font-size: 0.8rem; }
+.nagare-side, .nagare-try { grid-column: 2; position: relative; margin: 0; line-height: 1.5; }
+.nagare-side { padding: 6px 8px; text-align: center; font-size: 0.86rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg-2); }
+.nagare-side::before { content: ""; position: absolute; top: 50%; left: calc(4px - var(--gap)); width: calc(var(--gap) - 10px); height: 2.5px;
+  margin-top: -1.25px; border-radius: 2px; background: var(--accent); }
+.nagare-side::after { content: ""; position: absolute; top: 50%; left: -11px; width: 7px; height: 7px; margin-top: -5px;
+  border-top: 2.5px solid var(--accent); border-right: 2.5px solid var(--accent); transform: rotate(45deg); }
+.nagare-label { position: absolute; bottom: calc(50% + 3px); left: calc(-1 * var(--gap)); width: var(--gap); font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.nagare .nb { display: inline-block; }
+.nagare-try { align-self: start; justify-self: start; margin-top: 7px; padding: 5px 14px; border: 1.5px solid var(--accent); border-radius: 999px;
+  color: var(--accent); font-size: 0.86rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.nagare-try:hover { background: var(--accent-soft); }
+.nagare-ya { position: relative; height: 26px; margin-right: calc(var(--gap) + var(--c2)); }
+.nagare-ya::before { content: ""; position: absolute; top: 4px; bottom: 5px; left: 50%; width: 2.5px; margin-left: -1.25px; border-radius: 2px; background: var(--accent); }
+.nagare-ya::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 7px; height: 7px; margin-left: -5px;
+  border-right: 2.5px solid var(--accent); border-bottom: 2.5px solid var(--accent); transform: rotate(45deg); }
+.nagare-ya span { position: absolute; top: 0; left: calc(50% + 12px); font-size: 0.8rem; line-height: 26px; color: var(--muted); }
+@media (max-width: 600px) {
+  .nagare { --c2: 104px; --gap: 26px; }
+  p.nagare-step, .nagare-step > summary, .nagare-q { padding: 9px 8px; font-size: 0.9rem; }
+  .nagare-side { padding: 6px 4px; font-size: 0.8rem; }
+  .nagare-try { margin-top: 6px; padding: 4px 9px; font-size: 0.8rem; }
+  .nagare-setsumei { padding: 12px 14px; }
+}
