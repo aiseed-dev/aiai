@@ -40,6 +40,12 @@ A job that stops is not counted against the person: the count of its day is give
                             means everyone who signs in. The test account always may
     TAMESHI_JOBS            the folder of the jobs' files (default jobs/ next to DB);
                             a job and its files are deleted after 7 days
+    TAMESHI_TEST_KEEP_DAYS  the test account's jobs are kept this long instead (default 60), as the
+                            sample results the reviewers look at
+
+The test account is shared by the reviewers, so the limits of one person do not apply to it: only
+the limits of everyone together do (TAMESHI_JOBS_PER_DAY and TAMESHI_DAY_LIMIT), and what it is shown
+as left is what is left of them.
     TIMEZONE                default Asia/Tokyo
 """
 import datetime
@@ -210,6 +216,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
                "kadai": int(env.get("TAMESHI_KADAI_PER_DAY", "2")), "tesuto": int(env.get("TAMESHI_TESUTO_PER_DAY", "2"))}
     day_limit = int(env.get("TAMESHI_DAY_LIMIT", "600"))
     jobs_per_day = int(env.get("TAMESHI_JOBS_PER_DAY", "10"))
+    test_keep_days = int(env.get("TAMESHI_TEST_KEEP_DAYS", "60"))
     makers = {e.lower() for e in env.get("TAMESHI_KAIHATSU_EMAILS", "").split()}
     jobs_dir = env.get("TAMESHI_JOBS") or os.path.join(os.path.dirname(os.path.abspath(env.get("DB") or os.path.join(HERE, "tameshi.db"))), "jobs")
     paint = draw or gemini.image
@@ -233,7 +240,9 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         if t - last_purge[0] >= 60:
             last_purge[0] = t
             ms.purge_sign_in(db, t)
-            for row in db.all("SELECT id FROM jobs WHERE created < ?", (t - JOB_DAYS * 86400,)):
+            # the test account's jobs are the sample results of the reviewers, kept longer than the others'
+            for row in db.all("SELECT id FROM jobs WHERE (provider != 'test' AND created < ?) OR (provider = 'test' AND created < ?)",
+                              (t - JOB_DAYS * 86400, t - test_keep_days * 86400)):
                 shutil.rmtree(os.path.join(jobs_dir, row["id"]), ignore_errors=True)
                 db.run("DELETE FROM jobs WHERE id = ?", (row["id"],))
 
@@ -246,18 +255,29 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
                      (today(), provider, sub, kind))
         return row["n"] if row else 0
 
-    def take(s, kind):
-        """Counts one use before Gemini is called, or refuses when a limit is reached."""
-        if used(s["provider"], s["sub"], kind) >= per_day[kind]:
-            raise HTTPException(429, f"今日の分({per_day[kind]} 回)は使い終わりました。明日またどうぞ")
+    def overall_left(kind):
+        """What is left today of the limits of everyone together: Gemini calls, and for a job the number of jobs."""
         everyone = db.one("SELECT COALESCE(SUM(n), 0) FROM uses WHERE day = ? AND provider != '-'", (today(),))[0]
         started = datetime.datetime.combine(datetime.date.fromisoformat(today()), datetime.time(), tz).timestamp()
         jobs = db.one("SELECT COUNT(*) FROM jobs WHERE created >= ?", (started,))[0]
-        if everyone >= day_limit or (kind in JOB_KINDS and jobs >= jobs_per_day):
+        left = day_limit - everyone
+        return min(left, jobs_per_day - jobs) if kind in JOB_KINDS else left
+
+    def left_of(s, kind):
+        """What this person is shown as left. The test account is shared by the reviewers, so it is shown
+        what is left of everyone's limits, not a limit of its own."""
+        return max(overall_left(kind), 0) if s["provider"] == "test" else per_day[kind] - used(s["provider"], s["sub"], kind)
+
+    def take(s, kind):
+        """Counts one use before Gemini is called, or refuses when a limit is reached. The test account has
+        no limit of one person's, only the limits of everyone together."""
+        if s["provider"] != "test" and used(s["provider"], s["sub"], kind) >= per_day[kind]:
+            raise HTTPException(429, f"今日の分({per_day[kind]} 回)は使い終わりました。明日またどうぞ")
+        if overall_left(kind) <= 0:
             raise HTTPException(429, "今日の受け付けは終わりました。明日またどうぞ")
         db.run("INSERT INTO uses VALUES (?, ?, ?, ?, 1) ON CONFLICT (day, provider, sub, kind) DO UPDATE SET n = n + 1",
                (today(), s["provider"], s["sub"], kind))
-        return per_day[kind] - used(s["provider"], s["sub"], kind)
+        return left_of(s, kind)
 
     async def body_of(request):
         try:
@@ -300,7 +320,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
     def me(authorization: str = Header("")):
         s = person(authorization)
         return {"provider": s["provider"], "email": s["email"], "kaihatsu": may_make(s),
-                "left": {k: per_day[k] - used(s["provider"], s["sub"], k) for k in per_day}}
+                "left": {k: left_of(s, k) for k in per_day}}
 
     # ---- the longer jobs: design and manual, and the present state of related apps ----
 

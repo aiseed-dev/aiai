@@ -11,6 +11,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import unittest
 import urllib.parse
 import zipfile
@@ -485,6 +486,79 @@ class ServerTest(unittest.TestCase):
         # but the day's number of jobs has run out
         r = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h)
         self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
+
+    def tester(self):
+        return {"Authorization": "Bearer " + self.log_in_test().json()["token"]}
+
+    def test_the_test_account_has_no_limit_of_one_person(self):
+        # the reviewers share it: one of them using it must not shut the others out
+        self.restart(env={"TAMESHI_DAY_LIMIT": "100"}, run=lambda fn: fn())
+        t = self.tester()
+        for _ in range(5):  # one person may talk 3 times a day
+            self.assertEqual(self.chat(t).status_code, 200)
+        for _ in range(2):  # and may ask for one design a day
+            self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=t).status_code, 200)
+        g = self.google("u40")
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=g).status_code, 200)
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=g).status_code, 429)
+
+    def test_the_test_account_is_shown_what_is_left_of_everyone_s_limits(self):
+        t = self.tester()  # a day's limit of 5 Gemini calls in all (setUp)
+        left = self.c.get("/api/me", headers=t).json()["left"]
+        self.assertEqual(set(left.values()), {5})
+        r = self.chat(t)
+        self.assertEqual(r.json()["left"], 4)
+        self.assertEqual(set(self.c.get("/api/me", headers=t).json()["left"].values()), {4})
+        for _ in range(3):
+            self.assertEqual(self.chat(t).status_code, 200)
+        self.assertEqual(self.c.get("/api/me", headers=t).json()["left"]["chat"], 1)
+        self.assertEqual(self.chat(t).json()["left"], 0)
+        r = self.chat(t)
+        self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
+        # a person who signed in with Google still has a limit of one's own, and is shown it
+        self.assertEqual(self.c.get("/api/me", headers=self.google("u41")).json()["left"]["chat"], 3)
+
+    def test_the_test_account_is_limited_by_the_jobs_of_everyone(self):
+        self.restart(env={"TAMESHI_DAY_LIMIT": "100", "TAMESHI_JOBS_PER_DAY": "2"}, run=lambda fn: fn())
+        t = self.tester()
+        self.assertEqual(self.c.get("/api/me", headers=t).json()["left"]["sekkei"], 2)
+        for left in (1, 0):
+            self.assertEqual(self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=t).status_code, 200)
+            self.assertEqual(self.c.get("/api/me", headers=t).json()["left"]["sekkei"], left)
+        r = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=t)
+        self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
+        # the dialogue is not a job
+        self.assertEqual(self.chat(t).status_code, 200)
+
+    def test_the_test_account_s_jobs_are_kept_longer(self):
+        t, g = self.tester(), self.google("u42")
+        ids = {w: self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).json()["id"] for w, h in (("test", t), ("google", g))}
+
+        def age(who, days):
+            self.app.state.db.run("UPDATE jobs SET created = ? WHERE id = ?", (time.time() - days * 86400, ids[who]))
+
+        def shown(who, h):
+            return self.c.get(f"/api/jobs/{ids[who]}", headers=h).status_code, os.path.isdir(os.path.join(self.tmp.name, "jobs", ids[who]))
+
+        self.assertEqual((shown("test", t), shown("google", g)), ((200, True), (200, True)))
+        age("test", 8), age("google", 8)  # a person's job goes after 7 days, the test account's does not
+        self.restart(run=lambda fn: fn())
+        self.assertEqual((shown("test", t), shown("google", g)), ((200, True), (404, False)))
+        age("test", 59)
+        self.restart(run=lambda fn: fn())
+        self.assertEqual(shown("test", t), (200, True))
+        age("test", 61)  # 60 days is the default
+        self.restart(run=lambda fn: fn())
+        self.assertEqual(shown("test", t), (404, False))
+
+    def test_the_days_the_test_account_s_jobs_are_kept_can_be_set(self):
+        t = self.tester()
+        jid = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=t).json()["id"]
+        self.app.state.db.run("UPDATE jobs SET created = ? WHERE id = ?", (time.time() - 20 * 86400, jid))
+        self.restart(env={"TAMESHI_TEST_KEEP_DAYS": "30"}, run=lambda fn: fn())
+        self.assertEqual(self.c.get(f"/api/jobs/{jid}", headers=t).status_code, 200)
+        self.restart(env={"TAMESHI_TEST_KEEP_DAYS": "10"}, run=lambda fn: fn())
+        self.assertEqual(self.c.get(f"/api/jobs/{jid}", headers=t).status_code, 404)
 
     def test_the_name_of_the_app_falls_back_to_the_skill_md(self):
         m = server.materials_of
