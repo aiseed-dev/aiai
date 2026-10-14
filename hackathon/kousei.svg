@@ -39,16 +39,18 @@
   <text x="452" y="210" class="t">Caddy(HTTPS)</text>
   <text x="452" y="238" class="s">アクセスログで攻撃を数える ・ 解析の道はログに書かない(IP を記録しない)</text>
 
-  <rect x="430" y="280" width="420" height="300" rx="12" class="box"/>
+  <rect x="430" y="280" width="420" height="310" rx="12" class="box"/>
   <text x="452" y="316" class="t">aiai-site(FastAPI)</text>
   <text x="452" y="348" class="s">静的なページ(make_site.py が作る)</text>
-  <text x="452" y="376" class="s">/api/sagasu サイトの中の検索</text>
-  <text x="470" y="400" class="k">Gemini はページの番号を選ぶだけ</text>
-  <text x="452" y="430" class="s">/tameshi 手引きを読ませた Gemini と対話、</text>
-  <text x="470" y="454" class="s">好みでニュースを作る(Google 検索)</text>
-  <text x="452" y="484" class="s">/app Flet の画面</text>
-  <text x="452" y="514" class="s">サインイン(OpenID Connect)と回数の上限</text>
-  <text x="452" y="544" class="s">書いたことは記録しない</text>
+  <text x="452" y="374" class="s">/api/sagasu サイトの中の検索</text>
+  <text x="470" y="398" class="k">Gemini はページの番号を選ぶだけ</text>
+  <text x="452" y="426" class="s">/tameshi 「作る」の段を Gemini に頼む</text>
+  <text x="470" y="450" class="k">探す ・ 考える ・ 課題 ・ 設計書 ・ テスト</text>
+  <text x="470" y="474" class="s">段ごとに進め、結果は 7 日で消す</text>
+  <text x="470" y="498" class="s">手引きとの対話 ・ 好みでニュース</text>
+  <text x="452" y="526" class="s">/app Flet の画面(作る ・ 使い方 ・ 相談)</text>
+  <text x="452" y="552" class="s">サインイン(OpenID Connect)と回数の上限</text>
+  <text x="452" y="576" class="s">書いたことは記録しない</text>
 
   <rect x="870" y="280" width="260" height="140" rx="12" class="box"/>
   <text x="890" y="316" class="t">aiai-kaiseki</text>
@@ -69,17 +71,23 @@
   <text x="452" y="910" class="s">毎朝のニュースの下書き: 持ち主の AI が書き、人が読んで載せる</text>
 
   <!-- Vertex AI -->
-  <rect x="1220" y="280" width="340" height="250" rx="16" class="ai"/>
-  <text x="1242" y="320" class="h">Vertex AI</text>
-  <text x="1242" y="356" class="t">Gemini 3.8 Flash</text>
-  <text x="1242" y="390" class="w">サービスアカウントで呼ぶ</text>
-  <text x="1242" y="416" class="w">(鍵をサーバーに置かない)</text>
-  <text x="1242" y="450" class="s">検索 ・ 所見 ・ 自動の直し</text>
-  <text x="1242" y="476" class="s">手引きとの対話 ・ ニュース</text>
-  <rect x="1220" y="580" width="340" height="110" rx="16" class="ai"/>
-  <text x="1242" y="620" class="t">Google 検索</text>
-  <text x="1242" y="652" class="s">ニュースを作るときに記事を探し、</text>
-  <text x="1242" y="676" class="s">読んだ記事の URL を出典にする</text>
+  <rect x="1220" y="280" width="340" height="345" rx="16" class="ai"/>
+  <text x="1242" y="318" class="h">Vertex AI</text>
+  <text x="1242" y="344" class="s">(Gemini Enterprise Agent Platform)</text>
+  <text x="1242" y="378" class="t">Gemini 3.8 Flash</text>
+  <text x="1242" y="404" class="s">検索 ・ 所見 ・ 自動の直し</text>
+  <text x="1242" y="428" class="s">考える ・ 手引きとの対話 ・ ニュース</text>
+  <text x="1242" y="462" class="t">Gemini 4 Argon</text>
+  <text x="1242" y="488" class="s">探す ・ 課題 ・ 設計書 ・ テスト</text>
+  <text x="1242" y="522" class="t">Nano Banana 2.1</text>
+  <text x="1242" y="548" class="s">設計書の画面ごとの絵</text>
+  <text x="1242" y="582" class="w">サービスアカウントで呼ぶ</text>
+  <text x="1242" y="606" class="w">(鍵をサーバーに置かない)</text>
+  <rect x="1220" y="665" width="340" height="140" rx="16" class="ai"/>
+  <text x="1242" y="705" class="t">Google 検索</text>
+  <text x="1242" y="737" class="s">アプリを探す、課題を集める、</text>
+  <text x="1242" y="761" class="s">ニュースを作るときにページを読み、</text>
+  <text x="1242" y="785" class="s">読んだページの URL を出典にする</text>
   <rect x="1220" y="130" width="340" height="110" rx="16" class="box"/>
   <text x="1242" y="170" class="t">Apple / Google の ID</text>
   <text x="1242" y="200" class="s">OpenID Connect</text>
@@ -91,7 +99,7 @@
   <path class="ln" d="M1000 420 V600" marker-end="url(#a)"/>
   <path class="lg" d="M850 560 H1200 V400 H1218" marker-end="url(#g)"/>
   <path class="lg" d="M1130 760 H1180 V470 H1218" marker-end="url(#g)"/>
-  <path class="lg" d="M1390 530 V578" marker-end="url(#g)"/>
+  <path class="lg" d="M1390 625 V663" marker-end="url(#g)"/>
   <path class="ln" d="M1220 185 H1150 V260 H700 V278" marker-end="url(#a)"/>
   <path class="ln" d="M340 840 H428" marker-end="url(#a)"/>
 </svg>
