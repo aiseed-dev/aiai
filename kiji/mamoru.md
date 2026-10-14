@@ -183,11 +183,18 @@ https://www.cisa.gov/sites/default/files/2025-03/CSRBReviewOfTheSummer2023MEOInt
 国の軍備も似ています。記事「[ドローンが戦争を変えたように、AI はソフトウェアを変える](https://aiai.aiseed.dev/kiji/hackathon-2026-10.html)」
 に書いたとおり、戦場では、守りを集めた高い兵器や大きな基地ほど、安いドローンの的になりました。
 
-違いもあります。畑の病気では、たまたまその品種に合った病原菌が広がります。IT と戦争では、相手が、
+違うのは、狙い方です。畑の病気では、たまたまその品種に合った病原菌が広がります。IT と戦争では、相手が、
 いちばん大きく得られる所を選んで狙います。2023 年の Microsoft の例でも、使われたのは、世界中のほぼ
 どのアカウントにも通じる鍵でした。米国のサイバー安全審査会は、この相手が前から、クラウドの会社と
-認証の鍵を狙ってきたと書いています。だから、守りを 1 か所に集める害は、IT と軍備のほうが大きく
-なります。
+認証の鍵を狙ってきたと書いています。
+
+被害の大きさは、農業も変わりません。ココアは、世界の生産の 6 割近くを、隣り合うコートジボワールと
+ガーナの 2 か国が占めています。2023/24 年の季節には、この 2 か国の生産が落ち、世界の生産は 14% 減り
+ました。国際価格は、2023 年 1 月の 1 トン 2,540 ドルから、2025 年 1 月には 10,710 ドルと、4 倍を超え
+ました(月の平均)。西アフリカでは、茎や枝がふくれるカカオのウイルス病(CSSVD)が、生産を妨げる大きな
+原因の一つです。治す方法は病気の木を切ることしかなく、ガーナでは 1946 年から国の取り組みで、2 億本を
+超える木を切りました。それでも 2017 年の研究は、畑でのこの病気は、これまでになく広がっていると書いて
+います。集めた所が崩れると、被害は世界の全体に及びます。
 
 植物も人も、ばらばらに守っているだけではありません。全身に知らせ、次に備えます。守りを 1 か所に
 集めるのでも、ばらばらにするのでもなく、それぞれが自分で守り、知らせ合う形です。
@@ -198,6 +205,11 @@ Fortinet「Malicious Actor Discloses FortiGate SSL-VPN Credentials」2021-09-08�
 https://www.fortinet.com/blog/psirt-blogs/malicious-actor-discloses-fortigate-ssl-vpn-credentials 。
 Treseder「A meta-analysis of mycorrhizal responses to nitrogen, phosphorus, and atmospheric CO2 in field
 studies」New Phytologist、2004 年、https://doi.org/10.1111/j.1469-8137.2004.01159.x(要旨で確かめました)。
+世界銀行のブログ「Cocoa and coffee prices rebound on renewed supply concerns」2025-01-07、
+https://blogs.worldbank.org/en/opendata/cocoa-and-coffee-prices-rebound-on-renewed-supply-concerns 。
+IMF「Global price of Cocoa」(FRED の PCOCOUSDM、月の平均)、https://fred.stlouisfed.org/series/PCOCOUSDM 。
+Andres ほか「Combatting Cocoa Swollen Shoot Virus Disease: What do we know?」Crop Protection、2017 年、
+https://doi.org/10.1016/j.cropro.2017.03.010(要旨で確かめました)。
 半田病院の報告書と、サイバー安全審査会の報告書は、前の節のとおりです。2026-10-14 に確かめました)
 
 ## 重要さに応じて、強さを決める
@@ -244,5 +256,6 @@ aiai では、アプリを作る前に、手引き(SKILL.md)に、何を作り�
 - 基幹システムも Web サイトも、自分で守っていない。Microsoft 365 は守りを中心に集めていて、そこが
   破られると、使う側は自分の記録を読めなければ気付くこともできない
 - IT 産業は、工業型農業と同じ問題を抱えている。同じ物を広く並べ、自分の守りを外から入れる物に
-  置き換え、少数の大きな所に集める。国の軍備も似ている
+  置き換え、少数の大きな所に集める。国の軍備も似ている。集めた所が崩れたときの被害は、どれも大きい。
+  ココアの国際価格は、2 年で 4 倍を超えた
 - 人と AI は、記録を読んで、守りの決まりを直す
