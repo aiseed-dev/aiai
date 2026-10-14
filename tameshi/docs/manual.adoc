@@ -224,7 +224,7 @@ ____
   置くためのスキル
 * https://github.com/aiseed-dev/officework[officework]: Office の書類を、Microsoft Office なしで読み書きする、文書と
   表計算の OSS。書類は adoc で持つ
-* https://weather.time-j.net/[個人開発気象統計]: 気象庁のデータから、全国の地点の気温の順位や雨温図を出す、個人のサイト。AI と一緒に作った実例
+* https://aiai.aiseed.dev/shoukai/weather.html[個人開発気象統計]: 気象庁のデータから、全国の地点の気温の順位や雨温図を出す、個人のサイト。AI と一緒に作った実例
 
 == 知らせが出たとき
 
