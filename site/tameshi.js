@@ -60,7 +60,7 @@
     var place = $(aim);
     aim = "";
     if (!place || place.closest("[hidden]")) return;
-    place.scrollIntoView({ block: "start" });
+    place.scrollIntoView({ block: "start", behavior: "instant" });
     var box = place.querySelector("textarea");
     if (box) box.focus({ preventScroll: true });
   }
