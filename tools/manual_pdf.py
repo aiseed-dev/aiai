@@ -13,6 +13,7 @@ after changing the manual, and commit the PDF. Only the standard library is used
 import argparse
 import html
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -38,6 +39,9 @@ p { margin: 0 0 3mm; }
 ul, ol { margin: 0 0 3mm; padding-left: 1.4em; }
 li { margin: 1mm 0; }
 a { color: #0f766e; text-decoration: none; }
+/* on paper a link cannot be pressed, so the address is printed small after the words of the link */
+a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.78em; color: #5d6763; overflow-wrap: anywhere; }
+a.bare::after { content: none; }  /* the words are the address already */
 code { font-family: "Noto Sans Mono CJK JP", "Ume Gothic", monospace; font-size: 0.92em; background: #f1ede3; padding: 0 1mm; }
 pre { background: #f1ede3; padding: 3mm; white-space: pre-wrap; break-inside: avoid; }
 blockquote { margin: 0 0 3mm; padding: 2mm 4mm; border-left: 3px solid #0f766e; background: #f1ede3; break-inside: avoid; }
@@ -68,8 +72,11 @@ def manual_html(text):
                                        for x in sections[1:] if x["level"] == 2) + "</ol>"
     body = "\n".join(f'<h{x["level"]} id="{x["id"]}">{make_site.adoc_inline(x["title"])}</h{x["level"]}>\n{x["html"]}'
                      for x in sections[1:])
+    # a link whose words are its address (a bare URL) is marked, so its address is not printed twice
+    body = re.sub(r'<a href="([^"]+)">\1</a>', r'<a class="bare" href="\1">\1</a>', body)
+    intro = re.sub(r'<a href="([^"]+)">\1</a>', r'<a class="bare" href="\1">\1</a>', sections[0]["html"])
     return (f'<!DOCTYPE html>\n<html lang="ja"><head><meta charset="utf-8"><title>{html.escape(title)}</title>'
-            f"<style>{CSS}</style></head><body>\n<h1>{html.escape(title)}</h1>\n{sections[0]['html']}\n{toc}\n{body}\n</body></html>\n")
+            f"<style>{CSS}</style></head><body>\n<h1>{html.escape(title)}</h1>\n{intro}\n{toc}\n{body}\n</body></html>\n")
 
 
 def main():
