@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Tries server.py: sign-in with the fake Google of moushikomi/fake_id.py and
-the test account, the dialogue with a guide, the news, the design, research and
-problem-gathering jobs from uploaded materials, and the limits, with a fake Gemini.
+the test account, the dialogue with a guide, the news, the design, research,
+problem-gathering and test-procedure jobs from uploaded materials, and the limits,
+with a fake Gemini.
 
     python tameshi/test_server.py
 """
@@ -31,12 +32,17 @@ PAGE = "https://aiai.example/tameshi.html"
 class FakeGemini:
     def __init__(self):
         self.seen = []
+        self.fail = False  # Gemini that stops a job
 
     def __call__(self, contents, system="", search=False, schema=None, **more):
         self.seen.append((contents, system, search))
+        if self.fail:
+            raise server.gemini.GeminiError("Gemini が答えませんでした")
         text = contents[-1]["text"]
         if schema and "screens" in schema["properties"]:
             return json.dumps({"screens": [{"id": "screen-01", "name": "課題一覧", "parts": ["課題一覧", "課題を登録"]}]}), []
+        if schema and "test" in schema["properties"]:
+            return json.dumps({"report": "== 確かめ\n\n手順にそろっています。", "test": "= テストの手順\n\n== マニュアルの操作の確かめ\n\n直した版。"}), []
         if schema:
             return json.dumps({"report": "== 確かめ\n\n合っています。", "manual": "= 利用者マニュアル\n\nimage::images/screen-01.png[課題一覧]"}), []
         if search and "名前が出ていなければ" in text:  # kadai: which apps
@@ -52,6 +58,8 @@ class FakeGemini:
             return "== High Climb\n\n課題と記録のアプリです。", [("highclimb.example", "https://highclimb.example/")]
         if search:
             return "= aiai ニュース\n\n== 見出し\n:分野: VLM\n\n本文です。", [("example.jp", "https://example.jp/a")]
+        if "テストの手順 docs/test.adoc" in text:
+            return "= テストの手順\n\n== マニュアルの操作の確かめ\n\n下書き。", []
         if "設計書 docs/design.adoc" in text:
             return "= 設計書\n\n== 画面\n\n課題一覧: 課題を登録", []
         return f"答え #{len(self.seen)}", []
@@ -229,6 +237,13 @@ class ServerTest(unittest.TestCase):
         self.app = server.create_app(self.env | (env or {}), model=self.gemini, **more)
         self.c = TestClient(self.app, follow_redirects=False)
 
+    def design_of(self, h):
+        """A finished design job of this person, from the sample, for the test procedure to read."""
+        r = self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()["status"], "done")
+        return r.json()["id"]
+
     def search_of(self, h):
         """A finished research job of this person, for the problems job to read."""
         r = self.job(h, "chousa", files=[("files", ("SKILL.md", "# 架空のアプリ".encode(), "text/markdown"))])
@@ -370,7 +385,7 @@ class ServerTest(unittest.TestCase):
     def test_the_counts_and_the_limits_include_the_problems_job(self):
         h = self.google("u19")
         left = self.c.get("/api/me", headers=h).json()["left"]
-        self.assertEqual(left, {"chat": 3, "news": 1, "sekkei": 1, "chousa": 2, "kadai": 2})
+        self.assertEqual(left, {"chat": 3, "news": 1, "sekkei": 1, "chousa": 2, "kadai": 2, "tesuto": 2})
         for n in (1, 0):
             self.assertEqual(self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h).status_code, 200)
             self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["kadai"], n)
@@ -387,6 +402,89 @@ class ServerTest(unittest.TestCase):
         self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
         # the dialogue is not a job
         self.assertEqual(self.chat(self.google("u23")).status_code, 200)
+
+    def test_the_test_procedure_reads_the_design_and_the_manual(self):
+        h = self.google("u30")
+        designed = self.design_of(h)
+        before = len(self.gemini.seen)
+        r = self.c.post("/api/jobs", data={"kind": "tesuto", "sekkei": designed, "note": "スマートフォンで使う"}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        j = self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()
+        self.assertEqual(j["status"], "done", j)
+        self.assertEqual(j["files"], ["docs/test-kakunin.adoc", "docs/test.adoc"])
+        self.assertEqual([x["name"] for x in j["steps"]], ["テストの手順を書く", "設計書とマニュアルと照らし合わせる"])
+        # the first request has the design, the manual and the check of the job that was chosen, and the note
+        sent = self.gemini.seen[before][0][-1]["text"]
+        for name in ("docs/design.adoc", "docs/manual.adoc", "docs/kakunin.adoc"):
+            self.assertIn(f'<ファイル name="{name}">', sent)
+        self.assertIn("課題一覧: 課題を登録", sent)
+        self.assertIn("= 利用者マニュアル", sent)
+        self.assertIn("スマートフォンで使う", sent)
+        # the result is what the check wrote, and the record of the check
+        get = lambda path: self.c.get(f"/api/jobs/{r.json()['id']}/file", params={"path": path}, headers=h).text
+        self.assertIn("直した版。", get("docs/test.adoc"))
+        self.assertEqual(get("docs/test-kakunin.adoc").splitlines()[0], "= テストの手順の確かめ")
+        self.assertEqual(len(self.drawn), 1)  # no picture was drawn for the test procedure (the one of the design)
+
+    def test_the_test_procedure_reads_materials_too(self):
+        h = self.google("u31")
+        files = [("files", ("design.adoc", "= 設計書\n\n== 画面".encode(), "text/plain")),
+                 ("files", ("manual.adoc", "= 利用者マニュアル".encode(), "text/plain"))]
+        r = self.job(h, "tesuto", files=files)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()["status"], "done")
+        self.assertIn('<ファイル name="design.adoc">', self.gemini.seen[-2][0][-1]["text"])
+
+    def test_the_test_procedure_needs_the_design_and_one_of_ones_own(self):
+        h = self.google("u32")
+        designed = self.design_of(h)
+        r = self.c.post("/api/jobs", data={"kind": "tesuto"}, headers=h)
+        self.assertRefused(r, 422, "読ませる設計書とマニュアルを選ぶか、資料を選んでください")
+        # the sample is not read for this job
+        r = self.c.post("/api/jobs", data={"kind": "tesuto", "mihon": "1"}, headers=h)
+        self.assertRefused(r, 422, "読ませる設計書とマニュアルを選ぶか、資料を選んでください")
+        # another person's design is no design at all
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "tesuto", "sekkei": designed}, headers=self.google("u33")).status_code, 404)
+        # a job that is not a design
+        search = self.search_of(h)
+        r = self.c.post("/api/jobs", data={"kind": "tesuto", "sekkei": search}, headers=h)
+        self.assertRefused(r, 422, "読ませられるのは、できあがった「設計書とマニュアルを作る」の結果です")
+        # none of this used the day's test procedures
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["tesuto"], 2)
+
+    def test_the_test_procedure_has_its_own_limit(self):
+        h = self.google("u34")
+        designed = self.design_of(h)
+        for n in (1, 0):
+            self.assertEqual(self.c.post("/api/jobs", data={"kind": "tesuto", "sekkei": designed}, headers=h).status_code, 200)
+            self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["tesuto"], n)
+        r = self.c.post("/api/jobs", data={"kind": "tesuto", "sekkei": designed}, headers=h)
+        self.assertRefused(r, 429, "今日の分(2 回)は使い終わりました。明日またどうぞ")
+
+    def test_a_job_that_stops_is_not_counted_against_the_person(self):
+        h = self.google("u35")
+        self.gemini.fail = True
+        r = self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        j = self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()
+        self.assertEqual((j["status"], j["error"]), ("error", "Gemini が答えませんでした"))
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["sekkei"], 1)  # given back; one a day
+        self.gemini.fail = False
+        r = self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h)
+        self.assertEqual(self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()["status"], "done")
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["sekkei"], 0)
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h).status_code, 429)
+
+    def test_a_stopped_job_counts_among_all_the_jobs_of_the_day(self):
+        self.restart(env={"TAMESHI_JOBS_PER_DAY": "2"}, run=lambda fn: fn())
+        h = self.google("u36")
+        self.gemini.fail = True
+        for _ in range(2):  # each is given back to the person, so the person can ask again
+            self.assertEqual(self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).status_code, 200)
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["chousa"], 2)
+        # but the day's number of jobs has run out
+        r = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h)
+        self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
 
     def test_the_name_of_the_app_falls_back_to_the_skill_md(self):
         m = server.materials_of

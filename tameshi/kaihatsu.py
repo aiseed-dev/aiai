@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""The three longer jobs of tameshi/server.py, which Gemini does in steps
+"""The four longer jobs of tameshi/server.py, which Gemini does in steps
 from the materials a person gives (a SKILL.md and its references):
 
     sekkei  the design document, the user manual with one picture per screen,
@@ -11,6 +11,10 @@ from the materials a person gives (a SKILL.md and its references):
             run, read from the pages Google Search finds, as one reference
             (references/<name>-analysis.adoc, step 5 of rireki/SKILL.md) that
             sekkei can read
+    tesuto  the procedure for testing the app (docs/test.adoc, step 8 of
+            rireki/SKILL.md), from the design document and the user manual:
+            what to do on each screen and what should happen, and how to see
+            that each problem listed cannot happen
 
 Each step is one call to Gemini (Gemini 4 Argon for the text, Nano Banana
 for the pictures), so the steps can be seen while the job runs. The files
@@ -40,6 +44,9 @@ SCREENS = {"type": "OBJECT", "properties": {"screens": {"type": "ARRAY", "items"
 
 CHECK = {"type": "OBJECT", "properties": {
     "report": {"type": "STRING"}, "manual": {"type": "STRING"}}, "required": ["report", "manual"]}
+
+TEST_CHECK = {"type": "OBJECT", "properties": {
+    "report": {"type": "STRING"}, "test": {"type": "STRING"}}, "required": ["report", "test"]}
 
 
 def today():
@@ -193,3 +200,35 @@ def kadai(research, materials, note, name, folder, ask, step):
     doc = (f"= {name} の今あるアプリの課題\n:toc:\n:toc-title: 目次\n\n{today()} に、Gemini が Google 検索で公式サイトなどを読んでまとめました。\n\n"
            + "\n".join(parts) + "\n" + clean(summary) + "\n== 読んだ資料\n\n" + source_list(sources) + "\n")
     write(folder, f"references/{name}-analysis.adoc", doc)
+
+
+def tesuto(materials, note, folder, ask, step):
+    """docs/test.adoc, step 8 of rireki/SKILL.md: the procedure for testing the app, from the
+    design document and the user manual among the materials, and docs/test-kakunin.adoc, a check
+    of the procedure against both. The app is not made, and nothing is guessed of it; the
+    note (where the app ran, what is not made yet) only sets the conditions of the procedure."""
+    head = f"<資料>\n{materials}\n</資料>\n\n" + (f"<本人から>\n{note}\n</本人から>\n\n" if note else "")
+    step("テストの手順を書く")
+    draft = clean(ask([{"role": "user", "text": head +
+        "資料の設計書と利用者マニュアルにあることだけから、作ったアプリのテストの手順 docs/test.adoc を adoc で書いてください。"
+        "アプリは作りません。作ったアプリの中身は推測しません。次の 3 つの節を、この順に入れます。\n"
+        "1. 「== マニュアルの操作の確かめ」: 利用者マニュアルに出てくる操作ごとに、表(列は、番号、画面、すること、"
+        "そうなるはずのこと、確かめ)を作ります。画面の名前とボタンの文字は、マニュアルと同じにします。"
+        "「確かめ」の列は空けておき、本人が書き込めるようにします。\n"
+        "2. 「== 問題点が起きないことの確かめ」: 設計書の、問題点をどこで防いでいるかの表の行ごとに、どう使えば起きないことを"
+        "確かめられるかを書きます。その表が設計書に無ければ、この節には「設計書に問題点の表がありません」とだけ書きます。\n"
+        "3. 「== 試験に書くこと」: 本人の AI が自動の試験に書く項目を、短い一覧で書きます。\n"
+        "「本人から」に、どこで動かしたかや、まだ作っていない所が書いてあれば、確かめの条件に入れます。"
+        "まだ作っていない所の項目には、「まだ作っていない」と書きます。"}],
+        system=RULES, model=TEXT_MODEL, max_tokens=32768, timeout=900)[0])
+
+    step("設計書とマニュアルと照らし合わせる")
+    raw, _ = ask([{"role": "user", "text": f"<テストの手順>\n{draft}\n</テストの手順>\n\n" + head +
+                   "次を確かめ、JSON で答えてください。report は adoc の確かめの記録で、(1) 利用者マニュアルに出てくる画面と"
+                   "ボタンが、すべてテストの手順にあるか、(2) 設計書の問題点の表の行が、すべて確かめにあるか、"
+                   "(3) 合わなかった所と直した所、を書きます。test は、合わない所を直したテストの手順の全文です。"
+                   "直す所が無ければ、そのままの全文を入れます。"}],
+                 system=RULES, schema=TEST_CHECK, model=TEXT_MODEL, max_tokens=32768, timeout=900)
+    check = json.loads(raw)
+    write(folder, "docs/test.adoc", clean(check.get("test") or draft))
+    write(folder, "docs/test-kakunin.adoc", "= テストの手順の確かめ\n\n" + clean(check.get("report", "")))
