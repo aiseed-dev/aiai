@@ -212,6 +212,10 @@ class BuildTest(unittest.TestCase):
             self.assertNotIn("nagare.svg", usage)
             self.assertNotIn("nagare-foot", usage)
             self.assertEqual(usage.count('class="nagare-try" href="/app/tameshi/'), 5)
+            button = '<button class="nagare-try" type="button" data-copy="skill-src" data-said="skill-said" data-fallback="/skills/rireki.html">スキルをコピー</button>'
+            self.assertEqual(usage.count(button), 1)  # the same button, with the guide hidden in the page and the script
+            self.assertIn('<textarea id="skill-src" hidden>', usage)
+            self.assertIn("navigator.clipboard.writeText", usage)
             for text in ("知らせが出たとき", "を使う前に", "<h2 id=\"s13\">8 テストする"):  # the rest of the manual is in the app
                 self.assertNotIn(text, usage)
             with open(os.path.join(out, "index.html"), encoding="utf-8") as f:
@@ -225,7 +229,7 @@ class BuildTest(unittest.TestCase):
                          "8 テストする", "直す所はあるか", "使い始める"):
                 self.assertIn(text, top)
             self.assertNotIn('nagare-step tsukuru">作る<', top)
-            self.assertEqual(top.count('class="nagare-try"'), 5)
+            self.assertEqual(top.count('class="nagare-try" href='), 5)  # the five steps Gemini does; the sixth oval is the copy button
             # the head: the name and the theme and no button; the flow's heading; the one main button under the flow; cards
             for text in ("<h1>", "aiai —", "AI 活用法", "チャットの履歴には、あなたが何に困り、何を何度も頼んでいるかが、あなたの言葉で書いてあります",
                          "何度も頼んでいることをアプリにしてしまうことです", "何を作るかは、人が指示しないと分かりません",
@@ -249,6 +253,17 @@ class BuildTest(unittest.TestCase):
             self.assertIn('<a class="card-link" href="/kaiseki/">', top)
             self.assertIn("<strong>読まれ方の記録で、自分で直す</strong><span>Cookie を置かずに記録し、Gemini が毎日サイトを少しずつ直す</span>", top)
             self.assertNotIn('<a class="card-link" href="/news/">', top)
+            # step 1 has a button that copies the guide, where the others have "Gemini で試す": the whole SKILL.md is in the page
+            self.assertEqual(top.count(button), 1)
+            self.assertEqual(top.count('class="nagare-try" type="button"'), 1)
+            self.assertIn('<span class="nagare-said" id="skill-said" role="status"></span>', top)
+            self.assertIn("右の「スキルをコピー」を押し、ふだん使っている AI のチャットに貼ると、AI があなたに聞きながら、1 から順に進めます。", top)
+            hidden = re.search(r'<textarea id="skill-src" hidden>(.*?)</textarea>', top, re.S)[1]
+            self.assertIn("name: rireki", hidden)
+            self.assertIn("## 手順", hidden)
+            self.assertLess(top.index(button), top.index("使い始める"))
+            self.assertIn("コピーしました。ふだん使っている AI に貼ってください", top)  # what it says for 2.5 seconds
+            self.assertIn("location.href = b.dataset.fallback", top)  # where the clipboard cannot be used, the guide's page opens
             # the end of the flow is an outline, so it is not taken for the button under it
             with open(os.path.join(out, "top.css"), encoding="utf-8") as f:
                 end = re.search(r"p\.nagare-step\.tsukuru \{([^}]*)\}", f.read())[1]

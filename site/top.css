@@ -872,6 +872,13 @@ p.nagare-step.tsukuru { background: transparent; border-color: var(--accent); bo
 .nagare-try { align-self: start; justify-self: start; margin-top: 7px; padding: 5px 14px; border: 1.5px solid var(--accent); border-radius: 999px;
   color: var(--accent); font-size: 0.86rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .nagare-try:hover { background: var(--accent-soft); }
+button.nagare-try { background: none; font-family: inherit; line-height: 1.5; cursor: pointer; }
+@media (min-width: 601px) { .nagare-try { min-width: 9.6em; text-align: center; } }  /* "スキルをコピー" is as wide as "Gemini で試す" */
+/* what the copy button of the first step says for 2.5 seconds, under it, over the next row */
+.nagare-row { position: relative; }
+.nagare-said { position: absolute; right: 0; top: calc(100% - 6px); z-index: 2; padding: 4px 10px; border: 1px solid var(--accent);
+  border-radius: 8px; background: var(--card); color: var(--accent); font-size: 0.8rem; box-shadow: var(--shadow); }
+.nagare-said:empty { display: none; }
 .nagare-ya { position: relative; height: 26px; margin-right: calc(var(--gap) + var(--c2)); }
 .nagare-ya::before { content: ""; position: absolute; top: 4px; bottom: 5px; left: 50%; width: 2.5px; margin-left: -1.25px; border-radius: 2px; background: var(--accent); }
 .nagare-ya::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 7px; height: 7px; margin-left: -5px;

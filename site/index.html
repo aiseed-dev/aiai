@@ -44,6 +44,7 @@
         <details class="nagare-step">
           <summary>1 AI とのチャットの履歴から、何度も頼むことを見つける</summary>
           <div class="nagare-setsumei">
+            <p>右の「スキルをコピー」を押し、ふだん使っている AI のチャットに貼ると、AI があなたに聞きながら、1 から順に進めます。</p>
             <p>チャットの履歴から、AI に何度も頼んでいることを数えます。</p>
             <p>1 人が何度も頼むことは、世界中では、ものすごい回数になります。頼みは 1 回ずつデータセンターで処理され、そのたびに電気と、機械を冷やす水を使います。回数が多いので、全体では大量の電気と水になります。</p>
             <ul>
@@ -55,6 +56,8 @@
             <p class="fine">出典: OpenAI ほか「<a href="https://cdn.openai.com/pdf/a253471f-8260-40c6-a2cc-aa93fe9f142e/economic-research-chatgpt-usage-paper.pdf">How People Use ChatGPT</a>」(2025 年 9 月)の表 1、Google Cloud「<a href="https://cloud.google.com/blog/products/infrastructure/measuring-the-environmental-impact-of-ai-inference">Measuring the environmental impact of AI inference</a>」(2025 年 8 月)、IEA「<a href="https://www.iea.org/news/data-centre-electricity-use-surged-in-2025-even-with-tightening-bottlenecks-driving-a-scramble-for-solutions">Key Questions on Energy and AI</a>」の発表(2026 年 4 月)、IEA「<a href="https://www.iea.org/news/ai-is-set-to-drive-surging-electricity-demand-from-data-centres-while-offering-the-potential-to-transform-how-the-energy-sector-works">Energy and AI</a>」の発表(2025 年 4 月)。2026-10-14 に確かめました。</p>
           </div>
         </details>
+        <button class="nagare-try" type="button" data-copy="skill-src" data-said="skill-said" data-fallback="/skills/rireki.html">スキルをコピー</button>
+        <span class="nagare-said" id="skill-said" role="status"></span>
       </div>
       <div class="nagare-ya"></div>
       <div class="nagare-row">
@@ -145,6 +148,7 @@
       </div>
     </div>
     <!-- /flow -->
+    <!-- skill-src -->
   </section>
 
   <section id="mokuji" class="mokuji">

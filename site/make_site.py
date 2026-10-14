@@ -535,18 +535,37 @@ FOOTER = """<footer>
 KAISEKI_TAGS = """<script src="/kaiseki.js" data-to="/kaiseki" data-ask="no" defer></script>
 <script src="/kaiseki-aiai.js" defer></script>"""
 
+# A button with data-copy copies the text of the hidden textarea it names. For 2.5 seconds it says that it has
+# (itself, or the element data-said names, when the button is too small to hold the words). When the clipboard cannot
+# be used, it opens data-fallback, if the button has one.
 COPY_SCRIPT = """<script>
 document.querySelectorAll("[data-copy]").forEach(function (b) {
   b.addEventListener("click", function () {
     var text = document.getElementById(b.dataset.copy).value;
-    navigator.clipboard.writeText(text).then(function () {
+    var said = b.dataset.said && document.getElementById(b.dataset.said);
+    var msg = "コピーしました。ふだん使っている AI に貼ってください";
+    function done() {
+      if (said) {
+        said.textContent = msg;
+        setTimeout(function () { said.textContent = ""; }, 2500);
+        return;
+      }
       var was = b.textContent;
-      b.textContent = "写しました。あなたの AI に貼ってください";
+      b.textContent = msg;
       setTimeout(function () { b.textContent = was; }, 2500);
-    });
+    }
+    function away() { if (b.dataset.fallback) location.href = b.dataset.fallback; }
+    if (!navigator.clipboard) return away();
+    navigator.clipboard.writeText(text).then(done, away);
   });
 });
 </script>"""
+
+
+def skill_source(skills):
+    """The text of the guide the flow's first step copies (rireki's SKILL.md), hidden in the page."""
+    return f'<textarea id="skill-src" hidden>{html.escape(skills["rireki"][3])}</textarea>'
+
 
 
 HOW_TO_LOAD = ("「写す」で写して、ふだん使っている AI のチャットに貼ります。貼るほかに、AI に「スキル」として登録しておくこともできます。"
@@ -956,12 +975,13 @@ def main():
     else:  # no news yet: no empty section on the top page
         top = re.sub(r"\s*<!-- news-section -->.*?<!-- /news-section -->", "", top, flags=re.S)
     top = re.sub(r"<footer>.*?</footer>", lambda m: FOOTER, top, count=1, flags=re.S)  # one footer for all the pages
-    write(os.path.join(OUT, "index.html"), top.replace("</body>", KAISEKI_TAGS + "\n</body>"))
+    skills = load_skills()
+    top = top.replace("<!-- skill-src -->", skill_source(skills))  # what the first step of the flow copies
+    write(os.path.join(OUT, "index.html"), top.replace("</body>", COPY_SCRIPT + "\n" + KAISEKI_TAGS + "\n</body>"))
     shutil.copyfile(os.path.join(HERE, "top.css"), os.path.join(OUT, "top.css"))
     for src, name in ((os.path.join(ROOT, "kaiseki", "kaiseki.js"), "kaiseki.js"),
                       (os.path.join(HERE, "kaiseki-aiai.js"), "kaiseki-aiai.js"), (os.path.join(HERE, "sagasu.js"), "sagasu.js")):
         shutil.copyfile(src, os.path.join(OUT, name))
-    skills = load_skills()
     for name, s in skills.items():
         write(os.path.join(OUT, "skills", f"{name}.html"), skill_page(name, *s))
     kangaekata = read(os.path.join(HERE, "app", "assets", "kangaekata.md"))
@@ -995,7 +1015,7 @@ def main():
     write(os.path.join(OUT, "eizou.html"), page("写真や映像を読む AI", read(os.path.join(HERE, "eizou.html")),
                                                  "畑のカメラの映像を AI が読み、記録する例"))
     # the usage page is the short form of the user manual; its PDF is copied beside it (the flow is the top page's)
-    write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)), "手引きを AI に読ませる方法と、アプリを作る流れ"))
+    write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)) + skill_source(skills) + COPY_SCRIPT, "手引きを AI に読ませる方法と、アプリを作る流れ"))
     docs = os.path.dirname(MANUAL)
     shoukai = load_shoukai()
     for path, text in shoukai_pages(shoukai).items():
