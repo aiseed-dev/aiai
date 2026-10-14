@@ -71,7 +71,7 @@ TypeScript は、コンパイラーを Go だけで書き直す道を選びま�
   データを確かめる Pydantic も、2 からは確かめの中心を Rust で書いています
 - **Rust は書くのが難しいが、AI が書ける。** 天気のアプリでも、速さが要る所は、この形にできます
 
-(Rust、https://www.rust-lang.org/ 。Go「A Guide to the Go Garbage Collector」、https://go.dev/doc/gc-guide 。
+(Rust、https://rust-lang.org/ 。Go「A Guide to the Go Garbage Collector」、https://go.dev/doc/gc-guide 。
 PyO3、https://github.com/PyO3/pyo3 。Ruff、https://github.com/astral-sh/ruff 。uv、https://github.com/astral-sh/uv 。
 Polars、https://github.com/pola-rs/polars 。pydantic-core、https://github.com/pydantic/pydantic-core 。
 2026-10-14 に確かめました)

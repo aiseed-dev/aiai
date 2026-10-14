@@ -14,6 +14,10 @@ lists:
     broken    with --fetch: the page did not open (an error, or 4xx/5xx)
     moved     with --fetch: the page now answers from another address
 
+Not counted as sources: addresses written as code (inside `backticks`, or in
+a ---- or ``` block), which name how something works, and links to our own
+sites (aiai.aiseed.dev, weather.time-j.net), which are guides, not sources.
+
 The report holds only public URLs and file names, so it can be pasted into
 an issue as it is. It exits with 1 when something needs checking, so a
 scheduled job can tell. Only the standard library is used.
@@ -32,9 +36,13 @@ import urllib.request
 URL = re.compile(r"https?://[^\s)(<>\"'`、。,|\]]+")
 CHECKED = re.compile(r"(\d{4}-\d{2}-\d{2}) に確かめ")
 HEADING = re.compile(r"^(#{1,6} |={1,6} |\.[^\s.])")
-# Addresses in examples and settings, and links to our own repositories: not sources
+# Addresses in examples and settings, and links to our own repositories and
+# sites: not sources
 SKIP = re.compile(r"://(127\.0\.0\.1|localhost|[^/]*\.example(\.|/|$)|[^/]*example\.(jp|com)"
-                  r"|github\.com/aiseed-dev/|[^/]*[^\x00-\x7f])")
+                  r"|github\.com/aiseed-dev/|aiai\.aiseed\.dev(/|$)|weather\.time-j\.net(/|$)"
+                  r"|[^/]*[^\x00-\x7f])")
+# Code: fenced blocks (---- or ```) and `inline` spans
+CODE = re.compile(r"^(-{4,}|`{3,}).*?^\1[ \t]*$|`[^`\n]*`", re.S | re.M)
 
 
 def tracked_docs():
@@ -63,7 +71,7 @@ def sources(path):
         text = "\n".join(body)
         dates = CHECKED.findall(text)
         date = max(dates) if dates else file_date
-        for u in URL.findall(text):
+        for u in URL.findall(CODE.sub(" ", text)):
             u = u.rstrip(".")
             if not SKIP.search(u):
                 out.append((u, head, date))

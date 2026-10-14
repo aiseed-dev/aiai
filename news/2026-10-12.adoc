@@ -32,5 +32,5 @@ LightOn は 2026 年 10 月 8 日、文書を読む VLM「LightOnOCR-3」を、0
 前に提案した仕組み(VRAIO)では、AI の出力を外に出すたびに、使うカメラ、時間、目的を申告させ、独立した記録係が決まりに合うかを確かめて、書き換えられない記録に残します。記録係は中身を見ないので、申告と実際の出力を抜き打ちの監査で比べ、違反には罰を科します。
 論文は、こうした仕組みで出力が信頼できても、人が AI に見られ続けることを受け入れるかは別の問題だとして、段階を踏んで確かめる方法を示しています。答えはまだ出していません。
 
-出典: Yusaku Fujii「Governing AI Outputs in a Fully Sensed Society: Is Output Governance Sufficient for Social Acceptance?」Smart Cities 9(10), 167(2026-10-06)、https://www.mdpi.com/2624-6511/9/10/167 、2026-10-12 に確かめました +
-出典: Help Net Security「Who watches the AI watching your street?」(2026-10-08)、https://helpnetsecurity.com/2026/10/08/ai-surveillance-cameras-privacy 、2026-10-12 に確かめました
+出典: Yusaku Fujii「Governing AI Outputs in a Fully Sensed Society: Is Output Governance Sufficient for Social Acceptance?」Smart Cities 9(10), 167(2026-10-06)、https://www.mdpi.com/2624-6511/9/10/167 、2026-10-14 に確かめました +
+出典: Help Net Security「Who watches the AI watching your street?」(2026-10-08)、https://www.helpnetsecurity.com/2026/10/08/ai-surveillance-cameras-privacy/ 、2026-10-14 に確かめました

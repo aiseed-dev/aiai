@@ -14,7 +14,7 @@ LFM2.5-VL-3B を元にした 31 億パラメーターのモデルで、文章と
 正答率と書いています(学習していない作業です)。ライセンスはモデルの説明に lfm1.0 と書いてあります。
 
 出典: Hugging Face ブログ「Multimodal open d1 decision models for the edge」(LiquidAI、2026-10-07)、https://huggingface.co/blog/LiquidAI/open-d1 、2026-10-08 に確かめました +
-出典: LiquidAI「d1-3b」(Hugging Face のモデルの説明)、https://huggingface.co/LiquidAI/d1-3b 、2026-10-08 に確かめました +
+出典: LiquidAI「d1-3b」(Hugging Face のモデルの説明)、https://huggingface.co/LiquidAI/d1-3B 、2026-10-14 に確かめました +
 出典: Liquid AI ブログ「Introducing d1: The most capable decision model, now with vision」(2026-10-05)、https://www.liquid.ai/blog/d1-decision-model 、2026-10-08 に確かめました
 
 == Google が、写真、動画、音声、文章を同じ数の並びにする 7 億 4,000 万パラメーターの「EmbeddingGemma 2」を Apache 2.0 で公開しました
