@@ -11,7 +11,8 @@ running. The sign-in comes back to /app/tameshi/<place> with a one-time code in 
 address, which is traded for a session number kept only while the app is open (as in
 soudan_view.py). On the phone only the test account signs in. Settings:
 
-    AIAI_TAMESHI      the server as people reach it (default AIAI_SITE + /tameshi); sign-in links use it
+    AIAI_TAMESHI_URL  the server as people reach it (default AIAI_SITE + /tameshi); sign-in links use it
+                      (AIAI_TAMESHI=1 is another thing: it tells site/server.py to mount the server)
     AIAI_TAMESHI_API  the same server as this app reaches it, when that differs
     AIAI_RETURN       the app's address, where sign-in comes back to (default AIAI_SITE + /app/)
 """
@@ -24,7 +25,7 @@ import httpx
 from glyphs import preload
 
 SITE = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
-PUBLIC = os.environ.get("AIAI_TAMESHI", SITE + "/tameshi").rstrip("/")
+PUBLIC = (os.environ.get("AIAI_TAMESHI_URL") or SITE + "/tameshi").rstrip("/")
 API = os.environ.get("AIAI_TAMESHI_API", PUBLIC).rstrip("/")
 RETURN = (os.environ.get("AIAI_RETURN") or SITE + "/app/").rstrip("/") + "/"
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")

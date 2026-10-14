@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""Tries the addresses and the routes of site/app/tameshi_view.py, which needs Flet (skipped without it):
+
+    python site/test_tameshi_view.py
+"""
+import importlib
+import os
+import sys
+import unittest
+from unittest import mock
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "app"))
+
+try:
+    import flet  # noqa: F401
+except ImportError:
+    flet = None
+
+
+def load(env):
+    """site/app/tameshi_view.py read again with exactly this environment."""
+    with mock.patch.dict(os.environ, env, clear=True):
+        sys.modules.pop("tameshi_view", None)
+        return importlib.import_module("tameshi_view")
+
+
+@unittest.skipUnless(flet, "Flet is not installed")
+class TameshiViewTest(unittest.TestCase):
+    def test_the_addresses_come_from_the_site(self):
+        v = load({"AIAI_SITE": "https://aiai.example"})
+        self.assertEqual((v.PUBLIC, v.API, v.RETURN), ("https://aiai.example/tameshi", "https://aiai.example/tameshi", "https://aiai.example/app/"))
+
+    def test_the_mount_switch_is_not_an_address(self):
+        # the server has AIAI_TAMESHI=1 to mount tameshi/server.py; that is no address of it
+        v = load({"AIAI_SITE": "https://aiai.example", "AIAI_TAMESHI": "1"})
+        self.assertEqual((v.PUBLIC, v.API), ("https://aiai.example/tameshi", "https://aiai.example/tameshi"))
+
+    def test_the_addresses_can_be_set(self):
+        v = load({"AIAI_SITE": "https://aiai.example", "AIAI_TAMESHI_URL": "https://t.example/x/", "AIAI_TAMESHI_API": "http://127.0.0.1:8020/tameshi",
+                  "AIAI_RETURN": "https://aiai.example/app"})
+        self.assertEqual((v.PUBLIC, v.API, v.RETURN), ("https://t.example/x", "http://127.0.0.1:8020/tameshi", "https://aiai.example/app/"))
+
+    def test_the_place_at_the_end_of_the_address(self):
+        v = load({})
+        self.assertEqual(v.place_of("/tameshi/chousa?code=abc"), (True, "chousa", "abc"))
+        self.assertEqual(v.place_of("/tameshi"), (True, "", ""))
+        self.assertEqual(v.place_of("/tameshi/nani"), (True, "", ""))
+        self.assertEqual(v.place_of("/?code=abc"), (False, "", ""))
+        self.assertEqual(v.place_of(None), (False, "", ""))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
