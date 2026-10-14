@@ -322,16 +322,24 @@ MANUAL = os.path.join(ROOT, "tameshi", "docs", "manual.adoc")
 USAGE_SECTIONS = ("手引きを AI に読ませる", "アプリを作る流れ", "ほかの手引き", "一緒に使う物")
 
 
-def usage_page(text):
-    """The page 使い方: the short form of the user manual. Only its first paragraphs and the sections
-    USAGE_SECTIONS (with their subsections) are on it; the whole manual is in the app, and a PDF."""
+def usage_sections(text):
+    """[intro, section, ...] of the manual that the page 使い方 shows: what is before its first heading, and the
+    sections USAGE_SECTIONS with their subsections."""
     _, sections = read_adoc(text, "/tsukaikata/images/")
-    chosen, on = [], False
+    chosen, on = [sections[0]], False
     for sec in sections[1:]:
         if sec["level"] == 2:
             on = sec["title"] in USAGE_SECTIONS
         if on:
             chosen.append(sec)
+    return chosen
+
+
+def usage_page(text):
+    """The page 使い方: the short form of the user manual. Only its first paragraphs and the sections
+    USAGE_SECTIONS (with their subsections) are on it; the whole manual is in the app, and a PDF."""
+    sections = usage_sections(text)
+    chosen = sections[1:]
     toc = '<ol class="toc">' + "".join(f'<li><a href="#{x["id"]}">{adoc_inline(x["title"])}</a></li>'
                                        for x in chosen if x["level"] == 2) + "</ol>"
     body = "\n".join(f'<h{x["level"]} id="{x["id"]}">{adoc_inline(x["title"])}</h{x["level"]}>\n{x["html"]}' for x in chosen)
@@ -347,20 +355,26 @@ def usage_page(text):
 </article>"""
 
 
-def shoukai_pages(folder=SHOUKAI):
-    """{shoukai/<name>.html: page} of each introduction (an adoc read as the manual is read): its title,
-    a list of its sections, and the text. A folder or a file that is not there gives no page."""
+def load_shoukai(folder=SHOUKAI):
+    """[(name, title, sections)] of shoukai/<name>.adoc, each read as the manual is read."""
+    out = []
+    if os.path.isdir(folder):
+        for name in sorted(os.listdir(folder)):
+            if name.endswith(".adoc"):
+                title, sections = read_adoc(read(os.path.join(folder, name)))
+                out.append((name[:-5], title, sections))
+    return out
+
+
+def shoukai_pages(items):
+    """{shoukai/<name>.html: page} of each introduction: its title, a list of its sections, and the text.
+    A folder or a file that is not there gives no page."""
     pages = {}
-    if not os.path.isdir(folder):
-        return pages
-    for name in sorted(os.listdir(folder)):
-        if not name.endswith(".adoc"):
-            continue
-        title, sections = read_adoc(read(os.path.join(folder, name)))
+    for name, title, sections in items:
         toc = '<ol class="toc">' + "".join(f'<li><a href="#{x["id"]}">{adoc_inline(x["title"])}</a></li>'
                                            for x in sections[1:] if x["level"] == 2) + "</ol>"
         body = "\n".join(f'<h{x["level"]} id="{x["id"]}">{adoc_inline(x["title"])}</h{x["level"]}>\n{x["html"]}' for x in sections[1:])
-        pages[f"shoukai/{name[:-5]}.html"] = page(title, f"""<article class="shoukai">
+        pages[f"shoukai/{name}.html"] = page(title, f"""<article class="shoukai">
 <p class="kicker">一緒に使う物</p>
 <h1>{adoc_inline(title)}</h1>
 {toc}
@@ -747,9 +761,17 @@ def kiji_pages(articles):
     return pages
 
 
-def search_index(skills, kangaekata, days, articles=()):
+def adoc_entries(url, title, sections):
+    """[{u, t, h, x}] of a page made from AsciiDoc: its first paragraphs (no heading), then each section,
+    whose address is <page>#<id of the section>."""
+    return [{"u": url, "t": title, "h": "", "x": plain(sections[0]["html"])}] + [
+        {"u": f"{url}#{x['id']}", "t": title, "h": x["title"], "x": plain(x["html"])} for x in sections[1:]]
+
+
+def search_index(skills, kangaekata, days, articles=(), pages=()):
     """[{u, t, h, x}] (address, title, heading, text) of the pages and their
-    sections, which sagasu.js searches and the server's AI picks from."""
+    sections, which sagasu.js searches and the server's AI picks from. pages is
+    [(address, title, sections)] of the pages made from AsciiDoc: 使い方 and the introductions."""
     out = []
     for name, (_, title, description, _, body) in skills.items():
         url = f"/skills/{name}.html"
@@ -757,6 +779,8 @@ def search_index(skills, kangaekata, days, articles=()):
         out += [{"u": url, "t": title, "h": h, "x": plain(text)} for h, text in sections(body) if h]
     for m in re.finditer(r"^## (.+?) \{#([\w-]+)\}\n(.*?)(?=^## |\Z)", kangaekata, re.M | re.S):
         out.append({"u": f"/kangaekata.html#{m[2]}", "t": "考え方", "h": m[1], "x": plain(m[3])})
+    for url, title, parts in pages:
+        out += adoc_entries(url, title, parts)
     for date, _, entries in days:
         for e in entries:
             text = " ".join(body for src, body in e["paras"] if not src)
@@ -920,7 +944,8 @@ def main():
     # the usage page is the short form of the user manual; its figures and its PDF are copied beside it
     write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)), "手引きを AI に読ませる方法と、アプリを作る流れ"))
     docs = os.path.dirname(MANUAL)
-    for path, text in shoukai_pages().items():
+    shoukai = load_shoukai()
+    for path, text in shoukai_pages(shoukai).items():
         write(os.path.join(OUT, path), text)
     for name in sorted(os.listdir(os.path.join(docs, "images"))):
         os.makedirs(os.path.join(OUT, "tsukaikata", "images"), exist_ok=True)
@@ -929,7 +954,9 @@ def main():
         shutil.copyfile(os.path.join(docs, "manual.pdf"), os.path.join(OUT, "tsukaikata", "manual.pdf"))
     write(os.path.join(OUT, "kaiseki", "index.html"), page("読まれ方の記録", KAISEKI_PAGE, "aiai のサイトが記録する物と送り先"))
     write(os.path.join(OUT, "kaiseki", "kiroku.html"), page("直し方の記録", kiroku_page(), "読まれ方の記録から、aiai のサイトをどう直したか"))
-    write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(skills, kangaekata, days, articles), ensure_ascii=False))
+    write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(
+        skills, kangaekata, days, articles,
+        [("/tsukaikata.html", "使い方", usage_sections(read(MANUAL)))] + [(f"/shoukai/{n}.html", t, s) for n, t, s in shoukai]), ensure_ascii=False))
     print(f"{OUT} に、スキル {len(skills)}、ニュース {len(days)} 日分のページを作りました")
 
 

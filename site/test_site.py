@@ -139,6 +139,15 @@ class BuildTest(unittest.TestCase):
                          "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "tsukaikata.html", "tameshi.html",
                          "tsukaikata/images/nagare.svg", "tsukaikata/manual.pdf", "eizou.html"):
                 self.assertTrue(os.path.exists(os.path.join(out, path)), path)
+            with open(os.path.join(out, "sagasu.json"), encoding="utf-8") as f:
+                found = json.load(f)
+            # the usage page and the introductions are searched like guides and articles: the first paragraphs, then each section
+            for url in ("/tsukaikata.html", "/shoukai/weather.html", "/shoukai/officework.html", "/shoukai/aiai-tools.html"):
+                mine = [e for e in found if e["u"].split("#")[0] == url]
+                self.assertTrue(any(e["h"] == "" and e["x"] for e in mine), url)
+                self.assertTrue(any(e["u"].startswith(url + "#") and e["h"] and e["x"] for e in mine), url)
+            self.assertTrue(any(e["u"] == "/tsukaikata.html#tools" and e["h"] == "一緒に使う物" and e["t"] == "使い方" for e in found))
+            self.assertFalse(any(e["u"].startswith("/tsukaikata.html") and e["h"] == "知らせが出たとき" for e in found))
             for name in ("aiai-tools", "officework", "weather"):  # the introductions of what is used with aiai
                 with open(os.path.join(out, "shoukai", f"{name}.html"), encoding="utf-8") as f:
                     shoukai = f.read()
