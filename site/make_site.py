@@ -13,6 +13,7 @@ paragraphs, lists, tables, code, bold, links and bare URLs. Links to files in
 the repository are shown as plain text, since the site does not carry them.
 """
 import html
+import importlib.util
 import json
 import os
 import re
@@ -889,6 +890,22 @@ KAISEKI_PAGE = """<article>
 </article>"""
 
 
+def _auto_limits():
+    """(search words, guides to read next, articles) a day that tools/kaiseki_jidou.py may make, read from it."""
+    spec = importlib.util.spec_from_file_location("kaiseki_jidou", os.path.join(ROOT, "tools", "kaiseki_jidou.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.MAX_YOUGO, mod.MAX_ANNAI, mod.MAX_KIJI
+
+
+AUTO_RULES = "<ul>{}</ul>".format("".join(f"<li>{x}</li>" for x in (
+    "毎日 0 時 20 分に、前の日の読まれ方のまとめを読みます",
+    "直せるのは、次の 3 つだけです。1 日に、検索の言葉を合うページにつなぐことを {0} まで、次に読むページの案内を足すことを {1} まで、短い記事を書くことを {2} までです".format(*_auto_limits()),
+    "リンクは、このサイトの中だけです",
+    "Gemini の答えは、プログラムが確かめてから使います",
+    "直したことは 1 日ごとに取り消せます。<code>STOP</code> というファイルを置くと、自動の直しが止まります")))
+
+
 def kiroku_page(path=os.path.join(ROOT, "kaiseki", "kiroku.adoc")):
     """The log of the fixes made from the record, newest first: those the owner's AI
     made (kaiseki/kiroku.adoc, which kaiseki/naosu.py adds to) and those Gemini made
@@ -921,7 +938,11 @@ def kiroku_page(path=os.path.join(ROOT, "kaiseki", "kiroku.adoc")):
 <p class="kicker"><a href="/kaiseki/">読まれ方の記録</a></p>
 <h1>直し方の記録</h1>
 <p class="lead">読まれ方の記録を AI に読ませて、ページをどう直したか、直した後にどうなったかです。</p>
-<div class="prose">{"".join(items) or "<p>まだありません。</p>"}</div>
+<div class="prose">
+<h2>自動の直しの決まり</h2>
+{AUTO_RULES}
+<h2>記録</h2>
+{"".join(items) or "<p>まだありません。</p>"}</div>
 </article>"""
 
 

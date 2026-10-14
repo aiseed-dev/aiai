@@ -177,6 +177,13 @@ class BuildTest(unittest.TestCase):
             self.assertFalse(any(e["u"].startswith("/tsukaikata.html") and e["h"] == "知らせが出たとき" for e in found))
             others = [e for e in found if e["u"] == "/tsukaikata.html#s17"][0]  # a table: its cells are apart
             self.assertTrue(others["x"].startswith("手引き 使うとき Web サイトを作る 自分で"), others["x"])
+            # the log of fixes opens with the rules of the automatic fixes, with the limits read from tools/kaiseki_jidou.py
+            with open(os.path.join(out, "kaiseki", "kiroku.html"), encoding="utf-8") as f:
+                kiroku = f.read()
+            for text in ("<h2>自動の直しの決まり</h2>", "毎日 0 時 20 分に", "検索の言葉を合うページにつなぐことを 5 まで", "次に読むページの案内を足すことを 3 まで",
+                         "短い記事を書くことを 1 までです", "リンクは、このサイトの中だけです", "プログラムが確かめてから使います", "<code>STOP</code>", "<h2>記録</h2>"):
+                self.assertIn(text, kiroku)
+            self.assertLess(kiroku.index("自動の直しの決まり"), kiroku.index("<h2>記録</h2>"))
             # a guide page opens with the first paragraph of its README.md; a guide with none keeps its description
             with open(os.path.join(out, "skills", "rireki.html"), encoding="utf-8") as f:
                 self.assertIn('<p class="lead">AI とのチャットの履歴から、何度も頼んでいることを見つけます。', f.read())
