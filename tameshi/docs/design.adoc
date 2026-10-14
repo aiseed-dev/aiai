@@ -41,7 +41,8 @@ aiai の「度々聞いていることを、アプリにする」は、AI に何
   コードが、Web では `https://aiai.aiseed.dev/app/`、スマートフォンでは `flet build` で作るアプリになる。画面は
   `site/app/tameshi_view.py` に書き、道(6 章の `/tameshi` の API)はページと同じ物を使う
 * 5 章の「試すページ」は、アプリの「作る」のタブのことで、欄の名前、順、ボタン、知らせの文は 5 章のとおり。
-  `/tameshi.html` は持たず、`site/server.py` が `/app/` の同じ欄へ送る(`#chousa` なら `/app/tameshi/chousa`)
+  前の `/tameshi.html` は、`#` の後ろを読んで `/app/` の同じ欄へ移すだけの小さなページにする(`#chousa` なら
+  `/app/tameshi/chousa`。`#` の後ろはサーバーに届かないので、ページの中のスクリプトで移す。`site/make_site.py` が作る)
 * トップページの「Gemini で試す」の行き先は `/app/tameshi/<欄>`(`chousa`、`kaizen`、`kadai`、`sekkei`、`tesuto`)
 * サインイン: Web では、Apple と Google のサインインの戻り先を `/app/tameshi/<欄>` にし、戻りの道に付いた番号を、
   相談のタブ(`soudan_view.py`)と同じやり方で受け取って番号(token)に替える。番号は、そのアプリを開いている間だけ
