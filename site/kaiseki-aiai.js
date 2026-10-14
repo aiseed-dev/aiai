@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // aiai's own events for kaiseki, so the record says where people read and what
 // they look for: the section headings they reach, the folded full texts they
-// open, the guides they copy or download for their AI, the links they follow,
+// open, the guides they copy or download for their AI, the links they follow (waku for the ones in the 'read together' frame),
 // and the pages that were not found. Load after kaiseki.js, both with defer.
 (function () {
   var k = window.kaiseki;
@@ -44,6 +44,6 @@
     var url;
     try { url = new URL(a.href, location.href); } catch (err) { return; }
     if (url.host !== location.host) ev("out", url.host + url.pathname);
-    else if (url.pathname !== location.pathname) ev("link", url.pathname + url.hash);
+    else if (url.pathname !== location.pathname) ev(a.hasAttribute("data-waku") ? "waku" : "link", url.pathname + url.hash);
   }, true);
 })();

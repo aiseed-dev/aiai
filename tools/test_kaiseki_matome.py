@@ -36,7 +36,10 @@ class SummaryTest(unittest.TestCase):
                       hit(event="leave", seconds=40, scroll=95), hit(event="leave", seconds=10, scroll=30),
                       hit(event="section", value="#kiroku 記録"), hit(event="search", value="鳥獣害"),
                       hit(event="search", value="鳥獣害"), hit(event="nohit", value="補助金"),
-                      hit(event="notfound", path="/skills/hojokin.html", value="/skills/hojokin.html"), hit(site="example.jp")):
+                      hit(event="notfound", path="/skills/hojokin.html", value="/skills/hojokin.html"),
+                      hit(event="link", value="/skills/rireki.html#kiroku"), hit(event="link", value="/skills/rireki.html"),
+                      hit(event="waku", value="/skills/genba.html"), hit(event="waku", value="/skills/rireki.html"),
+                      hit(site="example.jp")):
                 store.add(h)
             # put every record inside the day, Japan time
             con = sqlite3.connect(db)
@@ -54,6 +57,9 @@ class SummaryTest(unittest.TestCase):
         self.assertEqual(r["nohit"], [["補助金", 1]])
         self.assertEqual(r["notfound"], [["/skills/hojokin.html", 1]])
         self.assertEqual(r["referrers"], [["www.google.com", 1]])
+        self.assertEqual(r["moves"], [["/kangaekata.html", "/skills/genba.html", 0, 1],
+                                      ["/kangaekata.html", "/skills/rireki.html", 2, 1]])
+        self.assertEqual(r["wakus"], [["/kangaekata.html", "/skills/genba.html", 1], ["/kangaekata.html", "/skills/rireki.html", 1]])
         text = km.adoc(r)
         self.assertIn("= サイトの読まれ方 2026-10-08", text)
         self.assertIn("- 鳥獣害: 2 回", text)

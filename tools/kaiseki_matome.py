@@ -36,7 +36,7 @@ from kougeki import ask_gemini  # noqa: E402
 TOKYO = zoneinfo.ZoneInfo("Asia/Tokyo")
 TOP = 20
 # Events the summary has its own heading for; any other event a site names is listed by value
-KNOWN = {"section", "open", "use", "link", "out", "notfound", "search", "nohit"}
+KNOWN = {"section", "open", "use", "link", "waku", "out", "notfound", "search", "nohit"}
 MODEL = "gemini-3.8-flash"
 
 
@@ -91,13 +91,25 @@ def summary(db, site, day):
             c[v] += n
         return [[v, n] for v, n in c.most_common(TOP)]
 
+    def where(value):
+        """The page a link goes to: its path, without what follows #."""
+        return value.split("#")[0]
+
+    # Where readers went from each page, by the plain links and by the "あわせて読む" frame; the frame
+    # is chosen from these (kaiseki_jidou.py), so the counts are not cut to the top ones
+    moves = collections.defaultdict(lambda: [0, 0])
+    for kind, i in (("link", 0), ("waku", 1)):
+        for (path, value), n in events[kind].items():
+            if value:
+                moves[(path, where(value))][i] += n
     total = sum(views.values())
     return {
         "day": day.isoformat(), "site": site,
         "when": datetime.datetime.now(TOKYO).isoformat(timespec="seconds"),
         "views": total, "phone_share": round(phones / total, 2) if total else None,
         "pages": pages, "sections": sections,
-        "opens": top("open"), "uses": top("use"), "links": top("link"), "outs": top("out"),
+        "opens": top("open"), "uses": top("use"), "links": top("link"), "wakus": top("waku"), "outs": top("out"),
+        "moves": [[a, b, n[0], n[1]] for (a, b), n in sorted(moves.items())],
         "notfound": words("notfound"), "searches": words("search"), "nohit": words("nohit"),
         "others": {name: [[v, n] for v, n in words(name)] for name in sorted(events) if name not in KNOWN},
         "referrers": [[h, n] for h, n in refs.most_common(TOP) if h],
@@ -121,7 +133,7 @@ def adoc(r):
         for path, items in r["sections"].items():
             lines.append(f"{path}:")
             lines += [f"- {v}: {n} 回" + (f"({round(s * 100)}%)" if s is not None else "") for v, n, s in items]
-    for key, head in (("opens", "開いた全文"), ("uses", "写した、ダウンロードした手引き"), ("links", "次に開いたページ"), ("outs", "外へのリンク")):
+    for key, head in (("opens", "開いた全文"), ("uses", "写した、ダウンロードした手引き"), ("links", "次に開いたページ"), ("wakus", "「あわせて読む」で押したページ"), ("outs", "外へのリンク")):
         if r[key]:
             lines += ["", f"== {head}", ""] + [f"- {p} → {v}: {n} 回" for p, v, n in r[key]]
     for key, head in (("searches", "探した言葉"), ("nohit", "探して見つからなかった言葉"), ("notfound", "見つからなかったページ"),
