@@ -9,7 +9,9 @@ AI とのチャットの履歴から、要るアプリを考えます。今あ�
    読んで進めます
 2. **PC の道具の記録**: aiai のアプリが、AI の道具が本人の PC に残す記録を機械的に読み、ボタン 1 つで
    材料のファイル(このスキルと、識別情報を伏せた対話の資料が 1 つになった物)を作ります。本人は、
-   そのファイルを使っている AI のチャットに上げます
+   そのファイルを使っている AI のチャットに上げます。Claude Code の記録は、既定で 30 日で消えます
+   (設定の `cleanupPeriodDays` で変えられます)。デスクトップアプリと Cowork で始めた、または最後に続けた
+   記録は、既定では消えません
 3. **書き出し**: 本人が AI のサービスから書き出したファイルを、aiai のアプリが機械的に読み、2 と同じ
    材料のファイルを作ります。書き出し方は、使っている AI に聞いてください。読めないファイルは、読めないと出します
 
@@ -23,7 +25,7 @@ AI とのチャットの履歴から、要るアプリを考えます。今あ�
 |---|---|---|---|
 | ChatGPT | できる。ベータで、ワークスペースの持ち主が有効にする | Codex: `~/.codex/history.jsonl` | ZIP |
 | Claude | できる。Free から Enterprise まで。コードの実行を有効にする。フォルダーごと ZIP にして上げる | Claude Code、デスクトップアプリの Claude Code と Cowork: `~/.claude/projects/` | ZIP(公式の説明に形式の記載は無い。個人は Settings の Privacy から、Team と Enterprise は Primary Owner だけ) |
-| Gemini | できる。18 歳以上、個人の Google アカウント。順に提供が広がっている途中 | Gemini CLI: `~/.gemini/tmp/<プロジェクトの印>/chats/` | Google Takeout(公式の説明は未確認) |
+| Gemini | できる。18 歳以上、個人の Google アカウント。Keep Activity(アクティビティの保存)をオンにする。順に提供が広がっている途中 | Gemini CLI: `~/.gemini/tmp/<プロジェクトの印>/chats/` | Google Takeout(公式の説明は未確認) |
 | Microsoft 365 Copilot | 企業用の場合は、管理者に言ってもらってください。スキル(Agent Builder)は試しの段階で、組織が Microsoft Frontier Program に入っていて、Copilot のライセンスがあるか、従量課金で使えること。使えるエージェントは管理者が決める。Information Barriers を使う組織では使えない | 企業用の場合は、管理者に言ってもらってください(PC に読める記録を残すという説明が見つからない) | 企業用の場合は、管理者に言ってもらってください。履歴(プロンプトと答え)は組織のコンテンツとして保存され、管理者が Content search と Microsoft Purview で見られ、保持の期間を決める。本人は消せるが、本人が書き出す手順は見つからない。個人の Microsoft アカウントなら、プライバシーダッシュボードから CSV |
 
 アプリの「ZIP」は、Claude の形(`<名前>/SKILL.md`)です。Microsoft 365 Copilot には
