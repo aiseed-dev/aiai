@@ -847,7 +847,8 @@ footer strong { color: var(--fg); }
 p.nagare-step, .nagare-step > summary, .nagare-q { padding: 10px 14px; text-align: center;
   border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); }
 p.nagare-step.gemini, .nagare-step.gemini > summary { background: var(--accent-soft); border-color: var(--accent); }
-p.nagare-step.tsukuru { background: var(--accent); border-color: var(--accent); border-radius: 999px; color: var(--bg); font-weight: 700; }
+/* the end is an outline, not a fill: the pressable button under the flow is the filled one */
+p.nagare-step.tsukuru { background: transparent; border-color: var(--accent); border-radius: 999px; color: var(--accent); font-weight: 700; }
 .nagare-q { border-radius: 999px; background: var(--bg-2); }
 .nagare-step > summary { cursor: pointer; list-style: none; }
 .nagare-step > summary::-webkit-details-marker { display: none; }

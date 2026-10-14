@@ -235,6 +235,15 @@ class BuildTest(unittest.TestCase):
             self.assertEqual(top.count('href="/skills/rireki.html">手引きを読んで、始める'), 1)
             self.assertLess(rest.index("色の付いた段は、Gemini で試せます"), rest.index("手引きを読んで、始める"))
             self.assertEqual(top.count('class="card-link"'), 6)
+            # the card to the self-fixing site stands where the news card was: the news is in the menu and the footer
+            self.assertIn('<a class="card-link" href="/kaiseki/">', top)
+            self.assertIn("<strong>読まれ方の記録で、自分で直す</strong><span>Cookie を置かずに記録し、Gemini が毎日サイトを少しずつ直す</span>", top)
+            self.assertNotIn('<a class="card-link" href="/news/">', top)
+            # the end of the flow is an outline, so it is not taken for the button under it
+            with open(os.path.join(out, "top.css"), encoding="utf-8") as f:
+                end = re.search(r"p\.nagare-step\.tsukuru \{([^}]*)\}", f.read())[1]
+            self.assertIn("background: transparent", end)
+            self.assertIn("color: var(--accent)", end)
             for href in ("/tsukaikata.html", "/kangaekata.html", "/kiji/", "/news/", "/eizou.html", "/tsukaikata.html#tools", "/kaiseki/", "/sagasu.html"):
                 self.assertIn(f'href="{href}"', top)
             self.assertNotIn("<script", top.split('<section id="mokuji"')[1].split("</main>")[0])
