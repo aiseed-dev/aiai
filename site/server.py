@@ -157,6 +157,35 @@ def load_soudan():
     return mod
 
 
+# What every answer says to the browser for safety. No Content-Security-Policy: Flet's page cannot carry one.
+SECURITY_HEADERS = [(b"strict-transport-security", b"max-age=31536000"),
+                    (b"x-content-type-options", b"nosniff"),
+                    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+                    (b"x-frame-options", b"SAMEORIGIN"),
+                    (b"permissions-policy", b"camera=(), microphone=(), geolocation=()")]
+
+
+class SecurityHeaders:
+    """ASGI middleware: puts SECURITY_HEADERS on every HTTP answer, whichever app (the pages, the app, tameshi,
+    soudan) gives it; a header an answer has already is replaced, not repeated."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+
+        async def with_headers(message):
+            if message["type"] == "http.response.start":
+                ours = {name for name, _ in SECURITY_HEADERS}
+                kept = [(k, v) for k, v in message.get("headers", []) if k.lower() not in ours]
+                message = {**message, "headers": kept + SECURITY_HEADERS}
+            await send(message)
+
+        await self.app(scope, receive, with_headers)
+
+
 def brand_index(assets):
     """Flet's index.html with aiai's name as its title, put in the app's assets (app/assets/index.html, which
     is not kept in the repository). Flet takes an index.html from the app's assets before its own, so the page
@@ -182,6 +211,7 @@ def create_app(soudan=None, tameshi=None):
     from main import main as screen
 
     app = FastAPI(title="aiai", docs_url=None, redoc_url=None, openapi_url=None)
+    app.add_middleware(SecurityHeaders)
 
     @app.get("/skills/{name}.zip")
     def skill(name: str, request: Request):
@@ -233,4 +263,4 @@ if __name__ == "__main__":
     a = ap.parse_args()
     soudan = load_soudan().create_app() if os.environ.get("SOUDAN_MODELS") else None
     tameshi = load_tameshi() if os.environ.get("AIAI_TAMESHI") == "1" else None
-    uvicorn.run(create_app(soudan, tameshi), host=a.host, port=a.port)
+    uvicorn.run(create_app(soudan, tameshi), host=a.host, port=a.port, server_header=False)  # no "server: uvicorn"

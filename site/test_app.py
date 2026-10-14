@@ -39,6 +39,41 @@ class AppPageTest(unittest.TestCase):
                 self.assertEqual(f.read(8), b"\x89PNG\r\n\x1a\n", path)
 
 
+@unittest.skipUnless(flet_web, "Flet or FastAPI is not installed")
+class SecurityHeadersTest(unittest.TestCase):
+    def test_every_answer_carries_the_headers_whichever_app_gives_it(self):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        spec = importlib.util.spec_from_file_location("site_server2", os.path.join(HERE, "server.py"))
+        server = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(server)
+        os.makedirs(os.path.join(HERE, "public"), exist_ok=True)  # the folder the pages are served from (made by make_site.py)
+        inner = FastAPI()
+
+        @inner.get("/api/info")
+        def info():
+            return {"ok": True}
+
+        @inner.get("/api/file")
+        def file():  # an answer that has a header of ours already is not given it twice
+            from fastapi.responses import Response
+            return Response(b"x", headers={"X-Content-Type-Options": "nosniff"})
+
+        c = TestClient(server.create_app(tameshi=inner), follow_redirects=False)
+        for path in ("/katsuyou.html", "/app/", "/tameshi/api/info", "/tameshi/api/file", "/no-such-page"):
+            r = c.get(path)
+            self.assertEqual(r.headers["strict-transport-security"], "max-age=31536000", path)
+            self.assertEqual(r.headers["x-content-type-options"], "nosniff", path)
+            self.assertEqual(r.headers["referrer-policy"], "strict-origin-when-cross-origin", path)
+            self.assertEqual(r.headers["x-frame-options"], "SAMEORIGIN", path)
+            self.assertEqual(r.headers["permissions-policy"], "camera=(), microphone=(), geolocation=()", path)
+            self.assertNotIn("includesubdomains", r.headers["strict-transport-security"].lower())
+        self.assertEqual(c.get("/tameshi/api/file").headers.get_list("x-content-type-options"), ["nosniff"])
+        self.assertEqual(c.get("/tameshi/api/info").json(), {"ok": True})  # the apps still answer as before
+        self.assertEqual(c.get("/katsuyou.html").status_code, 301)
+        self.assertEqual(c.get("/app/").status_code, 200)
+
+
 class MainTextTest(unittest.TestCase):
     def test_the_first_tab_and_its_head_say_guide(self):
         with open(os.path.join(HERE, "app", "main.py"), encoding="utf-8") as f:
