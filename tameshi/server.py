@@ -2,10 +2,11 @@
 """Tries aiai on the site with Gemini, for people who sign in: a dialogue
 with Gemini that has read one of the guides, today's news made by Gemini
 with Google Search from the person's own tastes (as news/SKILL.md says),
-and two longer jobs from materials the person gives, a SKILL.md and its
-references (tameshi/kaihatsu.py): the design document and the user manual
-with a picture per screen, and the present state of the apps the materials
-concern. Gemini runs on Google Cloud (site/gemini.py). It is mounted at
+two longer jobs from what the person gives (tameshi/kaihatsu.py): the
+present state of the apps that do what the person asks the AI again and
+again, and, from a SKILL.md and its references, the design document and the
+user manual with a picture per screen; and a dialogue on how those apps
+could be better, which can read what the first job found. Gemini runs on Google Cloud (site/gemini.py). It is mounted at
 /tameshi by site/server.py; the screen is /tameshi.html.
 
 People sign in with Apple or Google (the sign-in of moushikomi/server.py).
@@ -64,6 +65,7 @@ sys.path.insert(0, HERE)
 import kaihatsu  # noqa: E402
 
 MESSAGE_CHARS = 4000     # one message in the dialogue
+RESEARCH_CHARS = 60000   # what a research job found, read into the dialogue on improving
 DIALOGUE_CHARS = 30000   # the whole dialogue sent at once
 TASTES_CHARS = 4000      # the person's tastes for the news
 FAILED_LOGINS = 50       # wrong test-account passwords accepted a day, before the test login closes
@@ -83,6 +85,23 @@ CHAT_RULES = """あなたは、aiai のサイト(https://aiai.aiseed.dev/)の上
 <手引き>
 {guide}
 </手引き>"""
+
+KAIZEN_RULES = CHAT_RULES + """
+
+いまは、手順の 3(今あるアプリに不満な所があれば、どう良くすればよいかを本人と考える)から始めます。
+この人は、最初に、使ったアプリと、困った場面と、困ったことを書きます。どのアプリの、どの場面で、
+何が困るのかが具体的でない所は、1 つずつ聞いて具体的にします。不満が具体的になるまでは、良くする案を
+出しません。具体的になったら、どうなればよいのかを、この人の言葉にします。良くする所がそろったら、
+手順の 4(開発者に要望を書くか、自分で作るか)を、この人が決めるための材料を短くまとめます。{research}"""
+
+KAIZEN_RESEARCH = """
+
+下は、手順の 2 で、Gemini が Google 検索で今あるアプリを調べた結果です。ここに書いてあることを材料にし、
+書いていないことは推測しません。
+
+<調べた結果>
+{text}
+</調べた結果>"""
 
 NEWS_REQUEST = """今日は {today} です。下の手引きと、この人の好みに従って、今日のニュースを adoc で 1 つ書いてください。
 Google 検索で、今日と前の数日の記事を探します。見つけた記事に書いてあることだけを書き、推測で書きません。
@@ -366,13 +385,8 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         return Response(buf.getvalue(), media_type="application/zip",
                         headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
-    @app.post("/api/chat")
-    async def chat(request: Request, authorization: str = Header("")):
-        s = person(authorization)
-        b = await body_of(request)
-        name = str(b.get("guide", ""))
-        if name not in all_guides:
-            raise HTTPException(422, "手引きを選んでください")
+    def dialogue_of(b):
+        """The messages of a dialogue, checked: the person's turn last, none too long."""
         msgs = b.get("messages")
         if (not isinstance(msgs, list) or not msgs or not all(isinstance(m, dict) for m in msgs)
                 or msgs[-1].get("role") != "user"):
@@ -383,12 +397,43 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
             raise HTTPException(422, "何か書いてください")
         if sum(len(c["text"]) for c in contents) > DIALOGUE_CHARS:
             raise HTTPException(422, "対話が長くなりました。続きは、ふだん使っている AI で進めてください")
+        return contents
+
+    def answer(s, contents, system):
         left = take(s, "chat")
         try:
-            text, _ = ask(contents, system=CHAT_RULES.format(guide=all_guides[name][1]), search=False)
+            text, _ = ask(contents, system=system, search=False)
         except gemini.GeminiError as e:
             raise HTTPException(502, str(e))
         return {"text": text, "left": left}
+
+    @app.post("/api/chat")
+    async def chat(request: Request, authorization: str = Header("")):
+        s = person(authorization)
+        b = await body_of(request)
+        name = str(b.get("guide", ""))
+        if name not in all_guides:
+            raise HTTPException(422, "手引きを選んでください")
+        return answer(s, dialogue_of(b), CHAT_RULES.format(guide=all_guides[name][1]))
+
+    @app.post("/api/kaizen")
+    async def kaizen(request: Request, authorization: str = Header("")):
+        """Step 3 of rireki/SKILL.md: how the apps there are could be better, as a
+        dialogue, reading what a research job of this person's found when one is chosen."""
+        s = person(authorization)
+        b = await body_of(request)
+        contents = dialogue_of(b)
+        research = ""
+        if b.get("job"):
+            row = job_row(str(b["job"]), s)
+            folder = os.path.join(jobs_dir, row["id"], "chousa")
+            if row["kind"] != "chousa" or row["status"] != "done" or not os.path.isdir(folder):
+                raise HTTPException(422, "読ませられるのは、できあがった「今あるアプリを探す」の結果です")
+            text = "\n\n".join(read(os.path.join(folder, n)) for n in sorted(os.listdir(folder)) if n.endswith(".adoc"))
+            research = KAIZEN_RESEARCH.format(text=text[:RESEARCH_CHARS])
+        if "rireki" not in all_guides:
+            raise HTTPException(404, "手引きが見つかりません")
+        return answer(s, contents, KAIZEN_RULES.format(guide=all_guides["rireki"][1], research=research))
 
     @app.post("/api/news")
     async def news(request: Request, authorization: str = Header("")):

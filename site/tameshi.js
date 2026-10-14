@@ -48,7 +48,8 @@
 
   // A step of the flow on the top page links here (/tameshi.html#chousa). Go there once
   // signed in, also after the trip to Apple or Google, which drops the #.
-  var GOTO = "aiai.tameshi.goto", PLACES = { chousa: "今あるアプリを探す", sekkei: "設計書と利用者マニュアルを作る" };
+  var GOTO = "aiai.tameshi.goto", PLACES = { chousa: "今あるアプリを探す", kaizen: "どう良くするかを考える",
+    sekkei: "設計書と利用者マニュアルを作る" };
   var aim = location.hash.slice(1);
   try {
     if (PLACES[aim]) sessionStorage.setItem(GOTO, aim);
@@ -247,6 +248,7 @@
         box.appendChild(item);
         show(j.id, item.lastChild);
       });
+      researches(d.jobs);
       clearTimeout(timer);
       if (busy) timer = setTimeout(list, 5000);
     }).catch(function () {});
@@ -269,6 +271,17 @@
         });
       });
       body.appendChild(zip);
+      if (j.kind === "chousa") {
+        var go = el("button", "button", "この結果で、どう良くするかを考える");
+        go.type = "button";
+        go.addEventListener("click", function () {
+          kaizenReset();
+          $k("kaizen-job").value = id;
+          $k("kaizen").scrollIntoView({ block: "start", behavior: "instant" });
+          $k("kaizen-fuman").focus({ preventScroll: true });
+        });
+        body.appendChild(go);
+      }
       var pics = el("div", "tameshi-pics");
       j.files.forEach(function (path) {
         if (/\.png$/.test(path)) {
@@ -294,6 +307,87 @@
       body.appendChild(pics);
     }).catch(function () {});
   }
+  // Step 3: how the apps there are could be better. The dialogue starts from the
+  // person's own complaint, which app, when, and what goes wrong, and may read
+  // what one of their searches found.
+  var $k = function (id) { return document.getElementById(id); };
+  var talk = [];
+  function researches(jobs) {
+    var sel = $k("kaizen-job");
+    if (!sel) return;
+    var keep = sel.value, found = false;
+    sel.length = 1;
+    jobs.forEach(function (j) {
+      if (j.kind !== "chousa" || j.status !== "done") return;
+      sel.add(new Option("今あるアプリを探す ・ " + j.created, j.id));
+      found = found || j.id === keep;
+    });
+    sel.value = found ? keep : "";
+  }
+  function kaizenNote(text, bad) {
+    $k("kaizen-note").textContent = text || "";
+    $k("kaizen-note").classList.toggle("bad", !!bad);
+  }
+  function kaizenBubble(role, text) {
+    var d = el("div", "msg " + (role === "user" ? "you" : "ai"), text);
+    $k("kaizen-log").appendChild(d);
+    d.scrollIntoView({ block: "nearest" });
+  }
+  function kaizenReset() {
+    talk = [];
+    $k("kaizen-log").innerHTML = "";
+    $k("kaizen-talk").hidden = true;
+    $k("kaizen-start").hidden = false;
+    kaizenNote("");
+  }
+  function kaizenSend(text) {
+    talk.push({ role: "user", text: text });
+    kaizenBubble("user", text);
+    kaizenNote("Gemini が考えています");
+    fetch(API + "/api/kaizen", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token(), "Content-Type": "application/json" },
+      body: JSON.stringify({ job: $k("kaizen-job").value, messages: talk })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.join("、") : (d.detail || "うまくいきませんでした"));
+        return d;
+      });
+    }).then(function (d) {
+      talk.push({ role: "model", text: d.text });
+      kaizenBubble("model", d.text);
+      kaizenNote("");
+      if (d.left !== undefined) $k("tameshi-left").textContent = "今日あと " + d.left + " 回";
+      if (window.kaiseki) kaiseki.event("tameshi", { value: "kaizen" });
+    }).catch(function (err) {
+      talk.pop();
+      $k("kaizen-log").removeChild($k("kaizen-log").lastChild);
+      kaizenNote(err.message, true);
+      if (!talk.length) { $k("kaizen-talk").hidden = true; $k("kaizen-start").hidden = false; }
+    });
+  }
+  if ($k("kaizen-start")) {
+    $k("kaizen-start").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fuman = $k("kaizen-fuman").value.trim();
+      if (!fuman) return kaizenNote("困った場面と、困ったことを書いてください", true);
+      var app = $k("kaizen-app").value.trim(), hoshii = $k("kaizen-hoshii").value.trim();
+      $k("kaizen-start").hidden = true;
+      $k("kaizen-talk").hidden = false;
+      kaizenSend("使ったアプリ: " + (app || "(書いていません)") + "\n困った場面と、困ったこと: " + fuman
+        + "\nどうなればよいか: " + (hoshii || "まだ分かりません"));
+    });
+    $k("kaizen-chat").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var text = $k("kaizen-say").value.trim();
+      if (!text) return;
+      $k("kaizen-say").value = "";
+      kaizenSend(text);
+    });
+    $k("kaizen-again").addEventListener("click", kaizenReset);
+    $k("kaizen-job").addEventListener("change", function () { if (talk.length) kaizenReset(); });
+  }
+
   // the list shows once signed in; the page's own script signs in first
   var tries = 0;
   (function wait() {

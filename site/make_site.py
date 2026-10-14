@@ -598,7 +598,7 @@ def tameshi_page():
     return f"""<article>
 <p class="kicker">試す</p>
 <h1>aiai を、Gemini で試す</h1>
-<p class="lead">サインインすると、手引きを読ませた Gemini と対話し、今あるアプリを探させ、資料から設計書と利用者マニュアルを作らせ、自分の好みで今日のニュースを作らせることができます。Gemini は Google Cloud で動きます。書いたことは Gemini に送り、このサイトには記録しません。1 日に使える回数があります。</p>
+<p class="lead">サインインすると、手引きを読ませた Gemini と対話し、今あるアプリを探させ、その不満からどう良くするかを一緒に考え、資料から設計書と利用者マニュアルを作らせ、自分の好みで今日のニュースを作らせることができます。Gemini は Google Cloud で動きます。書いたことは Gemini に送り、このサイトには記録しません。1 日に使える回数があります。</p>
 <section id="tameshi-in" class="tameshi-box">
   <h2>サインイン</h2>
   <div class="actions">
@@ -654,6 +654,26 @@ def tameshi_page():
     </form>
     <p class="fine tameshi-job-note" aria-live="polite"></p>
     <div class="tameshi-jobs"></div>
+  </section>
+  <section class="tameshi-box" id="kaizen">
+    <h2>どう良くするかを考える</h2>
+    <p class="fine">今あるアプリを使ってみて、不満な所を具体的に書きます。どのアプリの、どの場面で、何が困るのかが分からないと、Gemini も一緒に考えられません。Gemini は、手引き「度々聞いていることを、アプリにする」の手順 3 に沿って、聞きながら、どうなればよいかを一緒に考えます。上の「今あるアプリを探す」の結果を読ませることもできます。対話は記録しません。</p>
+    <form id="kaizen-start" class="kaizen-start">
+      <label class="tameshi-pick">読ませる結果 <select id="kaizen-job"><option value="">読ませない</option></select></label>
+      <label class="tameshi-pick">使ったアプリ <input id="kaizen-app" maxlength="200" placeholder="例: 集計のアプリ"></label>
+      <label class="tameshi-pick">困った場面と、困ったこと <textarea id="kaizen-fuman" rows="3" maxlength="2000" required placeholder="例: 毎週、売上の表を渡して集計させている。前の週の表が残らないので、先週との比べを毎回自分で作っている"></textarea></label>
+      <label class="tameshi-pick">どうなればよいか(分かれば) <textarea id="kaizen-hoshii" rows="2" maxlength="1000" placeholder="例: 先週の表を残し、比べた表も一緒に出してほしい"></textarea></label>
+      <button class="button primary" type="submit">考える</button>
+    </form>
+    <div id="kaizen-talk" hidden>
+      <div id="kaizen-log" class="tameshi-log" aria-live="polite"></div>
+      <form id="kaizen-chat" class="sagasu">
+        <textarea id="kaizen-say" rows="2" maxlength="4000" aria-label="書くこと"></textarea>
+        <button class="button primary" type="submit">送る</button>
+      </form>
+      <button type="button" class="linkish" id="kaizen-again">初めから</button>
+    </div>
+    <p class="fine" id="kaizen-note" aria-live="polite"></p>
   </section>
   <section class="tameshi-box" id="sekkei">
     <h2>資料から、設計書と利用者マニュアルを作る</h2>

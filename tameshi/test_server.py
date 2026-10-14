@@ -187,6 +187,25 @@ class ServerTest(unittest.TestCase):
         # the design and manual still need materials
         self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "note": "集計"}, headers=h).status_code, 422)
 
+    def test_thinking_how_to_improve_reads_the_research(self):
+        h = self.google("u6")
+        jid = self.job(h, "chousa", files=[("files", ("SKILL.md", "# 架空のアプリ".encode(), "text/markdown"))]).json()["id"]
+        say = {"role": "user", "text": "先週との比べが無いのが不満です"}
+        r = self.c.post("/api/kaizen", json={"job": jid, "messages": [say]}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        contents, system, search = self.gemini.seen[-1]
+        self.assertIn("== High Climb", system)
+        self.assertIn("手順の 3", system)
+        self.assertIn("先週との比べ", contents[-1]["text"])
+        self.assertFalse(search)
+        # another person's research is not theirs to read
+        self.assertEqual(self.c.post("/api/kaizen", json={"job": jid, "messages": [say]},
+                                     headers=self.google("u7")).status_code, 404)
+        # without research it is a dialogue on step 3 alone
+        r = self.c.post("/api/kaizen", json={"messages": [say]}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertNotIn("<調べた結果>", self.gemini.seen[-1][1])
+
     def test_the_sample_needs_no_upload(self):
         h = self.google("u9")
         r = self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h)
