@@ -176,6 +176,175 @@ def markdown(text):
     return "\n".join(out)
 
 
+# ---- reading the user manual (AsciiDoc) -----------------------------------------------------
+
+ADOC_LINK = re.compile(r"(https?://[^\s\[\]<>]+)\[([^\]]*)\]")
+ADOC_ITEM = re.compile(r"^(\*+|\.+) (.*)$")
+
+
+def adoc_inline(text):
+    """HTML of one line of AsciiDoc: `code`, URL[label], bare URLs, *bold*; the rest is escaped."""
+    keep = []
+
+    def hold(s):
+        keep.append(s)
+        return f"\x00{len(keep) - 1}\x00"
+
+    text = re.sub(r"`([^`]+)`", lambda m: hold(f"<code>{html.escape(m[1])}</code>"), text)
+    text = ADOC_LINK.sub(lambda m: hold(f'<a href="{html.escape(m[1])}">{adoc_inline(m[2]) or html.escape(m[1])}</a>'), text)
+    text = URL.sub(lambda m: hold(f'<a href="{html.escape(m[0])}">{html.escape(m[0])}</a>'), text)
+    text = html.escape(text)
+    text = re.sub(r"\*([^*\s][^*]*?)\*", r"<strong>\1</strong>", text)
+    return re.sub(r"\x00(\d+)\x00", lambda m: keep[int(m[1])], text)
+
+
+def adoc_list(items):
+    """HTML of [(marker, text lines)]: the marker's length is the depth, `.` an ordered list."""
+    out, i = [], 0
+    tag = "ol" if items[0][0][0] == "." else "ul"
+    depth = len(items[0][0])
+    while i < len(items):
+        marker, lines = items[i]
+        i += 1
+        j = i
+        while j < len(items) and len(items[j][0]) > depth:
+            j += 1
+        inner = adoc_inline(join_lines(lines))
+        if j > i:
+            inner += adoc_list(items[i:j])
+        out.append(f"<li>{inner}</li>")
+        i = j
+    return f"<{tag}>" + "".join(out) + f"</{tag}>"
+
+
+def adoc_table(rows):
+    def cells(line):
+        return [c.strip() for c in line.strip().lstrip("|").split(" | ")]
+
+    rows = [r for r in rows if r.strip()]
+    out = ['<div class="table"><table><thead><tr>', *[f"<th>{adoc_inline(c)}</th>" for c in cells(rows[0])], "</tr></thead><tbody>"]
+    for row in rows[1:]:
+        out += ["<tr>", *[f"<td>{adoc_inline(c)}</td>" for c in cells(row)], "</tr>"]
+    return "".join(out + ["</tbody></table></div>"])
+
+
+def adoc_blocks(lines, images="images/"):
+    """HTML of the blocks of AsciiDoc lines: paragraphs, lists, tables, quotes, code and images.
+    The path of an image starts with `images/`, which is put in front of the file's name as `images`."""
+    out, i, para, items = [], 0, [], []
+
+    def close():
+        if para:
+            out.append(f"<p>{adoc_inline(join_lines(para))}</p>")
+            para.clear()
+        if items:
+            out.append(adoc_list(list(items)))
+            items.clear()
+
+    while i < len(lines):
+        line = lines[i]
+        if not line.strip():
+            close()
+        elif line.startswith("|==="):
+            close()
+            j = i + 1
+            while j < len(lines) and not lines[j].startswith("|==="):
+                j += 1
+            out.append(adoc_table(lines[i + 1:j]))
+            i = j
+        elif line.startswith("____"):
+            close()
+            j = i + 1
+            while j < len(lines) and not lines[j].startswith("____"):
+                j += 1
+            out.append("<blockquote>" + adoc_blocks(lines[i + 1:j], images) + "</blockquote>")
+            i = j
+        elif line.startswith("----"):
+            close()
+            j = i + 1
+            while j < len(lines) and not lines[j].startswith("----"):
+                j += 1
+            out.append("<pre><code>" + html.escape("\n".join(lines[i + 1:j])) + "</code></pre>")
+            i = j
+        elif m := re.fullmatch(r"image::([^\[]+)\[(.*)\]", line.strip()):
+            close()
+            out.append(f'<figure class="fig"><img src="{html.escape(images + os.path.basename(m[1]))}" alt="{html.escape(m[2])}"></figure>')
+        elif re.fullmatch(r"\[.*\]", line.strip()):  # attribute lines such as [cols="1,3"]
+            pass
+        elif m := ADOC_ITEM.match(line):
+            if para:
+                close()
+            items.append((m[1], [m[2]]))
+        elif items and line.startswith(" "):  # a wrapped line of the last item
+            items[-1][1].append(line)
+        elif line.strip() == "+":
+            pass
+        else:
+            if items:
+                close()
+            para.append(line)
+        i += 1
+    close()
+    return "\n".join(out)
+
+
+def read_adoc(text, images="images/"):
+    """(title, [section]) of an AsciiDoc document. A section is a dict of its level (2 for ==, 3 for ===),
+    its heading, its id (a [[id]] line above it, or s1, s2, ...) and its HTML (up to the next heading).
+    The first section is the text before the first heading, at level 0. The attribute lines (:x:) are not read."""
+    title, sections, body, head, anchor = "", [], [], {"level": 0, "title": "", "id": ""}, ""
+
+    def close():
+        sections.append(head | {"html": adoc_blocks(body, images)})
+        body.clear()
+
+    for line in text.splitlines():
+        if re.match(r"^:[^:\s][^:]*:", line):
+            continue
+        if m := re.fullmatch(r"\[\[([\w-]+)\]\]", line.strip()):
+            anchor = m[1]
+        elif m := re.match(r"^(={1,3}) (.*)$", line):
+            if len(m[1]) == 1:
+                title = m[2].strip()
+            else:
+                close()
+                head = {"level": len(m[1]), "title": m[2].strip(), "id": anchor or f"s{len(sections)}"}
+                anchor = ""
+        else:
+            body.append(line)
+    close()
+    return title, sections
+
+
+MANUAL = os.path.join(ROOT, "tameshi", "docs", "manual.adoc")
+USAGE_SECTIONS = ("手引きを AI に読ませる", "アプリを作る流れ", "ほかの手引き", "一緒に使う物")
+
+
+def usage_page(text):
+    """The page 使い方: the short form of the user manual. Only its first paragraphs and the sections
+    USAGE_SECTIONS (with their subsections) are on it; the whole manual is in the app, and a PDF."""
+    _, sections = read_adoc(text, "/tsukaikata/images/")
+    chosen, on = [], False
+    for sec in sections[1:]:
+        if sec["level"] == 2:
+            on = sec["title"] in USAGE_SECTIONS
+        if on:
+            chosen.append(sec)
+    toc = '<ol class="toc">' + "".join(f'<li><a href="#{x["id"]}">{adoc_inline(x["title"])}</a></li>'
+                                       for x in chosen if x["level"] == 2) + "</ol>"
+    body = "\n".join(f'<h{x["level"]} id="{x["id"]}">{adoc_inline(x["title"])}</h{x["level"]}>\n{x["html"]}' for x in chosen)
+    return f"""<article class="tsukaikata">
+<p class="kicker">使い方</p>
+<h1>使い方</h1>
+{toc}
+<div class="prose">
+{sections[0]["html"]}
+{body}
+<p>くわしい使い方は、<a href="/app/">アプリの「使い方」</a>と、<a href="/tsukaikata/manual.pdf">利用者マニュアルの PDF</a> にあります。</p>
+</div>
+</article>"""
+
+
 # ---- reading the news -------------------------------------------------------------------
 
 
@@ -277,7 +446,6 @@ def page(title, body, description=""):
 HEADER = """<header class="bar">
   <a class="logo" href="/"><span class="mark" aria-hidden="true"></span>aiai</a>
   <nav class="menu">
-    <a href="/katsuyou.html">手引き</a>
     <a href="/tsukaikata.html">使い方</a>
     <a href="/news/">ニュース</a>
     <a href="/kangaekata.html">考え方</a>
@@ -823,10 +991,16 @@ def main():
     write(os.path.join(OUT, "404.html"), page("見つかりません", NOT_FOUND))
     write(os.path.join(OUT, "tameshi.html"), page("Gemini で試す", tameshi_page(), "手引きを読ませた Gemini と対話し、好みでニュースを作らせる"))
     # the pages the top page's table of contents leads to (hand-written, as the top page is)
-    for name, title, desc in (("katsuyou", "AI 時代の AI 活用法", "AI の使い方と、それぞれの手引き"),
-                              ("tsukaikata", "使い方", "手引きをあなたの AI に読ませる方法と、対話の例"),
-                              ("eizou", "写真や映像を読む AI", "畑のカメラの映像を AI が読み、記録する例")):
-        write(os.path.join(OUT, f"{name}.html"), page(title, read(os.path.join(HERE, f"{name}.html")), desc))
+    write(os.path.join(OUT, "eizou.html"), page("写真や映像を読む AI", read(os.path.join(HERE, "eizou.html")),
+                                                 "畑のカメラの映像を AI が読み、記録する例"))
+    # the usage page is the short form of the user manual; its figures and its PDF are copied beside it
+    write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)), "手引きを AI に読ませる方法と、アプリを作る流れ"))
+    docs = os.path.dirname(MANUAL)
+    for name in sorted(os.listdir(os.path.join(docs, "images"))):
+        os.makedirs(os.path.join(OUT, "tsukaikata", "images"), exist_ok=True)
+        shutil.copyfile(os.path.join(docs, "images", name), os.path.join(OUT, "tsukaikata", "images", name))
+    if os.path.exists(os.path.join(docs, "manual.pdf")):
+        shutil.copyfile(os.path.join(docs, "manual.pdf"), os.path.join(OUT, "tsukaikata", "manual.pdf"))
     write(os.path.join(OUT, "kaiseki", "index.html"), page("読まれ方の記録", KAISEKI_PAGE, "aiai のサイトが記録する物と送り先"))
     write(os.path.join(OUT, "kaiseki", "kiroku.html"), page("直し方の記録", kiroku_page(), "読まれ方の記録から、aiai のサイトをどう直したか"))
     write(os.path.join(OUT, "sagasu.json"), json.dumps(search_index(skills, kangaekata, days, articles), ensure_ascii=False))

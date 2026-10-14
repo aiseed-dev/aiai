@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Tries site/make_site.py: Markdown and the news adoc as aiai writes them,
-and a build of the whole site into a temporary folder.
+"""Tries site/make_site.py: Markdown, the news adoc and the user manual (AsciiDoc) as
+aiai writes them, and a build of the whole site into a temporary folder.
 
     python site/test_site.py
 """
@@ -38,6 +38,59 @@ class MarkdownTest(unittest.TestCase):
         self.assertIn("<th>a</th>", out)
         self.assertIn("<td>2</td>", out)
         self.assertIn("<pre><code>x &lt; y</code></pre>", out)
+
+
+ADOC = """= 題
+:日付: 2026-10-14
+
+はじめの
+文です。`code <x>` と https://example.jp/[リンク] と *太字* です。
+
+[[ankaa]]
+== 第 1 節
+
+. 1 つ目の
+  続き
+. 2 つ目
+** 入れ子
+
+____
+引用です
+____
+
+image::images/zu.svg[図の説明]
+
+[cols="1,2"]
+|===
+| 段 | すること
+
+| 1 見つける | 履歴から
+|===
+
+=== 小節
+
+----
+x < y
+----
+"""
+
+
+class AdocTest(unittest.TestCase):
+    def test_the_manual_subset(self):
+        title, sections = make_site.read_adoc(ADOC, "/i/")
+        self.assertEqual(title, "題")
+        self.assertEqual([(x["level"], x["title"], x["id"]) for x in sections],
+                         [(0, "", ""), (2, "第 1 節", "ankaa"), (3, "小節", "s2")])
+        self.assertIn("<p>はじめの文です。<code>code &lt;x&gt;</code> と", sections[0]["html"])
+        self.assertIn('<a href="https://example.jp/">リンク</a>', sections[0]["html"])
+        self.assertIn("<strong>太字</strong>", sections[0]["html"])
+        body = sections[1]["html"]
+        self.assertIn("<ol><li>1 つ目の続き</li><li>2 つ目<ul><li>入れ子</li></ul></li></ol>", body)
+        self.assertIn("<blockquote><p>引用です</p></blockquote>", body)
+        self.assertIn('<img src="/i/zu.svg" alt="図の説明">', body)
+        self.assertIn("<th>段</th><th>すること</th>", body)
+        self.assertIn("<td>1 見つける</td><td>履歴から</td>", body)
+        self.assertIn("<pre><code>x &lt; y</code></pre>", sections[2]["html"])
 
 
 NEWS = """= aiai ニュース 2026-09-30
@@ -82,11 +135,23 @@ class BuildTest(unittest.TestCase):
             make_site.main()
             for path in ("index.html", "top.css", "kangaekata.html", "news/index.html", "news/2026-09-30.html",
                          "skills/rireki.html", "skills/keikaku.html", "sagasu.html", "sagasu.json", "404.html",
-                         "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "katsuyou.html", "tsukaikata.html", "eizou.html"):
+                         "kaiseki/index.html", "kaiseki.js", "kaiseki-aiai.js", "sagasu.js", "tsukaikata.html",
+                         "tsukaikata/images/nagare.svg", "tsukaikata/manual.pdf", "eizou.html"):
                 self.assertTrue(os.path.exists(os.path.join(out, path)), path)
+            self.assertFalse(os.path.exists(os.path.join(out, "katsuyou.html")))  # server.py sends it to 使い方
+            # the page 使い方 is the short form of the manual: the four sections, the figure, the links to the rest
+            with open(os.path.join(out, "tsukaikata.html"), encoding="utf-8") as f:
+                usage = f.read()
+            for text in ("手引きを AI に読ませる", "アプリを作る流れ", "ほかの手引き", "一緒に使う物", 'id="tools"',
+                         "/tsukaikata/images/nagare.svg", 'href="/app/"', 'href="/tsukaikata/manual.pdf"'):
+                self.assertIn(text, usage)
+            for text in ("知らせが出たとき", "を使う前に", "<h2 id=\"s13\">8 テストする"):  # the rest of the manual is in the app
+                self.assertNotIn(text, usage)
             with open(os.path.join(out, "index.html"), encoding="utf-8") as f:
                 top = f.read()
             self.assertIn("度々聞いていることを、アプリにする", top)
+            self.assertNotIn("/katsuyou.html", top)
+            self.assertIn('href="/tsukaikata.html#tools"', top)
             # the flow: steps 1 to 8, the two questions and the end; no step that is only "作る"
             for text in ("1 何度も頼むことを見つける", "2 今あるアプリを探す", "不満はあるか", "3 どう良くするかを考える",
                          "4 要望か、自分で作るか", "5 今あるアプリの課題を集める", "6 設計書とマニュアルを作る", "7 実装する",
@@ -101,8 +166,9 @@ class BuildTest(unittest.TestCase):
             self.assertIn("/skills/rireki.zip", skill)
             self.assertIn("name: rireki", skill)  # the whole SKILL.md, for the copy button
             # every page sends its record to this site's own server, with no cookie
-            for text in (top, skill):
+            for text in (top, skill, usage):
                 self.assertIn('data-to="/kaiseki" data-ask="no"', text)
+                self.assertNotIn("/katsuyou.html", text)
             with open(os.path.join(out, "sagasu.json"), encoding="utf-8") as f:
                 index = json.load(f)
             self.assertIn({"u": "/news/2026-09-30.html", "t": "ニュース 2026-09-30"},

@@ -27,7 +27,7 @@ import os
 import sys
 
 from fastapi import Body, FastAPI, HTTPException, Request
-from fastapi.responses import Response
+from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -172,6 +172,10 @@ def create_app(soudan=None, tameshi=None):
             raise HTTPException(404, "そのスキルはありません")
         return Response(data, media_type="application/zip",
                         headers={"Content-Disposition": f'attachment; filename="{name}.zip"'})
+
+    @app.get("/katsuyou.html")
+    def katsuyou():  # the page of all uses became the page 使い方
+        return RedirectResponse("/tsukaikata.html", status_code=301)
 
     sagasu = Sagasu(os.path.join(HERE, "public", "sagasu.json"))
 

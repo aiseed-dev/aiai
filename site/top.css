@@ -761,6 +761,7 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 .prose table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
 .prose th, .prose td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
 .prose th { background: var(--bg-2); }
+.tsukaikata .prose td:first-child { min-width: 9em; }
 
 .own-news { padding: 12px 16px; border-radius: 12px; background: var(--bg-2); font-size: 0.95rem; }
 .own-news a { font-weight: 700; }
@@ -784,7 +785,7 @@ main.doc button.button { font: inherit; font-weight: 700; cursor: pointer; }
 
 /* diagrams on the thinking page: drawn tall, so they read on a phone */
 .fig { margin: 20px auto 8px; max-width: 420px; }
-.fig svg { width: 100%; height: auto; display: block; }
+.fig svg, .fig img { width: 100%; height: auto; display: block; }
 .fig text { text-anchor: middle; font-family: inherit; font-size: 15px; fill: var(--fg); }
 .fig text.small { font-size: 13.5px; }
 .fig text.strong, .fig .strong text { font-weight: 700; }
