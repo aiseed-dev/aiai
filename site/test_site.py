@@ -239,10 +239,10 @@ class BuildTest(unittest.TestCase):
             self.assertNotIn('nagare-step tsukuru">作る<', top)
             self.assertEqual(top.count('class="nagare-try" href='), 5)  # the five steps Gemini does; the sixth oval is the copy button
             # the head: the name and the theme and no button; the flow's heading; the one main button under the flow; cards
-            for text in ("<h1>", "aiai —", "AI 活用法", "チャットの履歴には、あなたが何に困り、何を何度も頼んでいるかが、あなたの言葉で書いてあります",
-                         "何度も頼んでいることをアプリにしてしまうことです", "何を作るかは、人が指示しないと分かりません",
-                         "チャットの履歴からあなたの意図を読み取り、何をアプリにするかを、あなたと一緒に考えます",
-                         "aiai の手引きは、ふだん使っている AI に読ませる、そのためのスキルです。", "<h2>ほかのページ</h2>",
+            for text in ("<h1>", "aiai —", "AI 活用法", "AI とのチャットの履歴には、あなたの困りごとや、何度も頼んでいることが書いてあります。",
+                         "AI は設計もコードも書けますが、何を作るかは、指示がないと分かりません。",
+                         "ふだんの AI にスキルを読ませると、AI が履歴から意図を読み取ります。",
+                         "何をアプリにするかを、AI と一緒に考えてみませんか。", "<h2>ほかのページ</h2>",
                          "色の付いた段は、Gemini で試せます"):
                 self.assertIn(text, top)
             self.assertNotIn("主役は、あなたの AI", top)
