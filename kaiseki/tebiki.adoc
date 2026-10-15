@@ -40,7 +40,7 @@ weather.time-j.net のまとめは、2026-10-12 時点ではまだ作ってい�
 
 [source,bash]
 ----
-python3 tools/kaiseki_matome.py --db <kaiseki.db のパス> --site weather.time-j.net --day 2026-10-12
+python3 tools/kaiseki_matome.py --db <kaiseki.db のパス> --site weather.time-j.net --suspect-screen 1920x1080 --day 2026-10-12
 ----
 
 AI の所見も付けるときは `--out <フォルダー> --ai gemini` を足します。Google Cloud のサービスアカウントが要るので、
@@ -116,7 +116,7 @@ Description=kaiseki: sum up yesterday
 [Service]
 Type=oneshot
 User=dev
-ExecStart=/usr/bin/python3 /home/dev/kaiseki/tools/kaiseki_matome.py --db /home/dev/kaiseki/data/kaiseki.db --site weather.time-j.net --out /home/dev/kaiseki/matome
+ExecStart=/usr/bin/python3 /home/dev/kaiseki/tools/kaiseki_matome.py --db /home/dev/kaiseki/data/kaiseki.db --site weather.time-j.net --suspect-screen 1920x1080 --out /home/dev/kaiseki/matome
 
 # /etc/systemd/system/kaiseki-matome.timer
 [Unit]

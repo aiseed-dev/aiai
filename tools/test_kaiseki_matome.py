@@ -68,5 +68,41 @@ class SummaryTest(unittest.TestCase):
         self.assertEqual(km.bounds(DAY), ("2026-10-07T15:00:00+00:00", "2026-10-08T15:00:00+00:00"))
 
 
+class BotTest(unittest.TestCase):
+    def day(self, suspect=""):
+        with tempfile.TemporaryDirectory() as tmp:
+            db = os.path.join(tmp, "k.db")
+            store = server.Store(db)
+            ua = "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)"
+            for h in (hit(referrer="www.google.com"), hit(screen="1920x1080", referrer="www.google.com"),
+                      hit(ua=ua, screen="800x600"), hit(ua=ua, screen="800x600"), hit(ua=ua, screen="800x600", event="leave", seconds=1, scroll=0),
+                      hit(screen="1920x1080"), hit(screen="1920x1080", event="search", value="自動")):
+                store.add(h)
+            con = sqlite3.connect(db)
+            con.execute("UPDATE hits SET ts = '2026-10-08T03:00:00+00:00'")
+            con.commit()
+            con.close()
+            return km.summary(db, "aiai.aiseed.dev", DAY, suspect)
+
+    def test_crawlers_are_counted_apart_and_not_in_the_readers_numbers(self):
+        r = self.day()
+        self.assertEqual(r["views"], 3)  # the two named crawler views and their leave are out; the unreferred 1920x1080 is a reader
+        self.assertEqual(r["bots"]["named"], 2)
+        self.assertEqual(r["bots"]["names"], [["YandexBot", 2]])
+        self.assertEqual(r["bots"]["suspect"], 0)
+        self.assertEqual(r["searches"], [["自動", 1]])
+        text = km.adoc(r)
+        self.assertIn("表示(人): 3 回", text)
+        self.assertIn("bot を名乗る物 2 回(YandexBot 2 回)", text)
+
+    def test_a_doubted_screen_with_no_referrer_is_set_apart_only_when_asked(self):
+        r = self.day(suspect="1920x1080")
+        self.assertEqual(r["views"], 2)
+        self.assertEqual(r["bots"]["suspect"], 1)
+        self.assertEqual(r["bots"]["views"], 3)
+        self.assertEqual(r["searches"], [])  # the doubted visit's event is out too
+        self.assertIn("自動の疑い 1 回", km.adoc(r))
+
+
 if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    unittest.main()

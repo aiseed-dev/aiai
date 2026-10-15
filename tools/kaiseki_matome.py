@@ -47,12 +47,36 @@ def bounds(day):
     return start.isoformat(timespec="seconds"), end.isoformat(timespec="seconds")
 
 
-def summary(db, site, day):
+BOT = re.compile(r"([a-z0-9_-]*(?:bot|spider|crawl)[a-z0-9_.-]*)", re.I)
+
+
+def robot(ua, screen, ref, suspect=""):
+    """An empty string for a reader; else the name a crawler gives in its browser string, or "suspect" for a visit
+    with the screen size that was asked to be doubted (e.g. 1920x1080) and no referrer. Such a visit can be a person who
+    typed the address, so it is a doubt, not a name, and is set apart only when asked for."""
+    m = BOT.search(ua or "")
+    if m:
+        return m[1]
+    if "compatible;" in (ua or ""):
+        return "(compatible)"
+    return "suspect" if suspect and screen == suspect and not ref else ""
+
+
+def summary(db, site, day, suspect=""):
+    """The day's totals of the readers. Crawlers (named in their browser string) and, when `suspect` names a screen size,
+    the visits of that size with no referrer are counted apart ("bots"), so the numbers below are of readers."""
     start, end = bounds(day)
     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
-    rows = con.execute("SELECT path, event, seconds, scroll, value, title, referrer, utm, screen FROM hits "
-                       "WHERE site = ? AND ts >= ? AND ts < ? ORDER BY ts", (site, start, end)).fetchall()
+    every = con.execute("SELECT path, event, seconds, scroll, value, title, referrer, utm, screen, ua FROM hits "
+                        "WHERE site = ? AND ts >= ? AND ts < ? ORDER BY ts", (site, start, end)).fetchall()
     con.close()
+    rows, bots = [], collections.Counter()
+    for *row, ua in every:
+        who = robot(ua, row[8], row[6], suspect)
+        if not who:
+            rows.append(tuple(row))
+        elif row[1] == "view":
+            bots[who] += 1
     views, titles, secs, scrolls = collections.Counter(), {}, collections.defaultdict(list), collections.defaultdict(list)
     events = collections.defaultdict(collections.Counter)
     refs, utms, phones = collections.Counter(), collections.Counter(), 0
@@ -106,6 +130,7 @@ def summary(db, site, day):
     return {
         "day": day.isoformat(), "site": site,
         "when": datetime.datetime.now(TOKYO).isoformat(timespec="seconds"),
+        "bots": bot_summary(bots),
         "views": total, "phone_share": round(phones / total, 2) if total else None,
         "pages": pages, "sections": sections,
         "opens": top("open"), "uses": top("use"), "links": top("link"), "wakus": top("waku"), "outs": top("out"),
@@ -117,10 +142,25 @@ def summary(db, site, day):
     }
 
 
+def bot_summary(bots):
+    named = collections.Counter({n: c for n, c in bots.items() if n != "suspect"})
+    return {"views": sum(bots.values()), "named": sum(named.values()), "suspect": bots.get("suspect", 0),
+            "names": [[n, c] for n, c in named.most_common(TOP)]}
+
+
+def bots_line(b):
+    """One line for reference: the views of crawlers and of the doubted visits, apart from the readers' numbers."""
+    if not b or not b["views"]:
+        return ""
+    names = "、".join(f"{n} {c} 回" for n, c in b["names"][:5])
+    return (f"参考(人の数に入れていない表示): bot を名乗る物 {b['named']} 回" + (f"({names})" if names else "")
+            + (f"、自動の疑い {b['suspect']} 回" if b["suspect"] else "") + "。")
+
+
 def adoc(r):
     lines = [f"= サイトの読まれ方 {r['day']}", f":日付: {r['day']}", f":サイト: {r['site']}", f":日時: {r['when']}", "",
-             f"表示: {r['views']} 回。" + (f"画面の幅がスマートフォンの物: {round(r['phone_share'] * 100)}%。" if r["phone_share"] is not None else ""),
-             "", "== ページ", ""]
+             f"表示(人): {r['views']} 回。" + (f"画面の幅がスマートフォンの物: {round(r['phone_share'] * 100)}%。" if r["phone_share"] is not None else ""),
+             bots_line(r.get("bots")), "以下の数は、人のアクセスだけです。", "", "== ページ", ""]
     for p in r["pages"]:
         how = []
         if p["seconds"] is not None:
@@ -182,10 +222,12 @@ def main():
     ap.add_argument("--site", required=True, help="まとめるサイトのホスト(例: aiai.aiseed.dev)")
     ap.add_argument("--day", help="まとめる日(日本時間)。既定は昨日")
     ap.add_argument("--out", help="この日の記録(adoc と json)を書くフォルダー。無ければ adoc を出すだけ")
+    ap.add_argument("--suspect-screen", default="", metavar="WxH",
+                    help="この画面の大きさで参照元の無い表示を、自動の疑いとして、人の数から分ける(例: 1920x1080)")
     ap.add_argument("--ai", choices=["gemini"], help="Gemini 3.8 Flash(Google Cloud)に読ませて、所見を足す")
     a = ap.parse_args()
     day = datetime.date.fromisoformat(a.day) if a.day else datetime.datetime.now(TOKYO).date() - datetime.timedelta(days=1)
-    r = summary(os.path.expanduser(a.db), a.site, day)
+    r = summary(os.path.expanduser(a.db), a.site, day, a.suspect_screen)
     if a.ai:
         r["ai"] = ai_note(r, a.out or "")
     if not a.out:
