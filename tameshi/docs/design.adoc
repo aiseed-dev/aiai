@@ -520,14 +520,16 @@ Gemini には、手引きの全文と、次の決まりを渡します。手順�
   間違えるたびに 1 秒待たせ、同じ ID で 1 日 50 回間違えたら、その日は 429
 * パスワードの持ち方: `hashlib.pbkdf2_hmac`(sha256、乱数の塩、60 万回)の値だけを持ち、パスワードそのものは
   持ちません。`users` の表(id、hash、salt、created)
-* 承認: VM の `~/aiai-server/tameshi/approved.txt`(持ち主が書く。リポジトリに置かない)に、1 行 1 人で、
-  `google:<メールアドレス>`、`apple:<メールアドレス>`、`local:<ID>` を書きます。サーバーは、Gemini を使う道を受ける
+* 承認: VM の `~/aiai-server/tameshi/approved.txt`(持ち主が書く。リポジトリに置かない。置き場は `TAMESHI_APPROVED`)に、
+  1 行 1 人で、Google と Apple の人は `<メールアドレス>`、ID の人は `local:<ID>` を書きます(`#` から後ろは注釈)。サーバーは、Gemini を使う道を受ける
   たびに読み直します(入れ替え不要)。審査用のテストアカウントは、いつも承認済みです。`TAMESHI_KAIHATSU_EMAILS` は、
   この仕組みに置き替え、無くします(承認した人は、仕事も頼めます)
 * 承認されていない人が Gemini を使う道(`/api/chat`、`/api/kaizen`、`/api/news`、`POST /api/jobs`)を呼ぶと、403
   「承認されるまで、Gemini には頼めません」。`/api/me` は `approved` を返し、画面はそれで押せる物を決めます
-* 登録した人の一覧: `python3 tameshi/server.py users` が、ID か メールアドレス、種類、登録した日、承認の有無を出します。
-  持ち主が VM で動かし、`approved.txt` に足します。登録のときに、持ち主への知らせは送りません(持ち主が一覧を見ます)
+* 登録した人の一覧: `DB=~/aiai-server/tameshi/tameshi.db ~/miniforge3/envs/aiai/bin/python tameshi/server.py users` が、
+  ID か メールアドレス、種類、登録した日、承認の有無、`approved.txt` に足す行を出します(Google と Apple の人も、
+  最初に認証が通った要求のときに記録する)。持ち主が VM で動かし、`approved.txt` に足します。ID は、登録でも入るときでも
+  小文字にそろえます。`/api/me` は `id` も返します。登録のときに、持ち主への知らせは送りません(持ち主が一覧を見ます)
 * 識別情報: 登録で預かるのは ID とパスワードの値だけで、メールアドレスは求めません。Google と Apple では、確かめた
   メールアドレスを承認の名前に使います
 

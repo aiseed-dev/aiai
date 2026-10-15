@@ -15,7 +15,7 @@ aiai のサイトで、サインインした人が、アプリを作る流れの
 ## 守ること
 
 - 誰でも ID とパスワードで登録できますが、Gemini に頼めるのは、持ち主が `~/aiai-server/tameshi/approved.txt` に書いて
-  承認した人だけです。登録した人の一覧は `python3 tameshi/server.py users` で見ます
+  承認した人だけです。登録した人の一覧は、VM で `DB=~/aiai-server/tameshi/tameshi.db ~/miniforge3/envs/aiai/bin/python tameshi/server.py users` で見ます
 - 書いたことは記録しません。記録するのは、使った回数だけです
 - 仕事の結果は、頼んだ本人だけが読めます。7 日で消します(審査用のテストアカウントの物は、見本の結果に
   するため 60 日)
