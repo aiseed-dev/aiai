@@ -40,6 +40,22 @@ class TameshiViewTest(unittest.TestCase):
                   "AIAI_RETURN": "https://aiai.example/app"})
         self.assertEqual((v.PUBLIC, v.API, v.RETURN), ("https://t.example/x", "http://127.0.0.1:8020/tameshi", "https://aiai.example/app/"))
 
+    def test_the_strip_has_the_eight_steps_and_the_stages_are_the_places(self):
+        v = load({})
+        self.assertEqual([label.split()[0] for label, _ in v.STRIP], list("12345678"))
+        self.assertEqual([key for _, key in v.STRIP if key], ["chousa", "kaizen", "kadai", "sekkei", "tesuto"])  # the steps Gemini does
+        self.assertEqual(set(v.PLACES), {key for _, key in v.STRIP if key})
+        self.assertEqual([key for _, key in v.OTHERS], ["chat", "news"])
+        self.assertEqual(set(v.NAMES), set(v.PLACES) | {"chat", "news"})
+        self.assertEqual(set(v.QUOTA), set(v.NAMES))
+        self.assertEqual(v.OWN_STEP, "この段は、自分と、ふだん使っている AI でします")
+
+    def test_a_stage_says_two_sentences_of_what_gemini_does(self):
+        v = load({})
+        self.assertEqual(v.first_sentences("一つ目です。二つ目(.md、.adoc)です。三つ目です。"), "一つ目です。二つ目(.md、.adoc)です。")
+        self.assertEqual(v.first_sentences("一つだけです。"), "一つだけです。")
+        self.assertEqual(v.first_sentences(""), "")
+
     def test_the_place_at_the_end_of_the_address(self):
         v = load({})
         self.assertEqual(v.place_of("/tameshi/chousa?code=abc"), (True, "chousa", "abc"))
