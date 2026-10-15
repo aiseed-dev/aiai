@@ -14,8 +14,10 @@ person who is not signed in to the sign-in screen first (design 5.1). Signing in
 of their own, /app/tameshi/signin and /app/tameshi/touroku (design 5.7); a person who has done either returns
 to the stage that was open, with what was written still in it, and presses the button again.
 The sign-in with Google or Apple comes back to /app/tameshi/<place> with a one-time code in the
-address, which is traded for a session number kept only while the app is open (as in
-soudan_view.py). On the phone only the test account signs in. Settings:
+address, which is traded for a session number. The session number is kept in the browser's or the app's
+own storage (SharedPreferences, key aiai.tameshi.token, as in soudan_view.py), so a reload or reopening stays
+signed in until the server refuses it (401) or the person signs out; either removes it (design 5.6).
+On the phone only the test account signs in. Settings:
 
     AIAI_TAMESHI_URL  the server as people reach it (default AIAI_SITE + /tameshi); sign-in links use it
                       (AIAI_TAMESHI=1 is another thing: it tells site/server.py to mount the server)
@@ -62,6 +64,7 @@ DOCUMENTS = {
                ("docs/kakunin.adoc", "照らし合わせの記録", False)],
     "tesuto": [("docs/test.adoc", "テストの手順", True), ("docs/test-kakunin.adoc", "確かめの記録", False)],
 }
+TOKEN_KEY = "aiai.tameshi.token"  # where the session number is kept
 PICTURE_WIDTH = 720  # a picture is as wide as the box, up to this
 NONE = "-"  # the choice of 読ませない in a dropdown, which keeps no empty key
 
@@ -87,8 +90,8 @@ class TameshiView:
     """The 作る tab. show(controls) puts controls on the tab's screen; body is the column that
     scrolls, so that a place can be brought to the top."""
 
-    def __init__(self, page, show, body):
-        self.page, self.show, self.body = page, show, body
+    def __init__(self, page, prefs, show, body):
+        self.page, self.prefs, self.show, self.body = page, prefs, show, body
         self.http = httpx.AsyncClient(base_url=API, timeout=300)
         self.token = ""
         self.info = None
@@ -119,8 +122,30 @@ class TameshiView:
                 detail = None
             if r.status_code == 401 and self.token:
                 self.token, self.me = "", None
+                await self.forget_token()  # the server refused it: it is of no use any more
             raise ApiError(r.status_code, detail if isinstance(detail, list) else [str(detail or f"うまくいきませんでした({r.status_code})")])
         return r
+
+    async def load_token(self):
+        """The kept session number, when there is none in memory (a reload or reopening starts with none)."""
+        if not self.token:
+            try:
+                self.token = await self.prefs.get(TOKEN_KEY) or ""
+            except Exception:  # storage that cannot be read is no reason to stop: the person signs in again
+                self.token = ""
+
+    async def keep_token(self, token):
+        self.token = token
+        try:
+            await self.prefs.set(TOKEN_KEY, token)
+        except Exception:  # not kept, but the person is signed in for now
+            pass
+
+    async def forget_token(self):
+        try:
+            await self.prefs.remove(TOKEN_KEY)
+        except Exception:
+            pass
 
     async def json(self, method, path, **kw):
         return (await self.call(method, path, **kw)).json()
@@ -138,7 +163,7 @@ class TameshiView:
             self.aim = place
         if code:
             try:
-                self.token = (await self.json("POST", "/api/session", json={"code": code}))["token"]
+                await self.keep_token((await self.json("POST", "/api/session", json={"code": code}))["token"])
             except ApiError:
                 pass
             self.page.navigate("/tameshi" + (f"/{place}" if place else ""))  # takes the used code out of the address
@@ -163,6 +188,7 @@ class TameshiView:
                     await preload(self.show, f.read())  # this tab's own words, so none of them loses a character
                 await self.build()
             self.clear_screens()
+            await self.load_token()
             await self.refresh()
             if self.screen and self.me:  # someone signed in has no use for the two screens: back to the stage
                 self.screen, back = "", "/tameshi/" + self.active
@@ -441,7 +467,7 @@ class TameshiView:
     async def enter_with(self, path, error, body):
         """Signs in, or registers, with what the screen has written; then the person is back on the stage that was open."""
         try:
-            self.token = (await self.json("POST", path, json=body))["token"]
+            await self.keep_token((await self.json("POST", path, json=body))["token"])
         except ApiError as err:
             self.say(error, "、".join(err.messages), True)
             return
@@ -465,6 +491,7 @@ class TameshiView:
         except ApiError:
             pass
         self.token, self.me, self.screen, self.aim = "", None, "", ""
+        await self.forget_token()
         await self.render()  # a signed-out person lands on the sign-in screen
 
     # ---- the answers of Gemini ---------------------------------------------------------

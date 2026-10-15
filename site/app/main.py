@@ -203,7 +203,7 @@ async def main(page: ft.Page):
     await soudan.start()
 
     # The 作る tab: the steps of the flow that Gemini does. The address /tameshi/<place> opens it
-    tameshi = TameshiView(page, show, body)
+    tameshi = TameshiView(page, prefs, show, body)
 
     async def show_tameshi():
         await tameshi.render()
