@@ -8,8 +8,10 @@ One stage is open at a time, under a strip of the eight steps like the top page'
     6 設計書とマニュアルを作る  8 テストの手順を作る  then a dialogue with a guide, and the news
 
 The longer jobs take minutes; their lists are read again every 5 seconds while one is
-running. Signing in and registering are screens of their own, /app/tameshi/signin and
-/app/tameshi/touroku (design 5.7); a person who has done either returns to the stage that was open.
+running. The stages can always be filled in and pressed; a button that asks Gemini for something sends a
+person who is not signed in to the sign-in screen first (design 5.1). Signing in and registering are screens
+of their own, /app/tameshi/signin and /app/tameshi/touroku (design 5.7); a person who has done either returns
+to the stage that was open, with what was written still in it, and presses the button again.
 The sign-in with Google or Apple comes back to /app/tameshi/<place> with a one-time code in the
 address, which is traded for a session number kept only while the app is open (as in
 soudan_view.py). On the phone only the test account signs in. Settings:
@@ -179,7 +181,7 @@ class TameshiView:
             asyncio.create_task(self.list_jobs())
 
     async def refresh(self):
-        """What the server says of this person: the sign-in when not signed in, else the person's line."""
+        """What the server says of this person: the person's line when signed in, nothing when not."""
         self.me = None
         if self.token:
             try:
@@ -187,7 +189,6 @@ class TameshiView:
             except ApiError:
                 pass
         me = self.me
-        self.sign_in_row.visible = me is None
         self.use_box.visible = me is not None
         if me:
             self.who.value = "テストアカウント" if me["provider"] == "test" else (me["email"] or me.get("id") or me["provider"])
@@ -201,7 +202,7 @@ class TameshiView:
 
     def enter(self, place):
         """Makes the stage of this place the open one: its box is shown, its tag in the strip is filled, and what
-        depends on it (the count left, whether its inputs can be pressed) follows."""
+        depends on it (the count left) follows."""
         self.active = place
         for key, box in self.sections.items():
             box.visible = key == place
@@ -210,10 +211,10 @@ class TameshiView:
             chip.bgcolor = ft.Colors.PRIMARY if filled else (ft.Colors.PRIMARY_CONTAINER if key in PLACES else ft.Colors.SURFACE_CONTAINER)
             label.color = ft.Colors.ON_PRIMARY if filled else (ft.Colors.ON_PRIMARY_CONTAINER if key in PLACES else ft.Colors.ON_SURFACE_VARIANT)
             label.weight = ft.FontWeight.BOLD if filled else ft.FontWeight.W_500
-        self.stage_note.value = ""
-        signed, approved = self.me is not None, bool(self.me and self.me.get("approved"))
-        self.stage.disabled = not approved  # before signing in, and until the owner approves, the boxes are seen but not pressed
-        self.approval_note.visible = signed and not approved
+        if self.info.get("error"):  # the server could not be asked: the stage is open, but nothing it does will work
+            self.stage_note.value, self.stage_note.color = "いまは使えません: " + self.info["error"], ft.Colors.ERROR
+        else:
+            self.stage_note.value, self.stage_note.color = "", ft.Colors.ON_SURFACE_VARIANT
         for p, b in self.provider_buttons.items():
             b.action = ft.OpenUrl(f"{PUBLIC}/login/{p}?" + urllib.parse.urlencode({"next": RETURN + "tameshi/" + place}), target=ft.UrlTarget.SELF)
             b.visible = bool(self.page.web and self.info and p in self.info["providers"])
@@ -228,7 +229,7 @@ class TameshiView:
         """Opens the stage the person was sent to (the second step when none), and the first field of it, once signed in."""
         place, self.aim = self.aim or self.active, ""
         await self.open(place)
-        if self.me and not self.stage.disabled:
+        if self.me:
             first = self.first_field.get(place)
             if first is not None:
                 try:
@@ -307,23 +308,11 @@ class TameshiView:
         self.job_notes = {}
         self.chooses = {}     # kind -> the dropdown that reads a finished job of another kind
         self.fields = {}
-        # signed out: one row under the strip, which goes to the two screens
-        if self.info.get("error"):
-            self.sign_in_note = ft.Text("いまは使えません: " + self.info["error"], size=13, color=ft.Colors.ERROR, selectable=True)
-        else:
-            self.sign_in_note = self.note("Gemini に頼むには、サインインします")
-        self.sign_in_row = ft.Row([self.sign_in_note,
-                                   ft.FilledButton("サインイン", on_click=self.to("signin")),
-                                   ft.OutlinedButton("新しく登録する", on_click=self.to("touroku"))],
-                                  wrap=True, spacing=8, run_spacing=6, vertical_alignment=ft.CrossAxisAlignment.CENTER)
         self.build_screens()
         # who and how many are left
         self.who, self.left = self.note(""), self.note("")
-        self.approval_note = self.note("登録できました。持ち主が承認すると、Gemini に頼めるようになります")
-        self.approval_note.visible = False
-        self.use_box = ft.Column([ft.Row([self.who, ft.Text("・"), self.left, ft.Text("・"),
-                                          ft.TextButton("サインアウト", on_click=self.sign_out)], wrap=True, spacing=6),
-                                  self.approval_note], spacing=2, visible=False)
+        self.use_box = ft.Row([self.who, ft.Text("・"), self.left, ft.Text("・"),
+                               ft.TextButton("サインアウト", on_click=self.sign_out)], wrap=True, spacing=6, visible=False)
         # the stages, of which one is open; the strip of the steps over them, like the top page's flow
         self.sections = {"chousa": self.build_chousa(), "kaizen": self.build_kaizen(), "kadai": self.build_kadai(),
                          "sekkei": self.build_sekkei(), "tesuto": self.build_tesuto(), "chat": self.build_dialogue(), "news": self.build_news()}
@@ -331,11 +320,11 @@ class TameshiView:
         for key, box in self.sections.items():
             box.visible = key == self.active
         self.stage = ft.Column(list(self.sections.values()), spacing=0)
-        self.stage_note = self.note("")  # what a tag of a step that is not Gemini's says, and what a person who may not ask is told
+        self.stage_note = self.note("")  # what a tag of a step that is not Gemini's says, and that the server is not there
         self.root = ft.Column([
             ft.Text("作る", size=22, weight=ft.FontWeight.BOLD),
             self.note("アプリを作る流れの 2、3、5、6、8 の段を、Google Cloud の Gemini に頼めます。", small=False),
-            self.build_strip(), self.stage_note, self.sign_in_row, self.use_box, self.stage], spacing=12,
+            self.build_strip(), self.stage_note, self.use_box, self.stage], spacing=12,
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         self.built = True
 
@@ -524,6 +513,14 @@ class TameshiView:
         """Goes to a screen (signin, touroku) or a stage: the route changes, and the app shows what it names."""
         await self.page.push_route("/tameshi/" + route)
 
+    async def signed_in_or_go(self):
+        """True when the person is signed in. If not, goes to the sign-in screen and returns False, so that the
+        button that asked for Gemini does nothing else; after signing in the person presses it again."""
+        if self.me is not None:
+            return True
+        await self.go("signin")
+        return False
+
     def to(self, route):
         """A button that goes to a screen or a stage."""
         return lambda e: asyncio.create_task(self.go(route))
@@ -540,7 +537,7 @@ class TameshiView:
             self.say(error, "、".join(err.messages), True)
             return
         self.clear_screens()
-        await self.go(self.active)  # render shows the stage with the person's line, and the approval note when it is due
+        await self.go(self.active)  # render shows the stage again, with the person's line
 
     async def log_in(self, e):
         await self.enter_with("/api/login", self.signin_error,
@@ -581,6 +578,8 @@ class TameshiView:
         self.page.update()
 
     async def chat_send(self, e):
+        if not await self.signed_in_or_go():
+            return
         text = (self.say_box.value or "").strip()
         if not text:
             return
@@ -593,6 +592,7 @@ class TameshiView:
         except ApiError as err:
             self.talk.pop()
             self.log.controls.pop()
+            self.say_box.value = text  # what was written stays
             self.say(self.chat_note, "、".join(err.messages), True)
             return
         self.talk.append({"role": "model", "text": d["text"]})
@@ -601,6 +601,8 @@ class TameshiView:
         self.say(self.chat_note, "")
 
     async def news_make(self, e):
+        if not await self.signed_in_or_go():
+            return
         self.say(self.news_note, "Gemini が Google 検索で探して、書いています(1 分ほどかかります)")
         self.news_out.visible = False
         try:
@@ -621,6 +623,8 @@ class TameshiView:
     # ---- step 3: how to make the apps there are better ----------------------------------
 
     async def kaizen_begin(self, e):
+        if not await self.signed_in_or_go():
+            return
         fuman = (self.kaizen_fuman.value or "").strip()
         if not fuman:
             self.say(self.kaizen_note, "困った場面と、困ったことを書いてください", True)
@@ -630,12 +634,17 @@ class TameshiView:
         await self.kaizen_ask(text)
 
     async def kaizen_next(self, e):
+        if not await self.signed_in_or_go():
+            return
         text = (self.kaizen_say.value or "").strip()
         if text:
             self.kaizen_say.value = ""
-            await self.kaizen_ask(text)
+            if not await self.kaizen_ask(text):
+                self.kaizen_say.value = text  # what was written stays
+                self.page.update()
 
     async def kaizen_ask(self, text):
+        """Asks Gemini in the dialogue of step 3; returns whether it answered."""
         self.kaizen_talk.append({"role": "user", "text": text})
         self.kaizen_log.controls.append(self.bubble("user", text))
         self.kaizen_start.visible, self.kaizen_talkbox.visible = False, True
@@ -649,11 +658,12 @@ class TameshiView:
             if not self.kaizen_talk:
                 self.kaizen_start.visible, self.kaizen_talkbox.visible = True, False
             self.say(self.kaizen_note, "、".join(err.messages), True)
-            return
+            return False
         self.kaizen_talk.append({"role": "model", "text": d["text"]})
         self.kaizen_log.controls.append(self.bubble("model", d["text"]))
         self.count_left(d)
         self.say(self.kaizen_note, "")
+        return True
 
     def kaizen_reset(self):
         self.kaizen_talk = []
@@ -668,7 +678,9 @@ class TameshiView:
     # ---- the longer jobs ---------------------------------------------------------------
 
     async def submit(self, kind, mihon=False):
-        """Asks for a job: checks what it needs, as the server would, then sends it."""
+        """Asks for a job: checks the sign-in and what it needs, as the server would, then sends it."""
+        if not await self.signed_in_or_go():
+            return
         note = self.job_notes[kind]
         f = self.fields.get(kind, {})
         text = (f["note"].value or "").strip() if "note" in f else ""
