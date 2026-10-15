@@ -158,11 +158,12 @@ def chousa(materials, note, folder, ask, step):
     write(folder, f"chousa/{today()}.adoc", doc)
 
 
-def kadai(research, materials, note, name, folder, ask, step):
+def kadai(research, materials, note, name, folder, ask, step, named=True):
     """references/<name>-analysis.adoc, step 5 of rireki/SKILL.md: the problems of the apps that
     the research (what chousa found) and the materials name, for their users and in how they are
     run, each with the pages it was read from, and what the app to make avoids. When no app is
-    named, apps that do the same are looked for first. The note is the person's own complaint."""
+    named, apps that do the same are looked for first. The note is the person's own complaint. When the name
+    is only the fallback for the file (named is False), the document is titled without it."""
     if not NAME.fullmatch(name):  # the name is part of the path written below
         raise ValueError("the name of the app is not usable")
     head = ((f"<調べた結果>\n{research}\n</調べた結果>\n\n" if research else "")
@@ -197,7 +198,8 @@ def kadai(research, materials, note, name, folder, ask, step):
                        "adoc の「== 作るアプリで防ぐこと」の節として書いてください。番号付きの一覧(. で始まる行)にします。"
                        "それぞれに、どのアプリのどの問題点か、本人の不満があれば、そのどれに当たるかも書きます。\n\n"
                        + "\n".join(parts)}], system=RULES, model=TEXT_MODEL, timeout=600)
-    doc = (f"= {name} の今あるアプリの課題\n:toc:\n:toc-title: 目次\n\n{today()} に、Gemini が Google 検索で公式サイトなどを読んでまとめました。\n\n"
+    title = f"{name} の今あるアプリの課題" if named else "今あるアプリの課題"
+    doc = (f"= {title}\n:toc:\n:toc-title: 目次\n\n{today()} に、Gemini が Google 検索で公式サイトなどを読んでまとめました。\n\n"
            + "\n".join(parts) + "\n" + clean(summary) + "\n== 読んだ資料\n\n" + source_list(sources) + "\n")
     write(folder, f"references/{name}-analysis.adoc", doc)
 

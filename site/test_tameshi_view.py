@@ -61,6 +61,13 @@ class TameshiViewTest(unittest.TestCase):
         self.assertEqual(v.place_of("/?code=abc"), (False, "", ""))
         self.assertEqual(v.place_of(None), (False, "", ""))
 
+    def test_the_time_of_a_job_is_month_day_and_time(self):
+        v = load({})
+        self.assertEqual(v.when("2026-10-15T16:43+09:00"), "10 月 15 日 16:43")
+        self.assertEqual(v.when("2026-01-05T09:05+09:00"), "1 月 5 日 09:05")
+        self.assertEqual(v.when("nani"), "nani")
+        self.assertEqual(v.when(None), "")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

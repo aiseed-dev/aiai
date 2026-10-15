@@ -86,6 +86,15 @@ def place_of(route):
     return True, place, dict(urllib.parse.parse_qsl(parts.query)).get("code", "")
 
 
+def when(created):
+    """The time of a job as people read it: 2026-10-15T16:43+09:00 becomes 10 月 15 日 16:43 (no year, as the
+    server already gives its own time zone). Anything else is returned as it is."""
+    m = re.match(r"\d{4}-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})", created or "")
+    if not m:
+        return created or ""
+    return f"{int(m[1])} 月 {int(m[2])} 日 {m[3]}:{m[4]}"
+
+
 class TameshiView:
     """The 作る tab. show(controls) puts controls on the tab's screen; body is the column that
     scrolls, so that a place can be brought to the top."""
@@ -105,6 +114,7 @@ class TameshiView:
         self.picked = {k: [] for k in JOBS}  # the materials picked for each job: [(name, bytes)]
         self.cards = {}        # job id -> (status, card), so a finished job is built once
         self.polling = False
+        self.to_top = False    # the next arrival scrolls to the top (see goto)
         self.lock = asyncio.Lock()  # a sign-in coming back shows the tab twice at once
 
     # ---- the server ----------------------------------------------------------------
@@ -236,20 +246,32 @@ class TameshiView:
             self.stage_note.value, self.stage_note.color = "いまは使えません: " + self.info["error"], ft.Colors.ERROR
         else:
             self.stage_note.value, self.stage_note.color = "", ft.Colors.ON_SURFACE_VARIANT
+        self.stage_note.visible = bool(self.stage_note.value)  # empty, it would leave a gap under the title
         for p, b in self.provider_buttons.items():
             b.action = ft.OpenUrl(f"{PUBLIC}/login/{p}?" + urllib.parse.urlencode({"next": RETURN + "tameshi/" + place}), target=ft.UrlTarget.SELF)
             b.visible = bool(self.page.web and self.info and p in self.info["providers"])
         self.update_left()
 
     async def open(self, place):
-        """What arriving at /app/tameshi/<place> and the buttons that carry a result on do: the stage opens."""
+        """What arriving at /app/tameshi/<place> and the buttons that carry a result on do: the stage opens, and the
+        notices left under its buttons by an earlier visit are cleared (a refresh of the job lists does not come here)."""
         self.enter(place)
+        if place in self.job_notes:
+            self.job_notes[place].value = ""
+        if place == "kaizen":
+            self.kaizen_note.value = ""
         self.page.update()
 
     async def arrive(self):
         """Opens the stage the person was sent to (the second step when none), and the first field of it, once signed in."""
         place, self.aim = self.aim or self.active, ""
         await self.open(place)
+        if self.to_top:  # sent here by a button that carries a result on: the stage is read from its top
+            self.to_top = False
+            try:
+                await self.body.scroll_to(offset=0, duration=0)
+            except Exception:  # a screen that cannot scroll is no reason to stop
+                pass
         if self.me:
             first = self.first_field.get(place)
             if first is not None:
@@ -259,15 +281,16 @@ class TameshiView:
                     pass
 
     async def goto(self, place):
-        """The stage of this place opens, and its first field can be typed in: what the buttons that carry a result on do."""
-        await self.open(place)
-        try:
-            await self.body.scroll_to(offset=0, duration=0)
-            first = self.first_field.get(place)
-            if first is not None:
-                await first.focus()
-        except Exception:  # a screen that cannot scroll or focus is no reason to stop
-            pass
+        """The stage of this place opens, and its first field can be typed in: what the buttons that carry a result on do.
+        The address follows (/tameshi/<place>), so a reload returns to this stage. The route change renders the tab and
+        arrive opens the stage, once; what the buttons set in the choosers before is kept. When the address already
+        names this place no route change comes, so the stage is opened here."""
+        self.to_top = True
+        if place_of(self.page.route)[1] == place:
+            self.aim = place
+            await self.arrive()
+        else:
+            await self.page.push_route("/tameshi/" + place)
 
     # ---- small parts ------------------------------------------------------------------
 
@@ -572,7 +595,8 @@ class TameshiView:
         text = (f["note"].value or "").strip() if "note" in f else ""
         choose = self.chooses.get(kind)
         chosen = "" if choose is None or choose.value == NONE else choose.value
-        given = bool(self.picked[kind]) or chosen or text
+        # the design job is made from the SKILL.md and the materials; the problems chosen only add to them
+        given = bool(self.picked[kind]) if kind == "sekkei" else bool(self.picked[kind]) or chosen or text
         if not given:
             self.say(note, ENOUGH[kind], True)
             return
@@ -641,14 +665,14 @@ class TameshiView:
             box = self.chooses[place]
             had = box.value
             box.options = [ft.DropdownOption(key=NONE, text="読ませない")] + [
-                ft.DropdownOption(key=j["id"], text=f"{JOBS[kind]} ・ {j['created']}") for j in jobs if j["kind"] == kind and j["status"] == "done"]
+                ft.DropdownOption(key=j["id"], text=f"{JOBS[kind]} ・ {when(j['created'])}") for j in jobs if j["kind"] == kind and j["status"] == "done"]
             box.value = had if any(o.key == had for o in box.options) else NONE
             self.choose_rows[place].visible = len(box.options) > 1  # shown only when there is a finished job to read
 
     async def card(self, j, d):
         """What one job shows: its line; while it goes, its steps; if it stopped, the notice; when done, its documents
         (the main one open), then the buttons (design 5.8)."""
-        parts = [ft.Text(f"{JOBS[j['kind']]} ・ {j['created']} ・ {STATUS[j['status']]}", weight=ft.FontWeight.W_600)]
+        parts = [ft.Text(f"{JOBS[j['kind']]} ・ {when(j['created'])} ・ {STATUS[j['status']]}", weight=ft.FontWeight.W_600)]
         if j["status"] in ("waiting", "running"):
             parts += [ft.Text(s["name"] + (f"({s['seconds']} 秒)" if "seconds" in s else ""), size=13) for s in d["steps"]]
         if d["error"]:
@@ -727,13 +751,12 @@ class TameshiView:
         return out
 
     async def documents(self, jid, kind, files):
-        """The documents of a done job: the main one open under its title (the pictures under it), the others as tiles
-        that are read when they are opened."""
+        """The documents of a done job: the main one open (the pictures under it) with no title of its own, as the
+        document begins with its heading; the others as tiles titled by DOCUMENTS, read when they are opened."""
         out, pictures = [], await self.pictures(jid, files)
         for path, title, opened in self.arrange(kind, files):
             if opened:
                 text, bad = await self.fetch(jid, path)
-                out.append(ft.Text(title, size=15, weight=ft.FontWeight.BOLD))
                 out.append(ft.Text(bad, size=13, color=ft.Colors.ERROR) if bad else self.reading(path, text))
                 if pictures:  # the pictures belong to the manual, the open document of the design job
                     out += pictures

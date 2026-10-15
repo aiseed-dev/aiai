@@ -207,14 +207,19 @@ def materials_of(uploads):
     return "\n\n".join(parts)
 
 
-def skill_name(materials):
-    """The name: in the front matter of a SKILL.md among the materials, when it can name a
-    file; app when there is none."""
+def found_name(materials):
+    """The name in the front matter of a SKILL.md among the materials, when it can name a
+    file; empty when there is none."""
     for m in SKILL_FRONT.finditer(materials):
         n = SKILL_NAME.search(m[1])
         if n and kaihatsu.NAME.fullmatch(n[1].lower()):
             return n[1].lower()
-    return "app"
+    return ""
+
+
+def skill_name(materials):
+    """The name for a file: the one found in the materials, app when there is none."""
+    return found_name(materials) or "app"
 
 
 def hash_password(password, salt):
@@ -500,12 +505,13 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         if kind == "kadai" and not uploads and not research:
             raise HTTPException(422, "読ませる結果を選ぶか、資料を選んでください")
         if kind == "sekkei" and not uploads:
-            raise HTTPException(422, "SKILL.md と参考の資料を選ぶか、見本で試してください")
+            raise HTTPException(422, "SKILL.md と参考の資料を選んでください")
         if kind == "tesuto" and not uploads and not designs:
             raise HTTPException(422, "読ませる設計書とマニュアルを選ぶか、資料を選んでください")
         uploads += [(f"references/{os.path.basename(path)}", data) for path, data in kept] + designs
         # what the person asks the AI again and again, or the search chosen, needs no materials
         materials = materials_of(uploads) if uploads else ""
+        named = bool(name) or bool(found_name(materials))  # without a name, the document is titled without one
         if kind == "kadai" and not name:
             name = skill_name(materials)
         day = today()
@@ -530,7 +536,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
                 if kind == "sekkei":
                     kaihatsu.sekkei(materials, note[:2000], folder, ask, paint, step)
                 elif kind == "kadai":
-                    kaihatsu.kadai(found, materials, note[:2000], name, folder, ask, step)
+                    kaihatsu.kadai(found, materials, note[:2000], name, folder, ask, step, named)
                 elif kind == "tesuto":
                     kaihatsu.tesuto(materials, note[:2000], folder, ask, step)
                 else:

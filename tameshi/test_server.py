@@ -368,14 +368,31 @@ class ServerTest(unittest.TestCase):
         self.assertIn("== 作るアプリで防ぐこと", sent)
         self.assertIn("取り消しを、アプリからできるようにする。", sent)
 
+    def test_the_problems_document_is_titled_without_the_fallback_name(self):
+        h = self.google("u10b")
+        found = self.search_of(h)
+        # no name given and no SKILL.md among the materials: the file is named app, the document is not
+        r = self.c.post("/api/jobs", data={"kind": "kadai", "research": found}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        j = self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()
+        self.assertEqual(j["files"], ["references/app-analysis.adoc"])
+        text = self.c.get(f"/api/jobs/{r.json()['id']}/file", params={"path": j["files"][0]}, headers=h).text
+        self.assertTrue(text.startswith("= 今あるアプリの課題\n"), text)
+        # a name given, or found in a SKILL.md, titles it
+        skill = [("files", ("SKILL.md", b"---\nname: toriooki\n---\n# x", "text/markdown"))]
+        r = self.c.post("/api/jobs", data={"kind": "kadai", "research": found}, files=skill, headers=h)
+        j = self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()
+        text = self.c.get(f"/api/jobs/{r.json()['id']}/file", params={"path": j["files"][0]}, headers=h).text
+        self.assertTrue(text.startswith("= toriooki の今あるアプリの課題\n"), text)
+
     def test_the_design_job_needs_materials_even_with_the_problems(self):
         h = self.google("u16")
         gathered = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h).json()["id"]
         # the problems alone are not enough: the SKILL.md is what says what to make
         r = self.c.post("/api/jobs", data={"kind": "sekkei", "kadai": gathered}, headers=h)
-        self.assertRefused(r, 422, "SKILL.md と参考の資料を選ぶか、見本で試してください")
+        self.assertRefused(r, 422, "SKILL.md と参考の資料を選んでください")
         r = self.c.post("/api/jobs", data={"kind": "sekkei"}, headers=h)
-        self.assertRefused(r, 422, "SKILL.md と参考の資料を選ぶか、見本で試してください")
+        self.assertRefused(r, 422, "SKILL.md と参考の資料を選んでください")
         # another person's problems are no problems at all
         skill = [("files", ("SKILL.md", "# 架空のアプリ".encode(), "text/markdown"))]
         self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "kadai": gathered}, files=skill,
