@@ -170,7 +170,9 @@ aiai は「AI 時代の AI 活用法」です。個人が、自分の AI と一�
 - ハッカソン(Zenn の第 5 回 Agentic AI Hackathon、https://zenn.dev/hackathons/google-cloud-japan-ai-hackathon-vol5)に
   aiai を出す。締め切りは 2026-10-15 23:59(登録と提出)。出す物は、GitHub のリポジトリ(main を審査)、動くサイトの
   URL(審査用のテストアカウントを付け、ソーシャルログインだけにしない)、説明文、構成図、3 分ほどのデモ動画(YouTube)。
-  締め切りの後は、main、記事、動画を直さず、別の枝で進める(2026-10-13 に確かめた)
+  締め切りの後は、提出した写し(GitHub の aiseed-dev/aiai-gc、審査用のサイト https://ai-ai.aiseed.dev/)、記事、動画を直さない。
+  aiseed-dev/aiai の main は、締め切りの後も進めてよい(2026-10-16 に発注者が決めた)。手元の `git push` の送り先は aiai だけで、
+  aiai-gc は送り先に入れない
 
 - 履歴書の様式を、公正採用選考のサイトの `03_a4.xls`(公共データ利用規約)から作り直す。
   ハローワークのサイトの xls(いまの様式の元)と、中の文言が同じことは確かめてある。xlsx にするには
