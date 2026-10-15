@@ -172,7 +172,10 @@ aiai は「AI 時代の AI 活用法」です。個人が、自分の AI と一�
   URL(審査用のテストアカウントを付け、ソーシャルログインだけにしない)、説明文、構成図、3 分ほどのデモ動画(YouTube)。
   締め切りの後は、提出した写し(GitHub の aiseed-dev/aiai-gc、審査用のサイト https://ai-ai.aiseed.dev/)、記事、動画を直さない。
   aiseed-dev/aiai の main は、締め切りの後も進めてよい(2026-10-16 に発注者が決めた)。手元の `git push` の送り先は aiai だけで、
-  aiai-gc は送り先に入れない
+  aiai-gc は送り先に入れない。審査用のサイトは、本番と何も共有しない(2026-10-16 に分けた): コードは `~/aiai-shinsa`、Python は conda の環境
+  `aiai-shinsa`、サインインと仕事は `~/aiai-server/shinsa/tameshi/`、読まれ方の受け口は `aiai-shinsa-kaiseki`(127.0.0.1:8421、
+  `~/aiai-server/shinsa/kaiseki/`)、Caddy は `/etc/caddy/shinsa.caddy` と `/var/log/caddy/shinsa-access.log`。本番に入れるときは、
+  `~/aiai` と `aiai-site` だけを入れ替え、審査用には何も入れない
 
 - 履歴書の様式を、公正採用選考のサイトの `03_a4.xls`(公共データ利用規約)から作り直す。
   ハローワークのサイトの xls(いまの様式の元)と、中の文言が同じことは確かめてある。xlsx にするには
