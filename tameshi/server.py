@@ -34,21 +34,31 @@ the repository:
     TAMESHI_TESUTO_PER_DAY  jobs that make a test procedure one person may start a day (default 2)
     TAMESHI_JOBS_PER_DAY    jobs everyone together may start a day (default 10; the four kinds count
                             together, from the table of jobs, so a stopped job counts too)
-
-A job that stops is not counted against the person: the count of its day is given back.
-    TAMESHI_KAIHATSU_EMAILS sign-in emails that may start jobs (space separated); empty
-                            means everyone who signs in. The test account always may
+    TAMESHI_REGISTER_PER_DAY  people who may register with an ID and a password a day, in all (default 30)
+    TAMESHI_APPROVED        the file of the people the owner approves, one a line (default approved.txt next
+                            to DB): google:<email>, apple:<email> or local:<ID>. It is read again whenever
+                            a way to Gemini is called, so a line added counts at once. The test account is
+                            always approved
     TAMESHI_JOBS            the folder of the jobs' files (default jobs/ next to DB);
                             a job and its files are deleted after 7 days
     TAMESHI_TEST_KEEP_DAYS  the test account's jobs are kept this long instead (default 60), as the
                             sample results the reviewers look at
+
+A job that stops is not counted against the person: the count of its day is given back.
+
+Anyone may register with an ID and a password (POST /api/register; only a salted PBKDF2 value of the
+password is kept), or sign in with Apple or Google, but only the people in the approved file may ask
+Gemini (chat, kaizen, news, jobs); the others get a 403. `python3 tameshi/server.py users` lists who
+signed in or registered, and whether each is approved, for the owner to add to the file.
 
 The test account is shared by the reviewers, so the limits of one person do not apply to it: only
 the limits of everyone together do (TAMESHI_JOBS_PER_DAY and TAMESHI_DAY_LIMIT), and what it is shown
 as left is what is left of them.
     TIMEZONE                default Asia/Tokyo
 """
+import asyncio
 import datetime
+import hashlib
 import importlib.util
 import io
 import json
@@ -56,6 +66,7 @@ import os
 import re
 import secrets
 import shutil
+import sqlite3
 import sys
 import threading
 import time
@@ -84,13 +95,20 @@ MESSAGE_CHARS = 4000     # one message in the dialogue
 RESEARCH_CHARS = 60000   # what a research job found, read into the dialogue on improving
 DIALOGUE_CHARS = 30000   # the whole dialogue sent at once
 TASTES_CHARS = 4000      # the person's tastes for the news
-FAILED_LOGINS = 50       # wrong test-account passwords accepted a day, before the test login closes
+FAILED_LOGINS = 50       # wrong passwords accepted a day for one ID, before that ID is shut for the day
+PBKDF2_ROUNDS = 600_000  # how many times a password is hashed (SHA-256) before it is kept
+ID_FORM = re.compile(r"[a-z0-9_-]{3,32}")
+PASSWORD_CHARS = (8, 72)
+NOT_APPROVED = "承認されるまで、Gemini には頼めません"
 
 SCHEMA = ms.SIGN_IN_SCHEMA + """
         CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, provider TEXT, sub TEXT, kind TEXT,
             status TEXT, error TEXT, steps TEXT, created REAL, finished REAL);
         CREATE TABLE IF NOT EXISTS uses (day TEXT, provider TEXT, sub TEXT, kind TEXT, n INTEGER,
             PRIMARY KEY (day, provider, sub, kind));
+        CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, hash TEXT, salt TEXT, created REAL);
+        CREATE TABLE IF NOT EXISTS people (provider TEXT, sub TEXT, email TEXT, created REAL,
+            PRIMARY KEY (provider, sub));
 """
 
 CHAT_RULES = """あなたは、aiai のサイト(https://aiai.aiseed.dev/)の上で、下の手引きを読んで、この人と対話します。
@@ -199,6 +217,20 @@ def skill_name(materials):
     return "app"
 
 
+def hash_password(password, salt):
+    """The value that is kept of a password: SHA-256 PBKDF2 with the salt, as hex."""
+    return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), bytes.fromhex(salt), PBKDF2_ROUNDS).hex()
+
+
+def approved_names(path):
+    """The lines of the approved file, lowercased, with # comments and blanks left out; none when it is not there."""
+    try:
+        text = read(path)
+    except OSError:
+        return set()
+    return {x for x in (line.split("#")[0].strip().lower() for line in text.splitlines()) if x}
+
+
 def create_app(env=None, providers=None, model=None, draw=None, run=None):
     """model(contents, system=..., search=..., **more) -> (text, sources), and
     draw(prompt) -> PNG bytes: Gemini unless given. run(fn) starts a job; a
@@ -217,7 +249,9 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
     day_limit = int(env.get("TAMESHI_DAY_LIMIT", "600"))
     jobs_per_day = int(env.get("TAMESHI_JOBS_PER_DAY", "10"))
     test_keep_days = int(env.get("TAMESHI_TEST_KEEP_DAYS", "60"))
-    makers = {e.lower() for e in env.get("TAMESHI_KAIHATSU_EMAILS", "").split()}
+    register_per_day = int(env.get("TAMESHI_REGISTER_PER_DAY", "30"))
+    db_path = os.path.abspath(env.get("DB") or os.path.join(HERE, "tameshi.db"))
+    approved_path = env.get("TAMESHI_APPROVED") or os.path.join(os.path.dirname(db_path), "approved.txt")
     jobs_dir = env.get("TAMESHI_JOBS") or os.path.join(os.path.dirname(os.path.abspath(env.get("DB") or os.path.join(HERE, "tameshi.db"))), "jobs")
     paint = draw or gemini.image
     slots = threading.BoundedSemaphore(2)  # jobs that call Gemini at the same time
@@ -248,7 +282,31 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
 
     app = FastAPI(title="aiai を試す", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.db = db
-    person = ms.sign_in(app, db, provs, base, returns, purge)
+    signed_in = ms.sign_in(app, db, provs, base, returns, purge)
+
+    def person(authorization):
+        """The session of the person who sends the token; one who signed in with Google or Apple is also put in the
+        table of people, so that the owner's list shows them."""
+        s = signed_in(authorization)
+        if s["provider"] in ("google", "apple") and not db.one("SELECT 1 FROM people WHERE provider = ? AND sub = ?",
+                                                                (s["provider"], s["sub"])):
+            db.run("INSERT OR IGNORE INTO people VALUES (?, ?, ?, ?)", (s["provider"], s["sub"], s["email"] or "", time.time()))
+        return s
+
+    def is_approved(s):
+        """Whether the owner has approved this person to ask Gemini; the test account always is. The file is read
+        each time, so a line the owner adds counts at once."""
+        if s["provider"] == "test":
+            return True
+        names = approved_names(approved_path)
+        if s["provider"] == "local":
+            return f"local:{s['sub'].lower()}" in names
+        email = (s["email"] or "").lower()
+        return bool(email) and f"{s['provider']}:{email}" in names
+
+    def require_approved(s):
+        if not is_approved(s):
+            raise HTTPException(403, NOT_APPROVED)
 
     def used(provider, sub, kind):
         row = db.one("SELECT n FROM uses WHERE day = ? AND provider = ? AND sub = ? AND kind = ?",
@@ -293,33 +351,68 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         return {"guides": [{"name": n, "title": t} for n, (t, _) in sorted(all_guides.items())],
                 "per_day": per_day, "providers": sorted(provs), "test_login": bool(test_id and test_password)}
 
-    @app.post("/api/test-login")
-    async def test_login(request: Request):
-        b = await body_of(request)
-        if not (test_id and test_password):
-            raise HTTPException(404, "テストアカウントはありません")
-        failed = db.one("SELECT n FROM uses WHERE day = ? AND provider = '-' AND sub = '-' AND kind = 'failed'",
-                        (today(),))
-        if failed and failed["n"] >= FAILED_LOGINS:
-            raise HTTPException(429, "今日は、テストアカウントでは入れません")
-        if not (secrets.compare_digest(str(b.get("id", "")), test_id)
-                and secrets.compare_digest(str(b.get("password", "")), test_password)):
-            db.run("INSERT INTO uses VALUES (?, '-', '-', 'failed', 1) ON CONFLICT (day, provider, sub, kind) "
-                   "DO UPDATE SET n = n + 1", (today(),))
-            time.sleep(1)
-            raise HTTPException(401, "ID かパスワードが違います")
+    def new_session(provider, sub):
         token = secrets.token_urlsafe(32)
         db.run("INSERT INTO sessions VALUES (?, ?, ?, ?, ?)",
-               (ms.digest(token), "test", test_id, "", time.time() + ms.SESSION_DAYS * 86400))
+               (ms.digest(token), provider, sub, "", time.time() + ms.SESSION_DAYS * 86400))
         return {"token": token}
 
-    def may_make(s):
-        return s["provider"] == "test" or not makers or (s["email"] or "").lower() in makers
+    def day_started():
+        return datetime.datetime.combine(datetime.date.fromisoformat(today()), datetime.time(), tz).timestamp()
+
+    @app.post("/api/login")
+    async def login(request: Request):
+        """The test account first, then a person who registered. A wrong ID or password waits a second and is
+        counted for that ID; at FAILED_LOGINS wrong ones in a day the ID is shut until the next day."""
+        b = await body_of(request)
+        uid, password = str(b.get("id", "")).strip().lower()[:64], str(b.get("password", ""))[:200]
+        failed = db.one("SELECT n FROM uses WHERE day = ? AND provider = '-' AND sub = ? AND kind = 'failed'", (today(), uid))
+        if failed and failed["n"] >= FAILED_LOGINS:
+            raise HTTPException(429, "今日は、この ID では入れません")
+        if test_id and test_password and secrets.compare_digest(uid, test_id.lower()):
+            ok = secrets.compare_digest(password, test_password)
+            provider, sub = "test", test_id
+        else:
+            row = db.one("SELECT * FROM users WHERE id = ?", (uid,))
+            # an ID that is not there costs the same time, so that the time does not tell which IDs exist
+            salt = row["salt"] if row else "00" * 16
+            kept = await asyncio.to_thread(hash_password, password, salt)
+            ok = bool(row) and secrets.compare_digest(kept, row["hash"])
+            provider, sub = "local", uid
+        if not ok:
+            db.run("INSERT INTO uses VALUES (?, '-', ?, 'failed', 1) ON CONFLICT (day, provider, sub, kind) "
+                   "DO UPDATE SET n = n + 1", (today(), uid))
+            await asyncio.sleep(1)
+            raise HTTPException(401, "ID かパスワードが違います")
+        return new_session(provider, sub)
+
+    @app.post("/api/register")
+    async def register(request: Request):
+        """Anyone may register with an ID and a password. Only a salted PBKDF2 value of the password is kept."""
+        b = await body_of(request)
+        uid, password = str(b.get("id", "")).strip().lower(), str(b.get("password", ""))
+        if not ID_FORM.fullmatch(uid):
+            raise HTTPException(422, "ID は、3〜32 字の、小文字の英数字と - _ で書いてください")
+        if not PASSWORD_CHARS[0] <= len(password) <= PASSWORD_CHARS[1]:
+            raise HTTPException(422, f"パスワードは、{PASSWORD_CHARS[0]} 字以上、{PASSWORD_CHARS[1]} 字までで書いてください")
+        if uid == test_id.lower() or db.one("SELECT 1 FROM users WHERE id = ?", (uid,)):
+            raise HTTPException(409, "この ID は使われています")
+        if db.one("SELECT COUNT(*) FROM users WHERE created >= ?", (day_started(),))[0] >= register_per_day:
+            raise HTTPException(429, "今日の登録は終わりました。明日またどうぞ")
+        salt = os.urandom(16).hex()
+        kept = await asyncio.to_thread(hash_password, password, salt)
+        try:
+            db.run("INSERT INTO users VALUES (?, ?, ?, ?)", (uid, kept, salt, time.time()))
+        except sqlite3.IntegrityError:  # two at once with the same ID
+            raise HTTPException(409, "この ID は使われています")
+        return new_session("local", uid)
 
     @app.get("/api/me")
     def me(authorization: str = Header("")):
         s = person(authorization)
-        return {"provider": s["provider"], "email": s["email"], "kaihatsu": may_make(s),
+        approved = is_approved(s)
+        return {"provider": s["provider"], "email": s["email"], "id": s["sub"] if s["provider"] in ("local", "test") else "",
+                "approved": approved, "kaihatsu": approved,  # kaihatsu is for the screens made before approval
                 "left": {k: left_of(s, k) for k in per_day}}
 
     # ---- the longer jobs: design and manual, and the present state of related apps ----
@@ -382,8 +475,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         s = person(authorization)
         if kind not in JOB_KINDS:
             raise HTTPException(422, "何をするかを選んでください")
-        if not may_make(s):
-            raise HTTPException(403, "この機能は、使える人を決めています")
+        require_approved(s)
         # the search whose result kadai reads, and the problems whose references sekkei reads
         found = research_of(research, s) if kind == "kadai" and research else ""
         kept = problems_of(kadai, s) if kind == "sekkei" and kadai else []
@@ -520,6 +612,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
     @app.post("/api/chat")
     async def chat(request: Request, authorization: str = Header("")):
         s = person(authorization)
+        require_approved(s)
         b = await body_of(request)
         name = str(b.get("guide", ""))
         if name not in all_guides:
@@ -531,6 +624,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         """Step 3 of rireki/SKILL.md: how the apps there are could be better, as a
         dialogue, reading what a research job of this person's found when one is chosen."""
         s = person(authorization)
+        require_approved(s)
         b = await body_of(request)
         contents = dialogue_of(b)
         research = ""
@@ -543,6 +637,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
     @app.post("/api/news")
     async def news(request: Request, authorization: str = Header("")):
         s = person(authorization)
+        require_approved(s)
         b = await body_of(request)
         tastes = str(b.get("tastes", "")).strip()
         if not tastes:
@@ -562,3 +657,29 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         return {"adoc": text, "sources": [{"title": t, "url": u} for t, u in sources], "left": left}
 
     return app
+
+
+def users_report(db_path, approved_path, tz=zoneinfo.ZoneInfo("Asia/Tokyo")):
+    """The lines of the owner's list: who registered with an ID, or signed in with Google or Apple, when, and whether
+    each is approved, with the line to put in the approved file. Oldest first."""
+    store = ms.Store(db_path, SCHEMA)
+    names = approved_names(approved_path)
+    rows = [(r["created"], r["id"], "local", f"local:{r['id']}") for r in store.all("SELECT id, created FROM users")]
+    for r in store.all("SELECT provider, sub, email, created FROM people"):
+        rows.append((r["created"], r["email"] or f"(メールアドレスなし: {r['sub']})", r["provider"],
+                     f"{r['provider']}:{r['email']}" if r["email"] else ""))
+    out = ["名前\t種類\t登録した日\t承認\tapproved.txt に足す行"]
+    for created, name, kind, line in sorted(rows):
+        day = datetime.datetime.fromtimestamp(created, tz).date().isoformat()
+        out.append(f"{name}\t{kind}\t{day}\t{'承認済み' if line.lower() in names else '未承認'}\t{line}")
+    return out
+
+
+if __name__ == "__main__":
+    if sys.argv[1:2] == ["users"]:
+        # the same files the server uses: DB and TAMESHI_APPROVED, or the places of the aiai site on its server
+        path = os.environ.get("DB") or os.environ.get("AIAI_TAMESHI_DB") or os.path.join(os.path.expanduser("~"), "aiai-server", "tameshi", "tameshi.db")
+        approved = os.environ.get("TAMESHI_APPROVED") or os.path.join(os.path.dirname(os.path.abspath(path)), "approved.txt")
+        print("\n".join(users_report(path, approved)))
+    else:
+        sys.exit("python3 tameshi/server.py users: 登録した人と、承認の有無の一覧を出します")

@@ -166,11 +166,10 @@ class TameshiView:
         self.sign_in_box.visible = me is None
         self.use_box.visible = me is not None
         if me:
-            self.who.value = "テストアカウント" if me["provider"] == "test" else (me["email"] or me["provider"])
+            self.who.value = "テストアカウント" if me["provider"] == "test" else (me["email"] or me.get("id") or me["provider"])
         elif self.info.get("error"):
             self.say(self.sign_in_note, "いまは使えません: " + self.info["error"], True)
         self.enter(self.active)
-        self.test_box.visible = bool(self.info and self.info["test_login"])
         self.page.update()
 
     def update_left(self):
@@ -190,12 +189,10 @@ class TameshiView:
             label.color = ft.Colors.ON_PRIMARY if filled else (ft.Colors.ON_PRIMARY_CONTAINER if key in PLACES else ft.Colors.ON_SURFACE_VARIANT)
             label.weight = ft.FontWeight.BOLD if filled else ft.FontWeight.W_500
         self.stage_note.value = ""
-        signed, may = self.me is not None, bool(self.me and self.me["kaihatsu"])
-        self.stage.disabled = not signed or (place in JOBS and not may)
-        if signed and place in JOBS and not may:
-            self.stage_note.value = "この機能は、使える人を決めています"
-            self.stage_note.color = ft.Colors.ERROR
-        elif not self.info.get("error"):
+        signed, approved = self.me is not None, bool(self.me and self.me.get("approved"))
+        self.stage.disabled = not approved  # before signing in, and until the owner approves, the boxes are seen but not pressed
+        self.approval_note.visible = signed and not approved
+        if not self.info.get("error"):
             self.sign_in_note.value = f"サインインすると、「{NAMES[place]}」に進みます"
             self.sign_in_note.color = None
         for p, b in self.provider_buttons.items():
@@ -294,17 +291,23 @@ class TameshiView:
         # sign-in
         self.sign_in_note = self.note("")
         self.provider_buttons = {p: ft.FilledButton(t, width=280, visible=False) for p, t in SIGN_IN.items()}
-        self.test_id = ft.TextField(hint_text="ID", width=280)
-        self.test_password = ft.TextField(hint_text="パスワード", password=True, can_reveal_password=True, width=280,
-                                          on_submit=self.test_login)
-        self.test_box = ft.Column([self.note("審査用のテストアカウント"), self.test_id, self.test_password,
-                                   ft.OutlinedButton("入る", on_click=self.test_login)], spacing=8, visible=False)
+        # one pair of fields for the test account and for the people who registered
+        self.test_id = ft.TextField(hint_text="ID(小文字の英数字と - _、3〜32 字)", width=280)
+        self.test_password = ft.TextField(hint_text="パスワード(8 字以上)", password=True, can_reveal_password=True, width=280,
+                                          on_submit=self.log_in)
+        self.test_box = ft.Column([self.note("ID とパスワードで入るか、新しく登録します(審査用のテストアカウントも、ここから入ります)"),
+                                   self.test_id, self.test_password,
+                                   ft.Row([ft.OutlinedButton("入る", on_click=self.log_in),
+                                           ft.OutlinedButton("新しく登録する", on_click=self.register)], spacing=8, wrap=True)], spacing=8)
         self.sign_in_box = self.section("sign-in", "サインイン", [
             ft.Column(list(self.provider_buttons.values()), spacing=8), self.test_box, self.sign_in_note])
         # who and how many are left
         self.who, self.left = self.note(""), self.note("")
-        self.use_box = ft.Container(ft.Row([self.who, ft.Text("・"), self.left, ft.Text("・"),
-                                            ft.TextButton("サインアウト", on_click=self.sign_out)], wrap=True, spacing=6), visible=False)
+        self.approval_note = self.note("登録できました。持ち主が承認すると、Gemini に頼めるようになります")
+        self.approval_note.visible = False
+        self.use_box = ft.Column([ft.Row([self.who, ft.Text("・"), self.left, ft.Text("・"),
+                                          ft.TextButton("サインアウト", on_click=self.sign_out)], wrap=True, spacing=6),
+                                  self.approval_note], spacing=2, visible=False)
         # the stages, of which one is open; the strip of the steps over them, like the top page's flow
         self.sections = {"chousa": self.build_chousa(), "kaizen": self.build_kaizen(), "kadai": self.build_kadai(),
                          "sekkei": self.build_sekkei(), "tesuto": self.build_tesuto(), "chat": self.build_dialogue(), "news": self.build_news()}
@@ -465,14 +468,21 @@ class TameshiView:
 
     # ---- signing in and out -----------------------------------------------------------
 
-    async def test_login(self, e):
+    async def enter_with(self, path):
+        """Signs in, or registers, with the ID and the password written in the fields."""
         try:
-            self.token = (await self.json("POST", "/api/test-login", json={"id": self.test_id.value or "", "password": self.test_password.value or ""}))["token"]
+            self.token = (await self.json("POST", path, json={"id": self.test_id.value or "", "password": self.test_password.value or ""}))["token"]
         except ApiError as err:
             self.say(self.sign_in_note, "、".join(err.messages), True)
             return
         self.test_password.value = ""
         await self.render()
+
+    async def log_in(self, e):
+        await self.enter_with("/api/login")
+
+    async def register(self, e):
+        await self.enter_with("/api/register")
 
     async def sign_out(self, e):
         try:

@@ -83,7 +83,8 @@ class ServerTest(unittest.TestCase):
         self.env |= {"BASE_URL": "https://aiai.example/tameshi", "RETURN_URLS": PAGE,
                      "DB": os.path.join(self.tmp.name, "t.db"), "TAMESHI_TEST_ID": "shinsa",
                      "TAMESHI_TEST_PASSWORD": "kakunin-no-tame", "TAMESHI_CHAT_PER_DAY": "3",
-                     "TAMESHI_NEWS_PER_DAY": "1", "TAMESHI_DAY_LIMIT": "5"}
+                     "TAMESHI_NEWS_PER_DAY": "1", "TAMESHI_DAY_LIMIT": "5",
+                     "TAMESHI_APPROVED": os.path.join(self.tmp.name, "approved.txt")}
         self.gemini = FakeGemini()
         self.drawn = []
         self.app = server.create_app(self.env, model=self.gemini, draw=lambda p: self.drawn.append(p) or b"\x89PNG fake",
@@ -95,15 +96,24 @@ class ServerTest(unittest.TestCase):
         self.app.state.db.db.close()
         self.tmp.cleanup()
 
-    def google(self, sub):
+    def approve(self, *lines):
+        """Adds lines to the file of the people the owner approves; the server reads it again each time."""
+        with open(self.env["TAMESHI_APPROVED"], "a", encoding="utf-8") as f:
+            f.write("".join(line + "\n" for line in lines))
+
+    def google(self, sub, approved=True):
+        """Signs in as a person with Google (the verified address is <sub>@example.jp); approved unless said not."""
+        email = f"{sub}@example.jp"
+        if approved:
+            self.approve(f"google:{email}")
         r = self.c.get("/login/google", params={"next": PAGE})
         q = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(r.headers["location"]).query))
-        r = self.c.get("/callback/google", params={"code": code(q["nonce"], sub, ""), "state": q["state"]})
+        r = self.c.get("/callback/google", params={"code": code(q["nonce"], sub, email, email_verified=True), "state": q["state"]})
         one = urllib.parse.parse_qs(urllib.parse.urlsplit(r.headers["location"]).query)["code"][0]
         return {"Authorization": "Bearer " + self.c.post("/api/session", json={"code": one}).json()["token"]}
 
     def log_in_test(self, password="kakunin-no-tame"):
-        return self.c.post("/api/test-login", json={"id": "shinsa", "password": password})
+        return self.c.post("/api/login", json={"id": "shinsa", "password": password})
 
     def chat(self, h, text="始めたいです", guide="rireki"):
         return self.c.post("/api/chat", json={"guide": guide, "messages": [{"role": "user", "text": text}]}, headers=h)
@@ -490,13 +500,13 @@ class ServerTest(unittest.TestCase):
         r = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h)
         self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
 
-    def tester(self):
+    def reviewer(self):
         return {"Authorization": "Bearer " + self.log_in_test().json()["token"]}
 
     def test_the_test_account_has_no_limit_of_one_person(self):
         # the reviewers share it: one of them using it must not shut the others out
         self.restart(env={"TAMESHI_DAY_LIMIT": "100"}, run=lambda fn: fn())
-        t = self.tester()
+        t = self.reviewer()
         for _ in range(5):  # one person may talk 3 times a day
             self.assertEqual(self.chat(t).status_code, 200)
         for _ in range(2):  # and may ask for one design a day
@@ -506,7 +516,7 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=g).status_code, 429)
 
     def test_the_test_account_is_shown_what_is_left_of_everyone_s_limits(self):
-        t = self.tester()  # a day's limit of 5 Gemini calls in all (setUp)
+        t = self.reviewer()  # a day's limit of 5 Gemini calls in all (setUp)
         left = self.c.get("/api/me", headers=t).json()["left"]
         self.assertEqual(set(left.values()), {5})
         r = self.chat(t)
@@ -523,7 +533,7 @@ class ServerTest(unittest.TestCase):
 
     def test_the_test_account_is_limited_by_the_jobs_of_everyone(self):
         self.restart(env={"TAMESHI_DAY_LIMIT": "100", "TAMESHI_JOBS_PER_DAY": "2"}, run=lambda fn: fn())
-        t = self.tester()
+        t = self.reviewer()
         self.assertEqual(self.c.get("/api/me", headers=t).json()["left"]["sekkei"], 2)
         for left in (1, 0):
             self.assertEqual(self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=t).status_code, 200)
@@ -534,7 +544,7 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.chat(t).status_code, 200)
 
     def test_the_test_account_s_jobs_are_kept_longer(self):
-        t, g = self.tester(), self.google("u42")
+        t, g = self.reviewer(), self.google("u42")
         ids = {w: self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).json()["id"] for w, h in (("test", t), ("google", g))}
 
         def age(who, days):
@@ -555,13 +565,169 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(shown("test", t), (404, False))
 
     def test_the_days_the_test_account_s_jobs_are_kept_can_be_set(self):
-        t = self.tester()
+        t = self.reviewer()
         jid = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=t).json()["id"]
         self.app.state.db.run("UPDATE jobs SET created = ? WHERE id = ?", (time.time() - 20 * 86400, jid))
         self.restart(env={"TAMESHI_TEST_KEEP_DAYS": "30"}, run=lambda fn: fn())
         self.assertEqual(self.c.get(f"/api/jobs/{jid}", headers=t).status_code, 200)
         self.restart(env={"TAMESHI_TEST_KEEP_DAYS": "10"}, run=lambda fn: fn())
         self.assertEqual(self.c.get(f"/api/jobs/{jid}", headers=t).status_code, 404)
+
+    # ---- registering with an ID and a password, and the owner's approval ----------------------------------
+
+    def register(self, uid="taro", password="himitsu-no-pass"):
+        return self.c.post("/api/register", json={"id": uid, "password": password})
+
+    def local(self, uid="taro", password="himitsu-no-pass"):
+        r = self.register(uid, password)
+        self.assertEqual(r.status_code, 200, r.text)
+        return {"Authorization": "Bearer " + r.json()["token"]}
+
+    def test_anyone_may_register_and_is_signed_in_at_once(self):
+        h = self.local()
+        me = self.c.get("/api/me", headers=h).json()
+        self.assertEqual((me["provider"], me["id"], me["email"], me["approved"], me["kaihatsu"]), ("local", "taro", "", False, False))
+        # the ID is put in small letters
+        self.assertEqual(self.c.get("/api/me", headers=self.local("Hanako-2")).json()["id"], "hanako-2")
+
+    def test_the_form_of_an_id_and_of_a_password(self):
+        for uid in ("ab", "x" * 33, "ta ro", "taro!", "たろう", ""):
+            r = self.register(uid)
+            self.assertRefused(r, 422, "ID は、3〜32 字の、小文字の英数字と - _ で書いてください")
+        for password in ("1234567", "x" * 73, ""):
+            self.assertRefused(self.register("taro", password), 422, "パスワードは、8 字以上、72 字までで書いてください")
+        self.assertEqual(self.register("a-b_c").status_code, 200)  # - and _ are allowed
+        self.assertEqual(self.register("x" * 32, "y" * 72).status_code, 200)  # the longest
+
+    def test_an_id_that_is_used_cannot_be_registered_again(self):
+        self.local("taro")
+        self.assertRefused(self.register("taro", "another-pass"), 409, "この ID は使われています")
+        self.assertRefused(self.register("TARO", "another-pass"), 409, "この ID は使われています")
+        # nor the ID of the test account
+        self.assertRefused(self.register("shinsa", "another-pass"), 409, "この ID は使われています")
+
+    def test_only_so_many_may_register_a_day(self):
+        self.restart(env={"TAMESHI_REGISTER_PER_DAY": "2"}, run=lambda fn: fn())
+        self.local("one")
+        self.local("two")
+        self.assertRefused(self.register("three"), 429, "今日の登録は終わりました。明日またどうぞ")
+        # an ID that is used is told so, and a wrong form is, before the number is looked at
+        self.assertRefused(self.register("one"), 409, "この ID は使われています")
+        self.assertRefused(self.register("x"), 422, "ID は、3〜32 字の、小文字の英数字と - _ で書いてください")
+
+    def test_the_password_is_not_kept_only_its_salted_hash(self):
+        self.local("taro", "himitsu-no-pass")
+        self.local("jiro", "himitsu-no-pass")
+        rows = {r["id"]: r for r in self.app.state.db.all("SELECT * FROM users")}
+        for row in rows.values():
+            self.assertNotIn("himitsu-no-pass", [row[k] for k in row.keys()])
+            self.assertEqual(len(row["salt"]), 32)
+            self.assertEqual(row["hash"], server.hash_password("himitsu-no-pass", row["salt"]))
+        # the same password gives another value for another person, by the salt
+        self.assertNotEqual(rows["taro"]["hash"], rows["jiro"]["hash"])
+        self.assertEqual(server.PBKDF2_ROUNDS, 600_000)
+
+    def test_a_registered_person_signs_in_with_the_id_and_the_password(self):
+        self.local("taro", "himitsu-no-pass")
+        r = self.c.post("/api/login", json={"id": "taro", "password": "himitsu-no-pass"})
+        self.assertEqual(r.status_code, 200, r.text)
+        me = self.c.get("/api/me", headers={"Authorization": "Bearer " + r.json()["token"]}).json()
+        self.assertEqual((me["provider"], me["id"]), ("local", "taro"))
+        self.assertEqual(self.c.post("/api/login", json={"id": "TARO", "password": "himitsu-no-pass"}).status_code, 200)
+        for body in ({"id": "taro", "password": "chigau-pass"}, {"id": "nobody", "password": "himitsu-no-pass"}, {"id": "taro"}, {}):
+            self.assertRefused(self.c.post("/api/login", json=body), 401, "ID かパスワードが違います")
+        # the test account comes in by the same way
+        self.assertEqual(self.log_in_test().status_code, 200)
+        self.assertEqual(self.c.get("/api/me", headers={"Authorization": "Bearer " + self.log_in_test().json()["token"]}).json()["provider"], "test")
+
+    def test_an_id_is_shut_for_the_day_after_too_many_wrong_passwords(self):
+        from unittest import mock
+        self.local("taro", "himitsu-no-pass")
+        with mock.patch.object(server, "FAILED_LOGINS", 2):
+            for _ in range(2):
+                self.assertEqual(self.c.post("/api/login", json={"id": "taro", "password": "chigau-pass"}).status_code, 401)
+            # shut: even the right password does not come in, today
+            self.assertRefused(self.c.post("/api/login", json={"id": "taro", "password": "himitsu-no-pass"}), 429, "今日は、この ID では入れません")
+            # an ID counts by itself: another ID, and the test account, are not shut
+            self.local("jiro", "himitsu-no-pass")
+            self.assertEqual(self.c.post("/api/login", json={"id": "jiro", "password": "himitsu-no-pass"}).status_code, 200)
+            self.assertEqual(self.log_in_test().status_code, 200)
+            # an ID that does not exist is counted too
+            for _ in range(2):
+                self.c.post("/api/login", json={"id": "nobody", "password": "x"})
+            self.assertEqual(self.c.post("/api/login", json={"id": "nobody", "password": "x"}).status_code, 429)
+            # the test account is shut the same way
+            for _ in range(2):
+                self.log_in_test("chigau")
+            self.assertRefused(self.log_in_test(), 429, "今日は、この ID では入れません")
+
+    def test_a_person_who_is_not_approved_may_not_ask_gemini(self):
+        h = self.local("taro")
+        before = len(self.gemini.seen)
+        refused = "承認されるまで、Gemini には頼めません"
+        self.assertRefused(self.chat(h), 403, refused)
+        self.assertRefused(self.c.post("/api/news", json={"tastes": "VLM"}, headers=h), 403, refused)
+        self.assertRefused(self.c.post("/api/kaizen", json={"messages": [{"role": "user", "text": "困っています"}]}, headers=h), 403, refused)
+        self.assertRefused(self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h), 403, refused)
+        self.assertEqual(len(self.gemini.seen), before)  # Gemini was not called, and nothing was counted
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["chat"], 3)
+        # what is not a way to Gemini is open to them: reading the jobs (none), the list, the information
+        self.assertEqual(self.c.get("/api/jobs", headers=h).json(), {"jobs": []})
+        # a way that does not exist is told first (422) before the approval (403)
+        self.assertRefused(self.c.post("/api/jobs", data={"kind": "nani"}, headers=h), 422, "何をするかを選んでください")
+
+    def test_the_approved_file_counts_at_once_and_is_read_each_time(self):
+        h = self.local("taro")
+        self.assertEqual(self.chat(h).status_code, 403)
+        self.approve("# the owner's file", "", "  LOCAL:Taro  # a comment")  # lines are not case-sensitive, and may have comments
+        self.assertEqual(self.chat(h).status_code, 200)  # no restart
+        me = self.c.get("/api/me", headers=h).json()
+        self.assertEqual((me["approved"], me["kaihatsu"]), (True, True))
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).status_code, 200)  # an approved person may ask for jobs
+        with open(self.env["TAMESHI_APPROVED"], "w", encoding="utf-8") as f:  # the owner takes the line away
+            f.write("")
+        self.assertEqual(self.chat(h).status_code, 403)
+        os.remove(self.env["TAMESHI_APPROVED"])  # no file at all: nobody but the test account
+        self.assertEqual(self.chat(h).status_code, 403)
+        self.assertEqual(self.chat({"Authorization": "Bearer " + self.log_in_test().json()["token"]}).status_code, 200)
+
+    def test_google_people_are_approved_by_their_verified_address(self):
+        h = self.google("u50", approved=False)
+        self.assertEqual(self.chat(h).status_code, 403)
+        self.approve("google:u50@example.jp")
+        self.assertEqual(self.chat(h).status_code, 200)
+        self.assertEqual(self.chat(self.google("u51", approved=False)).status_code, 403)
+        # the approval of the same name for another provider does not count
+        self.approve("apple:u51@example.jp", "local:u51")
+        self.assertEqual(self.chat(self.google("u51", approved=False)).status_code, 403)
+
+    def test_the_test_account_is_always_approved(self):
+        t = {"Authorization": "Bearer " + self.log_in_test().json()["token"]}
+        self.assertEqual(self.c.get("/api/me", headers=t).json()["approved"], True)
+        self.assertEqual(self.chat(t).status_code, 200)
+
+    def test_the_owner_s_list_shows_who_registered_and_who_is_approved(self):
+        self.local("taro")
+        self.local("jiro")
+        self.google("u60")  # approved by the helper
+        self.c.get("/api/me", headers=self.google("u61", approved=False))  # the first use of a session leaves a line of the person
+        self.c.get("/api/me", headers=self.google("u60"))
+        self.approve("local:jiro")
+        lines = server.users_report(self.env["DB"], self.env["TAMESHI_APPROVED"])
+        table = [x.split("\t") for x in lines]
+        self.assertEqual(table[0], ["名前", "種類", "登録した日", "承認", "approved.txt に足す行"])
+        by = {row[0]: row for row in table[1:]}
+        self.assertEqual((by["taro"][1], by["taro"][3], by["taro"][4]), ("local", "未承認", "local:taro"))
+        self.assertEqual((by["jiro"][1], by["jiro"][3]), ("local", "承認済み"))
+        self.assertEqual((by["u60@example.jp"][1], by["u60@example.jp"][3], by["u60@example.jp"][4]), ("google", "承認済み", "google:u60@example.jp"))
+        self.assertEqual((by["u61@example.jp"][3], by["u61@example.jp"][4]), ("未承認", "google:u61@example.jp"))
+        self.assertRegex(by["taro"][2], r"^\d{4}-\d{2}-\d{2}$")
+        # the command prints the same, from the files the server uses
+        import subprocess
+        out = subprocess.run([sys.executable, os.path.join(HERE, "server.py"), "users"], capture_output=True, text=True, timeout=60,
+                             env=dict(os.environ, DB=self.env["DB"], TAMESHI_APPROVED=self.env["TAMESHI_APPROVED"]))
+        self.assertEqual(out.returncode, 0, out.stderr[-300:])
+        self.assertEqual(out.stdout.strip().splitlines(), lines)
 
     def test_the_name_of_the_app_falls_back_to_the_skill_md(self):
         m = server.materials_of
@@ -578,11 +744,8 @@ class ServerTest(unittest.TestCase):
         other = self.google("u2")
         self.assertEqual(self.c.get(f"/api/jobs/{jid}", headers=other).status_code, 404)
         self.assertEqual(self.job(h, "sekkei", files=[("files", ("a.sh", b"x", "text/plain"))]).status_code, 422)
-        self.app.state.db.db.close()
-        self.app = server.create_app(self.env | {"TAMESHI_KAIHATSU_EMAILS": "maker@example.jp"}, model=self.gemini,
-                                     run=lambda fn: fn())
-        self.c = TestClient(self.app, follow_redirects=False)
-        self.assertEqual(self.job(self.google("u3"), "chousa").status_code, 403)
+        # a person the owner has not approved may not start a job
+        self.assertRefused(self.job(self.google("u3", approved=False), "chousa"), 403, "承認されるまで、Gemini には頼めません")
 
 
 if __name__ == "__main__":
