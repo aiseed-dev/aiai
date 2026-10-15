@@ -23,11 +23,14 @@ soudan_view.py). On the phone only the test account signs in. Settings:
     AIAI_RETURN       the app's address, where sign-in comes back to (default AIAI_SITE + /app/)
 """
 import asyncio
+import fnmatch
 import os
+import re
 import urllib.parse
 
 import flet as ft
 import httpx
+from adoc_md import adoc_to_md
 from glyphs import preload
 
 SITE = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
@@ -50,6 +53,16 @@ ENOUGH = {"chousa": "何度も頼んでいることを書いてください",
           "kadai": "読ませる結果を選んでください",
           "sekkei": "SKILL.md と参考の資料を選んでください",
           "tesuto": "読ませる設計書とマニュアルを選ぶか、資料を選んでください"}
+# The documents of each job (design 5.8): (pattern of the path, title, shown open). The open ones come first, the rest
+# are closed tiles in this order; a file that matches none is a closed tile titled by its path.
+DOCUMENTS = {
+    "chousa": [("chousa/*.adoc", "調べた結果", True)],
+    "kadai": [("references/*-analysis.adoc", "課題の資料", True)],
+    "sekkei": [("docs/manual.adoc", "利用者マニュアル", True), ("docs/design.adoc", "設計書", False),
+               ("docs/kakunin.adoc", "照らし合わせの記録", False)],
+    "tesuto": [("docs/test.adoc", "テストの手順", True), ("docs/test-kakunin.adoc", "確かめの記録", False)],
+}
+PICTURE_WIDTH = 720  # a picture is as wide as the box, up to this
 NONE = "-"  # the choice of 読ませない in a dropdown, which keeps no empty key
 
 
@@ -605,16 +618,18 @@ class TameshiView:
             self.choose_rows[place].visible = len(box.options) > 1  # shown only when there is a finished job to read
 
     async def card(self, j, d):
-        """What one job shows: its line, its steps, a notice if it stopped, and, when done, its buttons and files."""
+        """What one job shows: its line; while it goes, its steps; if it stopped, the notice; when done, its documents
+        (the main one open), then the buttons (design 5.8)."""
         parts = [ft.Text(f"{JOBS[j['kind']]} ・ {j['created']} ・ {STATUS[j['status']]}", weight=ft.FontWeight.W_600)]
-        parts += [ft.Text(s["name"] + (f"({s['seconds']} 秒)" if "seconds" in s else ""), size=13) for s in d["steps"]]
+        if j["status"] in ("waiting", "running"):
+            parts += [ft.Text(s["name"] + (f"({s['seconds']} 秒)" if "seconds" in s else ""), size=13) for s in d["steps"]]
         if d["error"]:
             parts.append(ft.Text(d["error"], size=13, color=ft.Colors.ERROR))
         if j["status"] == "done":
+            parts += await self.documents(j["id"], j["kind"], d["files"])
             parts.append(ft.Row(self.card_buttons(j["id"], j["kind"]), wrap=True, spacing=8))
-            for path in d["files"]:
-                parts.append(await self.file_view(j["id"], path))
-        return ft.Container(ft.Column(parts, spacing=6), padding=12, border_radius=10, bgcolor=ft.Colors.SURFACE)
+        return ft.Container(ft.Column(parts, spacing=8, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
+                            padding=12, border_radius=10, bgcolor=ft.Colors.SURFACE)
 
     def card_buttons(self, jid, kind):
         async def zip_it(e):
@@ -643,24 +658,72 @@ class TameshiView:
             buttons.append(to("tesuto", self.chooses["tesuto"], "この結果で、テストの手順を作る"))
         return buttons
 
-    async def file_view(self, jid, path):
-        """A picture, or a file that shows its text when opened."""
-        if path.endswith(".png"):
+    def arrange(self, kind, files):
+        """The files of a done job in the order they are shown: [(path, title, shown open)], the open documents first, then the
+        closed ones named in DOCUMENTS, then the rest titled by their paths. Pictures are not here (see pictures)."""
+        texts = [f for f in files if not f.endswith(".png")]
+        named = []
+        for pattern, title, opened in DOCUMENTS.get(kind, []):
+            named += [(f, title, opened) for f in texts if fnmatch.fnmatchcase(f, pattern)]
+        known = {f for f, _, _ in named}
+        named += [(f, f, False) for f in texts if f not in known]
+        return sorted(named, key=lambda x: not x[2])  # stable: the open ones first
+
+    async def fetch(self, jid, path):
+        """(text of a file of a job, the notice of the server when it could not be read)."""
+        try:
+            return (await self.call("GET", f"/api/jobs/{jid}/file", params={"path": path})).text, ""
+        except ApiError as err:
+            return "", "、".join(err.messages)
+
+    def reading(self, path, text):
+        """A document as it is read: an .adoc as Markdown (the same conversion as the user manual, without the pictures,
+        which are shown by pictures()), links in a new tab, the text selectable; any other file as plain text."""
+        if path.endswith((".adoc", ".md")):
+            md = adoc_to_md(text) if path.endswith(".adoc") else text
+            md = re.sub(r"^!\[[^\]]*\]\((?!https?:)[^)]*\)[ \t]*\n?", "", md, flags=re.M)  # a picture of the job, shown below
+            return ft.Markdown(md, selectable=True, extension_set=ft.MarkdownExtensionSet.GITHUB_FLAVORED,
+                               auto_follow_links=True, auto_follow_links_target=ft.UrlTarget.BLANK)
+        return ft.Text(text, size=13, selectable=True)
+
+    async def pictures(self, jid, files):
+        """The screen pictures of a job, one by one, as wide as the box (up to PICTURE_WIDTH)."""
+        out = []
+        for path in (f for f in files if f.endswith(".png")):
             try:
                 png = (await self.call("GET", f"/api/jobs/{jid}/file", params={"path": path})).content
             except ApiError:
-                return ft.Text(path, size=13)
-            return ft.Image(src=png, width=240, semantics_label=path)
-        text = ft.Text("", selectable=True, size=13)
+                out.append(ft.Text(path, size=13))
+                continue
+            out.append(ft.Image(src=png, width=PICTURE_WIDTH, fit=ft.BoxFit.CONTAIN, semantics_label=path))
+        return out
+
+    async def documents(self, jid, kind, files):
+        """The documents of a done job: the main one open under its title (the pictures under it), the others as tiles
+        that are read when they are opened."""
+        out, pictures = [], await self.pictures(jid, files)
+        for path, title, opened in self.arrange(kind, files):
+            if opened:
+                text, bad = await self.fetch(jid, path)
+                out.append(ft.Text(title, size=15, weight=ft.FontWeight.BOLD))
+                out.append(ft.Text(bad, size=13, color=ft.Colors.ERROR) if bad else self.reading(path, text))
+                if pictures:  # the pictures belong to the manual, the open document of the design job
+                    out += pictures
+                    pictures = []
+            else:
+                out.append(self.tile(jid, path, title))
+        return out + pictures
+
+    def tile(self, jid, path, title):
+        """A closed document; its text is read when it is opened, once."""
+        holder = ft.Container(padding=12)
         loaded = {"yes": False}
 
         async def opened(e):
             if e.control.expanded and not loaded["yes"]:
                 loaded["yes"] = True
-                try:
-                    text.value = (await self.call("GET", f"/api/jobs/{jid}/file", params={"path": path})).text
-                except ApiError as err:
-                    text.value = "、".join(err.messages)
+                text, bad = await self.fetch(jid, path)
+                holder.content = ft.Text(bad, size=13, color=ft.Colors.ERROR) if bad else self.reading(path, text)
                 self.page.update()
 
-        return ft.ExpansionTile(title=ft.Text(path, size=14), controls=[ft.Container(text, padding=12)], on_change=opened)
+        return ft.ExpansionTile(title=ft.Text(title, size=14), controls=[holder], on_change=opened)
