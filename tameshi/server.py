@@ -274,6 +274,21 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
     def today():
         return datetime.datetime.now(tz).date().isoformat()
 
+    def give_back(provider, sub, kind, day):
+        """A job that stopped is not counted against the person: one use of that kind on the day it was counted
+        is given back, never below 0."""
+        db.run("UPDATE uses SET n = n - 1 WHERE day = ? AND provider = ? AND sub = ? AND kind = ? AND n > 0",
+               (day, provider, sub, kind))
+
+    # Jobs run in threads of the process, so the ones still waiting or running when this process starts were cut
+    # off by the restart of the old one: mark them stopped and give the counts back. The counted day is the day
+    # the job was created.
+    for cut in db.all("SELECT id, provider, sub, kind, created FROM jobs WHERE status IN ('waiting', 'running')"):
+        db.run("UPDATE jobs SET status = 'error', error = ?, finished = ? WHERE id = ?",
+               ("サーバーを入れ替えたため、止まりました。もう一度頼んでください", time.time(), cut["id"]))
+        give_back(cut["provider"], cut["sub"], cut["kind"],
+                  datetime.datetime.fromtimestamp(cut["created"], tz).date().isoformat())
+
     def remove_job(jid):
         """Deletes a job's files folder and its row."""
         shutil.rmtree(os.path.join(jobs_dir, jid), ignore_errors=True)
@@ -325,8 +340,9 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
     def overall_left(kind):
         """What is left today of the limits of everyone together: Gemini calls, and for a job the number of jobs."""
         everyone = db.one("SELECT COALESCE(SUM(n), 0) FROM uses WHERE day = ? AND provider != '-'", (today(),))[0]
-        started = datetime.datetime.combine(datetime.date.fromisoformat(today()), datetime.time(), tz).timestamp()
-        jobs = db.one("SELECT COUNT(*) FROM jobs WHERE created >= ?", (started,))[0]
+        # the jobs started today are counted in a row of their own, not from the jobs table, whose rows are deleted
+        row = db.one("SELECT n FROM uses WHERE day = ? AND provider = '-' AND sub = '-' AND kind = 'jobs'", (today(),))
+        jobs = row["n"] if row else 0
         left = day_limit - everyone
         return min(left, jobs_per_day - jobs) if kind in JOB_KINDS else left
 
@@ -520,6 +536,8 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
             name = skill_name(materials)
         day = today()
         take(s, kind)
+        # a job counts among all the jobs of the day for good, also when it stops or is replaced later
+        db.run("INSERT INTO uses VALUES (?, '-', '-', 'jobs', 1) ON CONFLICT (day, provider, sub, kind) DO UPDATE SET n = n + 1", (day,))
         jid = secrets.token_urlsafe(12)
         folder = os.path.join(jobs_dir, jid)
         os.makedirs(folder, exist_ok=True)
@@ -558,9 +576,8 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
                 steps[-1]["seconds"] = round(time.time() - steps[-1].pop("at"))
             db.run("UPDATE jobs SET status = ?, error = ?, steps = ?, finished = ? WHERE id = ?",
                    (status, error, json.dumps(steps, ensure_ascii=False), time.time(), jid))
-            if status == "error":  # a job that stopped is not counted against the person
-                db.run("UPDATE uses SET n = n - 1 WHERE day = ? AND provider = ? AND sub = ? AND kind = ? AND n > 0",
-                       (day, s["provider"], s["sub"], kind))
+            if status == "error":
+                give_back(s["provider"], s["sub"], kind, day)
         start(work)
         return {"id": jid}
 

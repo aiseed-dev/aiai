@@ -524,6 +524,22 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["sekkei"], 0)
         self.assertEqual(self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h).status_code, 429)
 
+    def test_jobs_cut_off_by_a_restart_are_stopped_and_given_back(self):
+        h = self.google("u37")
+        self.restart(run=lambda fn: None)  # the job is accepted but never run, as when the old process dies
+        r = self.c.post("/api/jobs", data={"kind": "sekkei", "mihon": "1"}, headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        jid = r.json()["id"]
+        self.app.state.db.run("UPDATE jobs SET status = 'running' WHERE id = ?", (jid,))
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["sekkei"], 0)
+        self.restart(run=lambda fn: fn())  # the new process
+        self.assertEqual([(j["id"], j["status"]) for j in self.c.get("/api/jobs", headers=h).json()["jobs"]], [(jid, "error")])
+        self.assertEqual(self.c.get(f"/api/jobs/{jid}", headers=h).json()["error"],
+                         "サーバーを入れ替えたため、止まりました。もう一度頼んでください")
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["sekkei"], 1)
+        self.restart(run=lambda fn: fn())  # another restart gives nothing back twice
+        self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["sekkei"], 1)
+
     def test_a_stopped_job_counts_among_all_the_jobs_of_the_day(self):
         self.restart(env={"TAMESHI_JOBS_PER_DAY": "2"}, run=lambda fn: fn())
         h = self.google("u36")
@@ -532,6 +548,15 @@ class ServerTest(unittest.TestCase):
             self.assertEqual(self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).status_code, 200)
         self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["chousa"], 2)
         # but the day's number of jobs has run out
+        r = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h)
+        self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
+
+    def test_replacing_earlier_jobs_does_not_get_around_the_limit_of_jobs(self):
+        self.restart(env={"TAMESHI_JOBS_PER_DAY": "3", "TAMESHI_CHOUSA_PER_DAY": "10"}, run=lambda fn: fn())
+        h = self.google("u38")
+        for _ in range(3):  # each new job deletes the finished one before it, so the table never holds more than one
+            self.assertEqual(self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).status_code, 200)
+        self.assertEqual(len(self.c.get("/api/jobs", headers=h).json()["jobs"]), 1)
         r = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h)
         self.assertRefused(r, 429, "今日の受け付けは終わりました。明日またどうぞ")
 
