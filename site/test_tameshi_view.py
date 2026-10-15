@@ -50,12 +50,6 @@ class TameshiViewTest(unittest.TestCase):
         self.assertEqual(set(v.QUOTA), set(v.NAMES))
         self.assertEqual(v.OWN_STEP, "この段は、自分と、ふだん使っている AI でします")
 
-    def test_a_stage_says_two_sentences_of_what_gemini_does(self):
-        v = load({})
-        self.assertEqual(v.first_sentences("一つ目です。二つ目(.md、.adoc)です。三つ目です。"), "一つ目です。二つ目(.md、.adoc)です。")
-        self.assertEqual(v.first_sentences("一つだけです。"), "一つだけです。")
-        self.assertEqual(v.first_sentences(""), "")
-
     def test_signing_in_and_registering_are_screens_that_are_no_stage(self):
         v = load({})
         self.assertEqual(set(v.SCREENS), {"signin", "touroku"})

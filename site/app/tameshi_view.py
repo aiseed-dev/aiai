@@ -23,7 +23,6 @@ soudan_view.py). On the phone only the test account signs in. Settings:
 """
 import asyncio
 import os
-import re
 import urllib.parse
 
 import flet as ft
@@ -35,7 +34,6 @@ PUBLIC = (os.environ.get("AIAI_TAMESHI_URL") or SITE + "/tameshi").rstrip("/")
 API = os.environ.get("AIAI_TAMESHI_API", PUBLIC).rstrip("/")
 RETURN = (os.environ.get("AIAI_RETURN") or SITE + "/app/").rstrip("/") + "/"
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
-MIHON_URL = "https://github.com/aiseed-dev/aiai/tree/main/hackathon/mihon"
 SIGN_IN = {"google": "Google でサインイン", "apple": "Apple でサインイン"}
 
 # The places of the flow that can be opened with /app/tameshi/<place>, by the name of the field
@@ -53,9 +51,9 @@ QUOTA = {"chousa": "chousa", "kaizen": "chat", "kadai": "kadai", "sekkei": "sekk
 OWN_STEP = "この段は、自分と、ふだん使っている AI でします"
 STATUS = {"waiting": "待っています", "running": "進めています", "done": "できました", "error": "止まりました"}
 # What a form needs before it is sent, in the words of the server's refusal (design 5.3)
-ENOUGH = {"chousa": "何度も頼んでいることを書くか、資料を選んでください",
-          "kadai": "読ませる結果を選ぶか、資料を選んでください",
-          "sekkei": "SKILL.md と参考の資料を選ぶか、見本で試してください",
+ENOUGH = {"chousa": "何度も頼んでいることを書いてください",
+          "kadai": "読ませる結果を選んでください",
+          "sekkei": "SKILL.md と参考の資料を選んでください",
           "tesuto": "読ませる設計書とマニュアルを選ぶか、資料を選んでください"}
 NONE = "-"  # the choice of 読ませない in a dropdown, which keeps no empty key
 
@@ -64,11 +62,6 @@ class ApiError(Exception):
     def __init__(self, status, messages):
         super().__init__("、".join(messages))
         self.status, self.messages = status, messages
-
-
-def first_sentences(text, n=2):
-    """The first n sentences of a text (up to the 。), which is what a stage says of what Gemini does."""
-    return "".join(re.findall(r"[^。]*。", text)[:n])
 
 
 def read(path):
@@ -283,17 +276,20 @@ class TameshiView:
             self.page.update()
 
     def materials(self, kind):
-        """The row that picks the materials of a job: the button and the names picked."""
+        """The row that picks the materials of a job: the button, and the names picked under it."""
         shown = self.note("")
         button = ft.OutlinedButton("資料を選ぶ", icon=ft.Icons.UPLOAD_FILE,
                                    on_click=lambda e: asyncio.create_task(self.pick_materials(kind, shown)))
-        return self.labelled("資料(なくてもかまいません)", ft.Column([button, shown], spacing=4)) if kind != "sekkei" else \
-            self.labelled("資料", ft.Column([button, shown], spacing=4))
+        return ft.Column([button, shown], spacing=4)
 
-    def chooser(self, label):
-        """A dropdown of finished jobs, which starts with 読ませない; the jobs are put in by list_jobs."""
+    def chooser(self, place, label):
+        """A dropdown of finished jobs, which starts with 読ませない; the jobs are put in by list_jobs, and the
+        row is shown only when there is a job to choose."""
         box = ft.Dropdown(value=NONE, options=[ft.DropdownOption(key=NONE, text="読ませない")], width=420)
-        return self.labelled(label, box), box
+        row = self.labelled(label, box)
+        row.visible = False
+        self.chooses[place], self.choose_rows[place] = box, row
+        return row, box
 
     # ---- building the tab -------------------------------------------------------------
 
@@ -306,7 +302,8 @@ class TameshiView:
         self.first_field = {}
         self.job_boxes = {}   # kind -> the column that lists the jobs of that kind
         self.job_notes = {}
-        self.chooses = {}     # kind -> the dropdown that reads a finished job of another kind
+        self.chooses = {}     # place -> the dropdown that reads a finished job of another kind
+        self.choose_rows = {}  # place -> the row of that dropdown, which is shown only when there is a job to read
         self.fields = {}
         self.build_screens()
         # who and how many are left
@@ -323,7 +320,6 @@ class TameshiView:
         self.stage_note = self.note("")  # what a tag of a step that is not Gemini's says, and that the server is not there
         self.root = ft.Column([
             ft.Text("作る", size=22, weight=ft.FontWeight.BOLD),
-            self.note("アプリを作る流れの 2、3、5、6、8 の段を、Google Cloud の Gemini に頼めます。", small=False),
             self.build_strip(), self.stage_note, self.use_box, self.stage], spacing=12,
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         self.built = True
@@ -393,97 +389,61 @@ class TameshiView:
             self.page.update()
         return pressed
 
-    def job_section(self, kind, key, title, description, controls, buttons, trial=None):
-        """A box with the fields of a job, its buttons, and the list of the jobs asked for."""
+    def job_section(self, kind, title, sentence, controls, buttons):
+        """A box with its one sentence, the inputs of a job, its button row,
+        and the list of the jobs asked for."""
         self.job_notes[kind] = self.note("")
         self.job_boxes[kind] = ft.Column(spacing=10)
-        parts = [self.note(first_sentences(description)), *controls, ft.Row(buttons, wrap=True, spacing=8)]
-        if trial:
-            parts.append(ft.Row([self.note(trial[0]), ft.TextButton(trial[1], on_click=lambda e: asyncio.create_task(self.submit(kind, True))),
-                                 self.link("見本を見る", MIHON_URL)], wrap=True, spacing=4))
-        parts.append(self.note("数分かかります。作った物は 7 日で消します"))
-        return self.section(key, title, [*parts, self.job_notes[kind], self.job_boxes[kind]])
+        return self.section(kind, title, [self.note(sentence, small=False), *controls, ft.Row(buttons, wrap=True, spacing=8),
+                                          self.job_notes[kind], self.job_boxes[kind]])
 
     def go_button(self, kind, label):
         return ft.FilledButton(label, on_click=lambda e: asyncio.create_task(self.submit(kind)))
 
     def build_chousa(self):
-        self.fields["chousa"] = {"note": self.field("例: 毎週、売上の表を渡して、品目ごとの集計と先週との比べを頼んでいる", 3, max_length=2000)}
+        self.fields["chousa"] = {"note": self.field("", 3, max_length=2000)}
         self.first_field["chousa"] = self.fields["chousa"]["note"]
         return self.job_section(
-            "chousa", "chousa", PLACES["chousa"],
-            "AI に何度も頼んでいることを書くと、Gemini が、似たアプリを Google 検索で 3 つまで選び、公式サイト、ストアの説明、"
-            "利用規約、料金のページを読んで、機能、料金、問題点を、出典を付けてまとめます。SKILL.md や参考の資料(.md、.adoc、.txt か、"
-            "それを入れた ZIP)も足せます。数分かかります。作った物は 7 日で消します。",
-            [self.labelled("何度も頼んでいること", self.fields["chousa"]["note"]), self.materials("chousa")],
-            [self.go_button("chousa", "探す")], ("架空の見本(パン屋の取り置きのアプリ)でも試せます。", "見本で探す"))
+            "chousa", PLACES["chousa"], "何度も頼んでいることを書くと、Gemini が似たアプリを探し、出典を付けてまとめます。",
+            [self.labelled("何度も頼んでいること", self.fields["chousa"]["note"])], [self.go_button("chousa", "探す")])
 
     def build_kaizen(self):
-        pick, self.kaizen_job = self.chooser("読ませる結果")
-        self.chooses["kaizen"] = self.kaizen_job
-        self.kaizen_app = self.field("例: 集計のアプリ", max_length=200)
-        self.kaizen_fuman = self.field("例: 毎週、売上の表を渡して集計させている。前の週の表が残らないので、先週との比べを毎回自分で作っている", 3, max_length=2000)
-        self.kaizen_hoshii = self.field("例: 先週の表を残し、比べた表も一緒に出してほしい", 2, max_length=1000)
+        pick, self.kaizen_job = self.chooser("kaizen", "読ませる結果")
+        self.kaizen_fuman = self.field("", 3, max_length=2000)
         self.first_field["kaizen"] = self.kaizen_fuman
         self.kaizen_note = self.note("")
         self.kaizen_log = ft.Column(spacing=8)
         self.kaizen_say = self.field("", 2, max_length=4000)
         self.kaizen_start = ft.Column([
-            pick, self.labelled("使ったアプリ", self.kaizen_app), self.labelled("困った場面と、困ったこと", self.kaizen_fuman),
-            self.labelled("どうなればよいか(分かれば)", self.kaizen_hoshii),
-            ft.FilledButton("考える", on_click=self.kaizen_begin)], spacing=10)
+            pick, self.labelled("困っていること", self.kaizen_fuman), ft.FilledButton("考える", on_click=self.kaizen_begin)], spacing=10)
         self.kaizen_talkbox = ft.Column([
             self.kaizen_log, self.kaizen_say,
             ft.Row([ft.FilledButton("送る", on_click=self.kaizen_next), ft.TextButton("初めから", on_click=self.kaizen_again)], spacing=8)],
             spacing=10, visible=False)
         return self.section("kaizen", PLACES["kaizen"], [
-            self.note("今あるアプリを使ってみて、不満な所を具体的に書きます。どのアプリの、どの場面で、何が困るのかが分からないと、Gemini も一緒に考えられません。"),
+            self.note("今あるアプリで困っていることを書くと、Gemini と一緒に、どう良くするかを考えます。", small=False),
             self.kaizen_start, self.kaizen_talkbox, self.kaizen_note])
 
     def build_kadai(self):
-        pick, research = self.chooser("読ませる結果")
-        self.chooses["kadai"] = research
-        self.fields["kadai"] = {"name": self.field("例: toriooki", max_length=40),
-                                "note": self.field("例: 前の週の表が残らないので、先週との比べを毎回自分で作っている", 3, max_length=2000)}
-        self.first_field["kadai"] = self.fields["kadai"]["name"]
+        pick, _ = self.chooser("kadai", "読ませる結果")
+        self.first_field["kadai"] = None
         return self.job_section(
-            "kadai", "kadai", PLACES["kadai"],
-            "「今あるアプリを探す」の結果か、渡した資料に出てくるアプリについて、使う人にとっての問題点と、運営の作りの問題点を、Gemini が Google 検索で"
-            "公式サイトや利用規約などを読んで、出典を付けてまとめます。アプリの名前が出てこなければ、似たことをしているアプリを探してから調べます。"
-            "できる物は、手引きの手順 5 の資料(references/<名前>-analysis.adoc)です。数分かかります。作った物は 7 日で消します。",
-            [pick, self.labelled("作るアプリの名前(英数字とハイフン。資料のファイルの名前に使います)", self.fields["kadai"]["name"]),
-             self.labelled("3 で分かった不満(あれば)", self.fields["kadai"]["note"]), self.materials("kadai")],
-            [self.go_button("kadai", "集める")], ("架空の見本(パン屋の取り置きのアプリ)でも試せます。", "見本で集める"))
+            "kadai", PLACES["kadai"], "探した結果を選ぶと、Gemini がそのアプリの問題点を集め、出典を付けてまとめます。",
+            [pick], [self.go_button("kadai", "集める")])
 
     def build_sekkei(self):
-        pick, kadai = self.chooser("読ませる課題の資料")
-        self.chooses["sekkei"] = kadai
-        self.fields["sekkei"] = {"note": self.field("足したいこと(なくてもかまいません)", 2, max_length=2000)}
+        pick, _ = self.chooser("sekkei", "読ませる課題の資料")
         self.first_field["sekkei"] = None
         return self.job_section(
-            "sekkei", "sekkei", PLACES["sekkei"],
-            "作るアプリの SKILL.md と参考の資料(.md、.adoc、.txt か、それを入れた ZIP)を渡します。SKILL.md は、手引き「度々聞いていることを、アプリにする」の"
-            "「アプリの SKILL.md の形」に沿って、自分の AI と書きます。上の「今あるアプリの課題を集める」の資料も読ませられます。Gemini 4 Argon が設計書と"
-            "利用者マニュアルを書き、画面の絵を Nano Banana が描き、最後に 2 つを照らし合わせます。数分かかります。作った物は 7 日で消します。",
-            [pick, self.materials("sekkei"), self.fields["sekkei"]["note"]],
-            [self.go_button("sekkei", "設計書とマニュアルを作る")],
-            ("資料が手元に無ければ、架空の見本(パン屋の取り置きのアプリ)で試せます。", "見本で設計書とマニュアルを作る"))
+            "sekkei", PLACES["sekkei"], "SKILL.md と資料を選ぶと、Gemini が設計書と、画面の絵を入れたマニュアルを作ります。",
+            [pick, self.materials("sekkei")], [self.go_button("sekkei", "作る")])
 
     def build_tesuto(self):
-        pick, sekkei = self.chooser("読ませる設計書とマニュアル")
-        self.chooses["tesuto"] = sekkei
-        self.fields["tesuto"] = {"note": self.field("例: スマートフォンのブラウザーで使う。店の画面はまだ作っていない", 3, max_length=2000)}
-        self.first_field["tesuto"] = self.fields["tesuto"]["note"]
-        section = self.job_section(
-            "tesuto", "tesuto", PLACES["tesuto"],
-            "作ったアプリを確かめる手順を、設計書と利用者マニュアルから作ります。マニュアルの操作ごとに、することと、そうなるはずの結果を並べ、"
-            "5 の段の問題点ごとに、起きないことの確かめ方を書きます。手順のとおりに自分で使って確かめ、AI には、同じ項目で試験を書かせます。"
-            "数分かかります。作った物は 7 日で消します。",
-            [pick, self.labelled("作ったアプリについて(あれば)", self.fields["tesuto"]["note"]), self.materials("tesuto")],
-            [self.go_button("tesuto", "テストの手順を作る")])
-        # a small sentence after the button: the sample of step 6 can be read, so there is no sample button here
-        section.content.controls.insert(-2, self.note("「6 設計書とマニュアルを作る」の見本の結果からも作れます。"))
-        return section
+        pick, _ = self.chooser("tesuto", "読ませる設計書とマニュアル")
+        self.first_field["tesuto"] = None
+        return self.job_section(
+            "tesuto", PLACES["tesuto"], "設計書とマニュアルを選ぶと、Gemini がテストの手順を作ります。",
+            [pick, self.materials("tesuto")], [self.go_button("tesuto", "作る")])
 
     def build_dialogue(self):
         guides = self.info["guides"]
@@ -491,7 +451,7 @@ class TameshiView:
                                  options=[ft.DropdownOption(key=g["name"], text=g["title"]) for g in guides], width=420,
                                  on_select=self.guide_changed)
         self.log = ft.Column(spacing=8)
-        self.say_box = self.field("例: 始めたいです", 2, max_length=4000)
+        self.say_box = self.field("", 2, max_length=4000)
         self.chat_note = self.note("")
         return self.section("chat", "手引きを読ませた Gemini と対話する", [
             self.labelled("手引き", self.guide), self.log, self.say_box,
@@ -631,9 +591,7 @@ class TameshiView:
         if not fuman:
             self.say(self.kaizen_note, "困った場面と、困ったことを書いてください", True)
             return
-        app, hoshii = (self.kaizen_app.value or "").strip(), (self.kaizen_hoshii.value or "").strip()
-        text = f"使ったアプリ: {app or '(書いていません)'}\n困った場面と、困ったこと: {fuman}" + (f"\nどうなればよいか: {hoshii}" if hoshii else "")
-        await self.kaizen_ask(text)
+        await self.kaizen_ask(f"使ったアプリ: (書いていません)\n困った場面と、困ったこと: {fuman}")
 
     async def kaizen_next(self, e):
         if not await self.signed_in_or_go():
@@ -679,7 +637,7 @@ class TameshiView:
 
     # ---- the longer jobs ---------------------------------------------------------------
 
-    async def submit(self, kind, mihon=False):
+    async def submit(self, kind):
         """Asks for a job: checks the sign-in and what it needs, as the server would, then sends it."""
         if not await self.signed_in_or_go():
             return
@@ -688,17 +646,13 @@ class TameshiView:
         text = (f["note"].value or "").strip() if "note" in f else ""
         choose = self.chooses.get(kind)
         chosen = "" if choose is None or choose.value == NONE else choose.value
-        given = bool(self.picked[kind]) or mihon or chosen or (kind == "chousa" and text)
-        if kind == "tesuto" and mihon:
-            return
+        given = bool(self.picked[kind]) or chosen or text
         if not given:
             self.say(note, ENOUGH[kind], True)
             return
         data = {"kind": kind, "note": text}
-        if mihon:
-            data["mihon"] = "1"
         if kind == "kadai":
-            data |= {"research": chosen, "name": (f["name"].value or "").strip()}
+            data["research"] = chosen
         if kind == "sekkei":
             data["kadai"] = chosen
         if kind == "tesuto":
@@ -763,6 +717,7 @@ class TameshiView:
             box.options = [ft.DropdownOption(key=NONE, text="読ませない")] + [
                 ft.DropdownOption(key=j["id"], text=f"{JOBS[kind]} ・ {j['created']}") for j in jobs if j["kind"] == kind and j["status"] == "done"]
             box.value = had if any(o.key == had for o in box.options) else NONE
+            self.choose_rows[place].visible = len(box.options) > 1  # shown only when there is a finished job to read
 
     async def card(self, j, d):
         """What one job shows: its line, its steps, a notice if it stopped, and, when done, its buttons and files."""
