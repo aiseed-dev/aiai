@@ -40,21 +40,16 @@ class TameshiViewTest(unittest.TestCase):
                   "AIAI_RETURN": "https://aiai.example/app"})
         self.assertEqual((v.PUBLIC, v.API, v.RETURN), ("https://t.example/x", "http://127.0.0.1:8020/tameshi", "https://aiai.example/app/"))
 
-    def test_the_strip_has_the_eight_steps_and_the_stages_are_the_places(self):
+    def test_the_stages_are_the_places(self):
         v = load({})
-        self.assertEqual([label.split()[0] for label, _ in v.STRIP], list("12345678"))
-        self.assertEqual([key for _, key in v.STRIP if key], ["chousa", "kaizen", "kadai", "sekkei", "tesuto"])  # the steps Gemini does
-        self.assertEqual(set(v.PLACES), {key for _, key in v.STRIP if key})
-        self.assertEqual([key for _, key in v.OTHERS], ["chat", "news"])
-        self.assertEqual(set(v.NAMES), set(v.PLACES) | {"chat", "news"})
-        self.assertEqual(set(v.QUOTA), set(v.NAMES))
-        self.assertEqual(v.OWN_STEP, "この段は、自分と、ふだん使っている AI でします")
+        self.assertEqual(list(v.PLACES), ["chousa", "kaizen", "kadai", "sekkei", "tesuto"])  # the steps Gemini does
+        self.assertEqual(set(v.QUOTA), set(v.PLACES))
+        self.assertFalse(hasattr(v, "STRIP") or hasattr(v, "OTHERS") or hasattr(v, "NAMES"))
 
     def test_signing_in_and_registering_are_screens_that_are_no_stage(self):
         v = load({})
         self.assertEqual(set(v.SCREENS), {"signin", "touroku"})
         self.assertFalse(set(v.SCREENS) & set(v.PLACES))
-        self.assertFalse(set(v.SCREENS) & set(v.NAMES))
 
     def test_the_place_at_the_end_of_the_address(self):
         v = load({})

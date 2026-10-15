@@ -5,7 +5,6 @@
 !app/assets/icons/*.png
 # Copied from the skills, the news tastes and the user manual by make_assets.py
 app/assets/skills/
-app/assets/tastes.adoc
 app/assets/manual/
 # Made by site/server.py from the Flet that is installed, with aiai as its title
 app/assets/index.html

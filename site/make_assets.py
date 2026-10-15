@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Copies what the app (web, or iPhone and Android) carries with it into app/assets/:
-each folder's SKILL.md into skills/, the news tastes (news/好み.adoc) as tastes.adoc, and the
+each folder's SKILL.md into skills/, and the
 user manual (tameshi/docs/manual.adoc) as manual/manual.md, in Markdown, with its figures in
 manual/images/. Run it before serving or building the app. Only the standard library is used.
 
@@ -136,14 +136,13 @@ def main():
                     with open(os.path.join(OUT, name + ".lead.txt"), "w", encoding="utf-8") as g:
                         g.write(lead + "\n")
             n += 1
-    shutil.copyfile(os.path.join(ROOT, "news", "好み.adoc"), os.path.join(ASSETS, "tastes.adoc"))
     manual = os.path.join(ASSETS, "manual")
     if os.path.isdir(manual):
         shutil.rmtree(manual)
     shutil.copytree(os.path.join(DOCS, "images"), os.path.join(manual, "images"))
     with open(os.path.join(DOCS, "manual.adoc"), encoding="utf-8") as f, open(os.path.join(manual, "manual.md"), "w", encoding="utf-8") as g:
         g.write(adoc_to_md(f.read()))
-    print(f"{OUT} に {n} のスキルを写しました。好みと、利用者マニュアル(manual/)も写しました")
+    print(f"{OUT} に {n} のスキルを写しました。利用者マニュアル(manual/)も写しました")
 
 
 if __name__ == "__main__":

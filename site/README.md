@@ -7,7 +7,7 @@
 | `test_site.py` | `make_site.py` の確かめ |
 | `test_app.py`、`test_tameshi_view.py` | アプリの立ち上がりの題と、「作る」のタブの道の確かめ(Flet と FastAPI がある所で動く) |
 | `app/main.py` | Flet の画面。手引き(一覧。開いて「スキルをコピー」でコピーし、自分の AI に貼る)、作る、使い方、考え方、お知らせ、相談のタブ。中身の幅は、PC で 960 px までです。同じコードを `flet build` で iPhone と Android のアプリにする予定です |
-| `app/tameshi_view.py` | 作るのタブ。流れの 2、3、5、6、8 と、手引きを読ませた Gemini との対話、今日のニュースの欄。`tameshi/server.py` の API と話します |
+| `app/tameshi_view.py` | 作るのタブ。流れの 2、3、5、6、8 の段。`tameshi/server.py` の API と話します |
 | `app/manual_view.py` | 使い方のタブ。利用者マニュアル(`app/assets/manual/`)を出します |
 | `app/glyphs.py` | Web のアプリで日本語の字が抜けないよう、タブを初めて出すときに、使う字を先に読み込みます |
 | `app/kaiseki_view.py` | 解析のタブ。本人の PC で動かすときだけ。毎日のまとめを SSH で取り込み、`kaiseki/naosu.py` で本人の AI の CLI にサイトを直させます(別の枝で、取り込むかは本人が決める) |

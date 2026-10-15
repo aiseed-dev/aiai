@@ -87,7 +87,8 @@ class MainTextTest(unittest.TestCase):
         for view in ("tameshi_view.py", "kiroku_view.py", "server_view.py"):  # other things are copied with a button called コピー
             with open(os.path.join(HERE, "app", view), encoding="utf-8") as f:
                 text = f.read()
-            self.assertIn('OutlinedButton("コピー"', text, view)
+            if view != "tameshi_view.py":  # the 作る tab has nothing to copy since the news left it
+                self.assertIn('OutlinedButton("コピー"', text, view)
             self.assertNotIn('"写す"', text, view)
             self.assertNotIn("写しました", text, view)
         self.assertIn('("1", "手引きを選ぶ")', main)

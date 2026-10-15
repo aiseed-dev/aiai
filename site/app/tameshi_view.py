@@ -2,10 +2,11 @@
 """The 作る tab of the aiai app: the steps of "度々聞いていることを、アプリにする"
 (rireki/SKILL.md) that Google Cloud's Gemini does for a person who signs in. It talks to
 tameshi/server.py at /tameshi, with the fields, buttons and notices of tameshi/docs/design.adoc, 5.
-One stage is open at a time, under a strip of the eight steps like the top page's flow:
+One stage is open at a time, the one named at the end of the address (/app/tameshi/<place>, the second
+step when none); the buttons that carry a result on open the next one:
 
     2 今あるアプリを探す  3 どう良くするかを考える  5 今あるアプリの課題を集める
-    6 設計書とマニュアルを作る  8 テストの手順を作る  then a dialogue with a guide, and the news
+    6 設計書とマニュアルを作る  8 テストの手順を作る
 
 The longer jobs take minutes; their lists are read again every 5 seconds while one is
 running. The stages can always be filled in and pressed; a button that asks Gemini for something sends a
@@ -33,7 +34,6 @@ SITE = os.environ.get("AIAI_SITE", "http://127.0.0.1:8020").rstrip("/")
 PUBLIC = (os.environ.get("AIAI_TAMESHI_URL") or SITE + "/tameshi").rstrip("/")
 API = os.environ.get("AIAI_TAMESHI_API", PUBLIC).rstrip("/")
 RETURN = (os.environ.get("AIAI_RETURN") or SITE + "/app/").rstrip("/") + "/"
-ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 SIGN_IN = {"google": "Google でサインイン", "apple": "Apple でサインイン"}
 
 # The places of the flow that can be opened with /app/tameshi/<place>, by the name of the field
@@ -42,13 +42,8 @@ PLACES = {"chousa": "2 今あるアプリを探す", "kaizen": "3 どう良く�
 # The screens that are not a stage: signing in and registering, with their own routes /tameshi/<screen>
 SCREENS = {"signin": "サインイン", "touroku": "新しく登録する"}
 JOBS = {"chousa": "今あるアプリを探す", "kadai": "今あるアプリの課題を集める", "sekkei": "設計書とマニュアル", "tesuto": "テストの手順"}
-# The strip of steps over the stage, like the flow of the top page: (label, place, whether Gemini does it)
-STRIP = [("1 見つける", None), ("2 探す", "chousa"), ("3 考える", "kaizen"), ("4 決める", None), ("5 課題", "kadai"),
-         ("6 設計書", "sekkei"), ("7 実装", None), ("8 テスト", "tesuto")]
-OTHERS = [("対話", "chat"), ("ニュース", "news")]  # outside the flow, at the right end of the strip
-NAMES = dict(PLACES, chat="手引きを読ませた Gemini と対話する", news="今日のニュースを作らせる")  # what the person is going to, by place
-QUOTA = {"chousa": "chousa", "kaizen": "chat", "kadai": "kadai", "sekkei": "sekkei", "tesuto": "tesuto", "chat": "chat", "news": "news"}
-OWN_STEP = "この段は、自分と、ふだん使っている AI でします"
+# The server's count of the day that a stage uses
+QUOTA = {"chousa": "chousa", "kaizen": "chat", "kadai": "kadai", "sekkei": "sekkei", "tesuto": "tesuto"}
 STATUS = {"waiting": "待っています", "running": "進めています", "done": "できました", "error": "止まりました"}
 # What a form needs before it is sent, in the words of the server's refusal (design 5.3)
 ENOUGH = {"chousa": "何度も頼んでいることを書いてください",
@@ -62,11 +57,6 @@ class ApiError(Exception):
     def __init__(self, status, messages):
         super().__init__("、".join(messages))
         self.status, self.messages = status, messages
-
-
-def read(path):
-    with open(path, encoding="utf-8") as f:
-        return f.read()
 
 
 def place_of(route):
@@ -95,8 +85,6 @@ class TameshiView:
         self.screen = ""       # "signin" or "touroku" while that screen is shown, else empty (the stage view)
         self.built = False
         self.picker = ft.FilePicker()
-        self.clipboard = ft.Clipboard()
-        self.talk = []         # the dialogue with a guide
         self.kaizen_talk = []  # the dialogue of step 3
         self.picked = {k: [] for k in JOBS}  # the materials picked for each job: [(name, bytes)]
         self.cards = {}        # job id -> (status, card), so a finished job is built once
@@ -194,16 +182,10 @@ class TameshiView:
             self.left.value = f"今日あと: {self.me['left'][QUOTA[self.active]]} 回"
 
     def enter(self, place):
-        """Makes the stage of this place the open one: its box is shown, its tag in the strip is filled, and what
-        depends on it (the count left) follows."""
+        """Makes the stage of this place the open one: its box is shown, and what depends on it (the count left) follows."""
         self.active = place
         for key, box in self.sections.items():
             box.visible = key == place
-        for key, (chip, label) in self.chips.items():
-            filled = key == place
-            chip.bgcolor = ft.Colors.PRIMARY if filled else (ft.Colors.PRIMARY_CONTAINER if key in PLACES else ft.Colors.SURFACE_CONTAINER)
-            label.color = ft.Colors.ON_PRIMARY if filled else (ft.Colors.ON_PRIMARY_CONTAINER if key in PLACES else ft.Colors.ON_SURFACE_VARIANT)
-            label.weight = ft.FontWeight.BOLD if filled else ft.FontWeight.W_500
         if self.info.get("error"):  # the server could not be asked: the stage is open, but nothing it does will work
             self.stage_note.value, self.stage_note.color = "いまは使えません: " + self.info["error"], ft.Colors.ERROR
         else:
@@ -214,7 +196,7 @@ class TameshiView:
         self.update_left()
 
     async def open(self, place):
-        """What pressing a tag of the strip does, and what arriving at /app/tameshi/<place> does: the stage opens."""
+        """What arriving at /app/tameshi/<place> and the buttons that carry a result on do: the stage opens."""
         self.enter(place)
         self.page.update()
 
@@ -252,7 +234,8 @@ class TameshiView:
         self.page.update()
 
     def labelled(self, label, control):
-        return ft.Column([ft.Text(label, size=14, weight=ft.FontWeight.W_600), control], spacing=4)
+        return ft.Column([ft.Text(label, size=14, weight=ft.FontWeight.W_600), control], spacing=4,
+                         horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
     def field(self, hint="", lines=1, max_lines=None, max_length=None, **more):
         if lines > 1:
@@ -264,7 +247,8 @@ class TameshiView:
 
     def section(self, key, title, controls):
         """One box of the tab; its key lets the tab scroll to it."""
-        return ft.Container(ft.Column([ft.Text(title, size=19, weight=ft.FontWeight.BOLD), *controls], spacing=10),
+        return ft.Container(ft.Column([ft.Text(title, size=19, weight=ft.FontWeight.BOLD), *controls], spacing=10,
+                                     horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
                             key=key, padding=16, border_radius=14, bgcolor=ft.Colors.SURFACE_CONTAINER_LOW)
 
     async def pick_materials(self, kind, shown):
@@ -286,7 +270,7 @@ class TameshiView:
         """A dropdown of finished jobs, which starts with 読ませない; the jobs are put in by list_jobs, and the
         row is shown only when there is a job to choose."""
         box = ft.Dropdown(value=NONE, options=[ft.DropdownOption(key=NONE, text="読ませない")], width=420)
-        row = self.labelled(label, box)
+        row = self.labelled(label, ft.Row([box]))  # in a Row, so that the dropdown keeps its width of 420
         row.visible = False
         self.chooses[place], self.choose_rows[place] = box, row
         return row, box
@@ -298,7 +282,7 @@ class TameshiView:
             try:
                 self.info = await self.json("GET", "/api/info")
             except ApiError as e:
-                self.info = {"guides": [], "providers": [], "test_login": False, "error": str(e)}
+                self.info = {"providers": [], "test_login": False, "error": str(e)}
         self.first_field = {}
         self.job_boxes = {}   # kind -> the column that lists the jobs of that kind
         self.job_notes = {}
@@ -310,17 +294,16 @@ class TameshiView:
         self.who, self.left = self.note(""), self.note("")
         self.use_box = ft.Row([self.who, ft.Text("・"), self.left, ft.Text("・"),
                                ft.TextButton("サインアウト", on_click=self.sign_out)], wrap=True, spacing=6, visible=False)
-        # the stages, of which one is open; the strip of the steps over them, like the top page's flow
+        # the stages, of which one is open
         self.sections = {"chousa": self.build_chousa(), "kaizen": self.build_kaizen(), "kadai": self.build_kadai(),
-                         "sekkei": self.build_sekkei(), "tesuto": self.build_tesuto(), "chat": self.build_dialogue(), "news": self.build_news()}
-        self.first_field["chat"], self.first_field["news"] = self.say_box, self.tastes
+                         "sekkei": self.build_sekkei(), "tesuto": self.build_tesuto()}
         for key, box in self.sections.items():
             box.visible = key == self.active
         self.stage = ft.Column(list(self.sections.values()), spacing=0)
-        self.stage_note = self.note("")  # what a tag of a step that is not Gemini's says, and that the server is not there
+        self.stage_note = self.note("")  # says that the server is not there
         self.root = ft.Column([
             ft.Text("作る", size=22, weight=ft.FontWeight.BOLD),
-            self.build_strip(), self.stage_note, self.use_box, self.stage], spacing=12,
+            self.stage_note, self.use_box, self.stage], spacing=12,
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         self.built = True
 
@@ -362,33 +345,6 @@ class TameshiView:
                            width=420, padding=24, border_radius=14, bgcolor=ft.Colors.SURFACE_CONTAINER_LOW)
         return ft.Row([box], alignment=ft.MainAxisAlignment.CENTER)
 
-    def build_strip(self):
-        """The eight steps as small tags in one row, as the flow of the top page has them: the steps Gemini does can be
-        pressed (they are coloured), the others are light and say so when pressed. At the right end, the two that are
-        outside the flow. Where the width is short, the tags go on a second row."""
-        self.chips = {}
-
-        def tag(label, key):
-            text = ft.Text(label, size=13)
-            chip = ft.Container(text, padding=ft.Padding.symmetric(vertical=6, horizontal=12), border_radius=999,
-                                on_click=(lambda e: asyncio.create_task(self.open(key))) if key else self.own_step(label))
-            if key:
-                self.chips[key] = (chip, text)
-            else:
-                chip.bgcolor, text.color = ft.Colors.SURFACE_CONTAINER_LOW, ft.Colors.ON_SURFACE_VARIANT
-            return chip
-
-        steps = ft.Row([tag(label, key) for label, key in STRIP], wrap=True, spacing=6, run_spacing=6)
-        others = ft.Row([tag(label, key) for label, key in OTHERS], wrap=True, spacing=6, run_spacing=6)
-        return ft.Row([steps, others], wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN, spacing=12, run_spacing=6)
-
-    def own_step(self, label):
-        """What pressing a tag of a step that the person does with their own AI does: says so, small."""
-        def pressed(e):
-            self.stage_note.value, self.stage_note.color = f"{label}: {OWN_STEP}", ft.Colors.ON_SURFACE_VARIANT
-            self.page.update()
-        return pressed
-
     def job_section(self, kind, title, sentence, controls, buttons):
         """A box with its one sentence, the inputs of a job, its button row,
         and the list of the jobs asked for."""
@@ -401,7 +357,7 @@ class TameshiView:
         return ft.FilledButton(label, on_click=lambda e: asyncio.create_task(self.submit(kind)))
 
     def build_chousa(self):
-        self.fields["chousa"] = {"note": self.field("", 3, max_length=2000)}
+        self.fields["chousa"] = {"note": self.field("", 8, 20, max_length=2000)}
         self.first_field["chousa"] = self.fields["chousa"]["note"]
         return self.job_section(
             "chousa", PLACES["chousa"], "何度も頼んでいることを書くと、Gemini が似たアプリを探し、出典を付けてまとめます。",
@@ -409,17 +365,18 @@ class TameshiView:
 
     def build_kaizen(self):
         pick, self.kaizen_job = self.chooser("kaizen", "読ませる結果")
-        self.kaizen_fuman = self.field("", 3, max_length=2000)
+        self.kaizen_fuman = self.field("", 8, 20, max_length=2000)
         self.first_field["kaizen"] = self.kaizen_fuman
         self.kaizen_note = self.note("")
         self.kaizen_log = ft.Column(spacing=8)
-        self.kaizen_say = self.field("", 2, max_length=4000)
+        self.kaizen_say = self.field("", 4, 12, max_length=4000)
         self.kaizen_start = ft.Column([
-            pick, self.labelled("困っていること", self.kaizen_fuman), ft.FilledButton("考える", on_click=self.kaizen_begin)], spacing=10)
+            pick, self.labelled("困っていること", self.kaizen_fuman), ft.Row([ft.FilledButton("考える", on_click=self.kaizen_begin)])],
+            spacing=10, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         self.kaizen_talkbox = ft.Column([
             self.kaizen_log, self.kaizen_say,
             ft.Row([ft.FilledButton("送る", on_click=self.kaizen_next), ft.TextButton("初めから", on_click=self.kaizen_again)], spacing=8)],
-            spacing=10, visible=False)
+            spacing=10, visible=False, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         return self.section("kaizen", PLACES["kaizen"], [
             self.note("今あるアプリで困っていることを書くと、Gemini と一緒に、どう良くするかを考えます。", small=False),
             self.kaizen_start, self.kaizen_talkbox, self.kaizen_note])
@@ -444,30 +401,6 @@ class TameshiView:
         return self.job_section(
             "tesuto", PLACES["tesuto"], "設計書とマニュアルを選ぶと、Gemini がテストの手順を作ります。",
             [pick, self.materials("tesuto")], [self.go_button("tesuto", "作る")])
-
-    def build_dialogue(self):
-        guides = self.info["guides"]
-        self.guide = ft.Dropdown(value="rireki" if any(g["name"] == "rireki" for g in guides) else (guides[0]["name"] if guides else None),
-                                 options=[ft.DropdownOption(key=g["name"], text=g["title"]) for g in guides], width=420,
-                                 on_select=self.guide_changed)
-        self.log = ft.Column(spacing=8)
-        self.say_box = self.field("", 2, max_length=4000)
-        self.chat_note = self.note("")
-        return self.section("chat", "手引きを読ませた Gemini と対話する", [
-            self.labelled("手引き", self.guide), self.log, self.say_box,
-            ft.FilledButton("送る", on_click=self.chat_send), self.chat_note])
-
-    def build_news(self):
-        try:
-            tastes = read(os.path.join(ASSETS, "tastes.adoc"))
-        except OSError:
-            tastes = ""
-        self.tastes = ft.TextField(value=tastes, multiline=True, min_lines=8, max_lines=14, max_length=4000)
-        self.news_note = self.note("")
-        self.news_out = ft.Column(visible=False, spacing=8)
-        return self.section("news", "今日のニュースを作らせる", [
-            self.note("分野、地域、件数、扱わない物を書きます。下は aiai のニュースの好みです。書き替えて使えます。"),
-            self.tastes, ft.FilledButton("作る", on_click=self.news_make), self.news_note, self.news_out])
 
     # ---- signing in and out -----------------------------------------------------------
 
@@ -520,7 +453,7 @@ class TameshiView:
         self.token, self.me, self.screen = "", None, ""
         await self.refresh()
 
-    # ---- the dialogue and the news ----------------------------------------------------
+    # ---- the answers of Gemini ---------------------------------------------------------
 
     def bubble(self, role, text):
         you = role == "user"
@@ -533,54 +466,6 @@ class TameshiView:
         if d.get("left") is not None and self.me:
             self.me["left"][QUOTA[self.active]] = d["left"]
             self.update_left()
-
-    async def guide_changed(self, e):
-        self.talk = []
-        self.log.controls = []
-        self.page.update()
-
-    async def chat_send(self, e):
-        if not await self.signed_in_or_go():
-            return
-        text = (self.say_box.value or "").strip()
-        if not text:
-            return
-        self.talk.append({"role": "user", "text": text})
-        self.log.controls.append(self.bubble("user", text))
-        self.say_box.value = ""
-        self.say(self.chat_note, "Gemini が答えています")
-        try:
-            d = await self.json("POST", "/api/chat", json={"guide": self.guide.value, "messages": self.talk})
-        except ApiError as err:
-            self.talk.pop()
-            self.log.controls.pop()
-            self.say_box.value = text  # what was written stays
-            self.say(self.chat_note, "、".join(err.messages), True)
-            return
-        self.talk.append({"role": "model", "text": d["text"]})
-        self.log.controls.append(self.bubble("model", d["text"]))
-        self.count_left(d)
-        self.say(self.chat_note, "")
-
-    async def news_make(self, e):
-        if not await self.signed_in_or_go():
-            return
-        self.say(self.news_note, "Gemini が Google 検索で探して、書いています(1 分ほどかかります)")
-        self.news_out.visible = False
-        try:
-            d = await self.json("POST", "/api/news", json={"tastes": self.tastes.value or ""})
-        except ApiError as err:
-            self.say(self.news_note, "、".join(err.messages), True)
-            return
-
-        async def copy(e):
-            await self.clipboard.set(d["adoc"])
-            self.say(self.news_note, "コピーしました")
-
-        self.news_out.controls = [ft.Text(d["adoc"], selectable=True, size=13), ft.OutlinedButton("コピー", icon=ft.Icons.CONTENT_COPY, on_click=copy)]
-        self.news_out.visible = True
-        self.count_left(d)
-        self.say(self.news_note, "")
 
     # ---- step 3: how to make the apps there are better ----------------------------------
 
