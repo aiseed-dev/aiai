@@ -351,6 +351,8 @@ class TameshiView:
         self.touroku_root = self.screen_box("新しく登録する", [
             self.note("ID とパスワードを決めます。メールアドレスは要りません。登録したあと、持ち主が承認すると、Gemini に頼めるようになります。", small=False),
             self.touroku_id, self.touroku_password, self.touroku_again,
+            ft.Row([self.note("登録すると、プライバシーポリシーに同意したことになります"), self.link("プライバシーポリシー", SITE + "/privacy.html")],
+                   wrap=True, spacing=4, vertical_alignment=ft.CrossAxisAlignment.CENTER),
             ft.FilledButton("登録する", on_click=self.register),
             self.touroku_error,
             ft.Row([ft.Text("登録してある人は", size=14), ft.TextButton("サインイン", on_click=self.to("signin"))],
