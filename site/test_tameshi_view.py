@@ -56,11 +56,19 @@ class TameshiViewTest(unittest.TestCase):
         self.assertEqual(v.first_sentences("一つだけです。"), "一つだけです。")
         self.assertEqual(v.first_sentences(""), "")
 
+    def test_signing_in_and_registering_are_screens_that_are_no_stage(self):
+        v = load({})
+        self.assertEqual(set(v.SCREENS), {"signin", "touroku"})
+        self.assertFalse(set(v.SCREENS) & set(v.PLACES))
+        self.assertFalse(set(v.SCREENS) & set(v.NAMES))
+
     def test_the_place_at_the_end_of_the_address(self):
         v = load({})
         self.assertEqual(v.place_of("/tameshi/chousa?code=abc"), (True, "chousa", "abc"))
         self.assertEqual(v.place_of("/tameshi"), (True, "", ""))
         self.assertEqual(v.place_of("/tameshi/nani"), (True, "", ""))
+        self.assertEqual(v.place_of("/tameshi/signin"), (True, "signin", ""))
+        self.assertEqual(v.place_of("/tameshi/touroku"), (True, "touroku", ""))
         self.assertEqual(v.place_of("/?code=abc"), (False, "", ""))
         self.assertEqual(v.place_of(None), (False, "", ""))
 

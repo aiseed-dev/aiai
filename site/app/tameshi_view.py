@@ -8,7 +8,9 @@ One stage is open at a time, under a strip of the eight steps like the top page'
     6 設計書とマニュアルを作る  8 テストの手順を作る  then a dialogue with a guide, and the news
 
 The longer jobs take minutes; their lists are read again every 5 seconds while one is
-running. The sign-in comes back to /app/tameshi/<place> with a one-time code in the
+running. Signing in and registering are screens of their own, /app/tameshi/signin and
+/app/tameshi/touroku (design 5.7); a person who has done either returns to the stage that was open.
+The sign-in with Google or Apple comes back to /app/tameshi/<place> with a one-time code in the
 address, which is traded for a session number kept only while the app is open (as in
 soudan_view.py). On the phone only the test account signs in. Settings:
 
@@ -37,6 +39,8 @@ SIGN_IN = {"google": "Google でサインイン", "apple": "Apple でサイン�
 # The places of the flow that can be opened with /app/tameshi/<place>, by the name of the field
 PLACES = {"chousa": "2 今あるアプリを探す", "kaizen": "3 どう良くするかを考える", "kadai": "5 今あるアプリの課題を集める",
           "sekkei": "6 設計書とマニュアルを作る", "tesuto": "8 テストの手順を作る"}
+# The screens that are not a stage: signing in and registering, with their own routes /tameshi/<screen>
+SCREENS = {"signin": "サインイン", "touroku": "新しく登録する"}
 JOBS = {"chousa": "今あるアプリを探す", "kadai": "今あるアプリの課題を集める", "sekkei": "設計書とマニュアル", "tesuto": "テストの手順"}
 # The strip of steps over the stage, like the flow of the top page: (label, place, whether Gemini does it)
 STRIP = [("1 見つける", None), ("2 探す", "chousa"), ("3 考える", "kaizen"), ("4 決める", None), ("5 課題", "kadai"),
@@ -71,12 +75,13 @@ def read(path):
 
 
 def place_of(route):
-    """(is this a route of the tab, the place named at its end, the one-time code) of an address."""
+    """(is this a route of the tab, the place named at its end, the one-time code) of an address.
+    The place is a stage of PLACES or one of the SCREENS, or empty."""
     parts = urllib.parse.urlsplit(route or "")
     segments = [s for s in parts.path.split("/") if s]
     if not segments or segments[0] != "tameshi":
         return False, "", ""
-    place = segments[1] if len(segments) > 1 and segments[1] in PLACES else ""
+    place = segments[1] if len(segments) > 1 and (segments[1] in PLACES or segments[1] in SCREENS) else ""
     return True, place, dict(urllib.parse.parse_qsl(parts.query)).get("code", "")
 
 
@@ -91,7 +96,8 @@ class TameshiView:
         self.info = None
         self.me = None
         self.aim = ""          # the place the person is going to, until the stage is opened
-        self.active = "chousa"  # the stage that is open: one at a time
+        self.active = "chousa"  # the stage that is open: one at a time; it stays while a screen is shown, to return to
+        self.screen = ""       # "signin" or "touroku" while that screen is shown, else empty (the stage view)
         self.built = False
         self.picker = ft.FilePicker()
         self.clipboard = ft.Clipboard()
@@ -131,7 +137,8 @@ class TameshiView:
         mine, place, code = place_of(route)
         if not mine:
             return False
-        if place:
+        self.screen = place if place in SCREENS else ""
+        if place and not self.screen:
             self.aim = place
         if code:
             try:
@@ -141,17 +148,34 @@ class TameshiView:
             self.page.navigate("/tameshi" + (f"/{place}" if place else ""))  # takes the used code out of the address
         return True
 
+    def current_root(self):
+        """The screen that is current: the signing in, the registering, or the stage view."""
+        return {"signin": self.signin_root, "touroku": self.touroku_root}.get(self.screen, self.root)
+
+    def clear_screens(self):
+        """The password fields are emptied whenever a screen is left or shown again, and the notices with them."""
+        for field in (self.signin_password, self.touroku_password, self.touroku_again):
+            field.value = ""
+        self.signin_error.value = self.touroku_error.value = ""
+
     async def render(self):
         """The tab: built once, then shown again as it was. Goes to the place the person was sent to."""
+        back = ""
         async with self.lock:
             if not self.built:
                 with open(__file__, encoding="utf-8") as f:
                     await preload(self.show, f.read())  # this tab's own words, so none of them loses a character
                 await self.build()
+            self.clear_screens()
             await self.refresh()
-            self.show([self.root])
-            await self.arrive()
-        if self.token:
+            if self.screen and self.me:  # someone signed in has no use for the two screens: back to the stage
+                self.screen, back = "", "/tameshi/" + self.active
+            self.show([self.current_root()])
+            if not self.screen:
+                await self.arrive()
+        if back:
+            await self.page.push_route(back)  # outside the lock: the route change renders again
+        elif self.token and not self.screen:
             asyncio.create_task(self.list_jobs())
 
     async def refresh(self):
@@ -163,12 +187,10 @@ class TameshiView:
             except ApiError:
                 pass
         me = self.me
-        self.sign_in_box.visible = me is None
+        self.sign_in_row.visible = me is None
         self.use_box.visible = me is not None
         if me:
             self.who.value = "テストアカウント" if me["provider"] == "test" else (me["email"] or me.get("id") or me["provider"])
-        elif self.info.get("error"):
-            self.say(self.sign_in_note, "いまは使えません: " + self.info["error"], True)
         self.enter(self.active)
         self.page.update()
 
@@ -179,7 +201,7 @@ class TameshiView:
 
     def enter(self, place):
         """Makes the stage of this place the open one: its box is shown, its tag in the strip is filled, and what
-        depends on it (the line of the sign-in, the count left, whether its inputs can be pressed) follows."""
+        depends on it (the count left, whether its inputs can be pressed) follows."""
         self.active = place
         for key, box in self.sections.items():
             box.visible = key == place
@@ -192,9 +214,6 @@ class TameshiView:
         signed, approved = self.me is not None, bool(self.me and self.me.get("approved"))
         self.stage.disabled = not approved  # before signing in, and until the owner approves, the boxes are seen but not pressed
         self.approval_note.visible = signed and not approved
-        if not self.info.get("error"):
-            self.sign_in_note.value = f"サインインすると、「{NAMES[place]}」に進みます"
-            self.sign_in_note.color = None
         for p, b in self.provider_buttons.items():
             b.action = ft.OpenUrl(f"{PUBLIC}/login/{p}?" + urllib.parse.urlencode({"next": RETURN + "tameshi/" + place}), target=ft.UrlTarget.SELF)
             b.visible = bool(self.page.web and self.info and p in self.info["providers"])
@@ -288,19 +307,16 @@ class TameshiView:
         self.job_notes = {}
         self.chooses = {}     # kind -> the dropdown that reads a finished job of another kind
         self.fields = {}
-        # sign-in
-        self.sign_in_note = self.note("")
-        self.provider_buttons = {p: ft.FilledButton(t, width=280, visible=False) for p, t in SIGN_IN.items()}
-        # one pair of fields for the test account and for the people who registered
-        self.test_id = ft.TextField(hint_text="ID(小文字の英数字と - _、3〜32 字)", width=280)
-        self.test_password = ft.TextField(hint_text="パスワード(8 字以上)", password=True, can_reveal_password=True, width=280,
-                                          on_submit=self.log_in)
-        self.test_box = ft.Column([self.note("ID とパスワードで入るか、新しく登録します(審査用のテストアカウントも、ここから入ります)"),
-                                   self.test_id, self.test_password,
-                                   ft.Row([ft.OutlinedButton("入る", on_click=self.log_in),
-                                           ft.OutlinedButton("新しく登録する", on_click=self.register)], spacing=8, wrap=True)], spacing=8)
-        self.sign_in_box = self.section("sign-in", "サインイン", [
-            ft.Column(list(self.provider_buttons.values()), spacing=8), self.test_box, self.sign_in_note])
+        # signed out: one row under the strip, which goes to the two screens
+        if self.info.get("error"):
+            self.sign_in_note = ft.Text("いまは使えません: " + self.info["error"], size=13, color=ft.Colors.ERROR, selectable=True)
+        else:
+            self.sign_in_note = self.note("Gemini に頼むには、サインインします")
+        self.sign_in_row = ft.Row([self.sign_in_note,
+                                   ft.FilledButton("サインイン", on_click=self.to("signin")),
+                                   ft.OutlinedButton("新しく登録する", on_click=self.to("touroku"))],
+                                  wrap=True, spacing=8, run_spacing=6, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+        self.build_screens()
         # who and how many are left
         self.who, self.left = self.note(""), self.note("")
         self.approval_note = self.note("登録できました。持ち主が承認すると、Gemini に頼めるようになります")
@@ -318,10 +334,46 @@ class TameshiView:
         self.stage_note = self.note("")  # what a tag of a step that is not Gemini's says, and what a person who may not ask is told
         self.root = ft.Column([
             ft.Text("作る", size=22, weight=ft.FontWeight.BOLD),
-            self.note("アプリを作る流れの 2、3、5、6、8 の段を、Google Cloud の Gemini に頼めます。書いたことは記録しません。", small=False),
-            self.build_strip(), self.stage_note, self.sign_in_box, self.use_box, self.stage], spacing=12,
+            self.note("アプリを作る流れの 2、3、5、6、8 の段を、Google Cloud の Gemini に頼めます。", small=False),
+            self.build_strip(), self.stage_note, self.sign_in_row, self.use_box, self.stage], spacing=12,
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         self.built = True
+
+    def build_screens(self):
+        """The two screens of design 5.7, each a box of about 420 px in the middle."""
+        self.provider_buttons = {p: ft.FilledButton(t, visible=False) for p, t in SIGN_IN.items()}
+        self.signin_error = ft.Text("", size=13, color=ft.Colors.ERROR, selectable=True)
+        self.signin_id = ft.TextField(label="ID")
+        self.signin_password = ft.TextField(label="パスワード", password=True, can_reveal_password=True,
+                                            on_submit=lambda e: asyncio.create_task(self.log_in(e)))
+        self.signin_root = self.screen_box("サインイン", [
+            ft.Column(list(self.provider_buttons.values()), spacing=8),
+            self.signin_id, self.signin_password,
+            ft.FilledButton("サインイン", on_click=self.log_in),
+            self.signin_error,
+            ft.Row([ft.Text("登録していない人は", size=14), ft.TextButton("新しく登録する", on_click=self.to("touroku"))],
+                   wrap=True, spacing=4, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+            ft.TextButton("作るに戻る", on_click=self.back)])
+        self.touroku_error = ft.Text("", size=13, color=ft.Colors.ERROR, selectable=True)
+        self.touroku_id = ft.TextField(label="ID", helper="小文字の英数字と - _ で、3〜32 字")
+        self.touroku_password = ft.TextField(label="パスワード", helper="8 字以上", password=True, can_reveal_password=True)
+        self.touroku_again = ft.TextField(label="パスワード(もう一度)", password=True, can_reveal_password=True,
+                                          on_submit=lambda e: asyncio.create_task(self.register(e)))
+        self.touroku_root = self.screen_box("新しく登録する", [
+            self.note("ID とパスワードを決めます。メールアドレスは要りません。登録したあと、持ち主が承認すると、Gemini に頼めるようになります。", small=False),
+            self.touroku_id, self.touroku_password, self.touroku_again,
+            ft.FilledButton("登録する", on_click=self.register),
+            self.touroku_error,
+            ft.Row([ft.Text("登録してある人は", size=14), ft.TextButton("サインイン", on_click=self.to("signin"))],
+                   wrap=True, spacing=4, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+            ft.TextButton("作るに戻る", on_click=self.back)])
+
+    def screen_box(self, title, controls):
+        """A screen: one box of 420 px in the middle, with the title over the controls."""
+        box = ft.Container(ft.Column([ft.Text(title, size=19, weight=ft.FontWeight.BOLD), *controls], spacing=12,
+                                     horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
+                           width=420, padding=24, border_radius=14, bgcolor=ft.Colors.SURFACE_CONTAINER_LOW)
+        return ft.Row([box], alignment=ft.MainAxisAlignment.CENTER)
 
     def build_strip(self):
         """The eight steps as small tags in one row, as the flow of the top page has them: the steps Gemini does can be
@@ -468,28 +520,45 @@ class TameshiView:
 
     # ---- signing in and out -----------------------------------------------------------
 
-    async def enter_with(self, path):
-        """Signs in, or registers, with the ID and the password written in the fields."""
+    async def go(self, route):
+        """Goes to a screen (signin, touroku) or a stage: the route changes, and the app shows what it names."""
+        await self.page.push_route("/tameshi/" + route)
+
+    def to(self, route):
+        """A button that goes to a screen or a stage."""
+        return lambda e: asyncio.create_task(self.go(route))
+
+    async def back(self, e):
+        """From a screen back to the stage that was open."""
+        await self.go(self.active)
+
+    async def enter_with(self, path, error, body):
+        """Signs in, or registers, with what the screen has written; then the person is back on the stage that was open."""
         try:
-            self.token = (await self.json("POST", path, json={"id": self.test_id.value or "", "password": self.test_password.value or ""}))["token"]
+            self.token = (await self.json("POST", path, json=body))["token"]
         except ApiError as err:
-            self.say(self.sign_in_note, "、".join(err.messages), True)
+            self.say(error, "、".join(err.messages), True)
             return
-        self.test_password.value = ""
-        await self.render()
+        self.clear_screens()
+        await self.go(self.active)  # render shows the stage with the person's line, and the approval note when it is due
 
     async def log_in(self, e):
-        await self.enter_with("/api/login")
+        await self.enter_with("/api/login", self.signin_error,
+                              {"id": self.signin_id.value or "", "password": self.signin_password.value or ""})
 
     async def register(self, e):
-        await self.enter_with("/api/register")
+        if (self.touroku_password.value or "") != (self.touroku_again.value or ""):
+            self.say(self.touroku_error, "2 つのパスワードが同じではありません", True)
+            return
+        await self.enter_with("/api/register", self.touroku_error,
+                              {"id": self.touroku_id.value or "", "password": self.touroku_password.value or ""})
 
     async def sign_out(self, e):
         try:
             await self.call("POST", "/api/logout", json={})
         except ApiError:
             pass
-        self.token, self.me = "", None
+        self.token, self.me, self.screen = "", None, ""
         await self.refresh()
 
     # ---- the dialogue and the news ----------------------------------------------------
