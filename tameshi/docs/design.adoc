@@ -94,6 +94,11 @@ site/server.py(127.0.0.1:8020)── /tameshi に tameshi/server.py を差し込
 
 Gemini は Vertex AI の REST で、VM のサービスアカウントで呼びます。鍵はサーバーに置きません。
 
+ハッカソンの審査用に、同じ VM にもう 1 つの口 `https://ai-ai.aiseed.dev/`(systemd の `aiai-shinsa`、127.0.0.1:8021、
+コードは `~/aiai-shinsa/`、記録は `~/aiai-server/shinsa/`)を置き、提出した版のまま 12 月 1 日まで動かします。審査用の
+テストアカウントは、この口にだけあります。本番(`aiai.aiseed.dev`)は、ID とパスワードの登録と持ち主の承認だけで、
+締め切りの後も直していきます。毎日の timer は本番だけです。
+
 アプリの設定は、本番では `AIAI_SITE` だけで足ります。サーバーの道(`AIAI_SITE` + `/tameshi`)と、サインインの戻り先
 (`AIAI_SITE` + `/app/`)は、そこから作ります。別の道にするときは `AIAI_TAMESHI_URL`、`AIAI_TAMESHI_API`、`AIAI_RETURN`
 で替えます。`AIAI_TAMESHI` は、サーバーに差し込むかどうかの印(`1`)なので、アプリの道には使いません。
