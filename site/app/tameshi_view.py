@@ -646,6 +646,8 @@ class TameshiView:
                             continue
                     if j["kind"] in lists:
                         lists[j["kind"]].append(self.cards[j["id"]][1])
+                for gone in set(self.cards) - {j["id"] for j in jobs}:  # jobs the server deleted
+                    del self.cards[gone]
                 for kind, controls in lists.items():
                     self.job_boxes[kind].controls = controls
                 self.fill_choices(jobs)

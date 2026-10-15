@@ -274,6 +274,11 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
     def today():
         return datetime.datetime.now(tz).date().isoformat()
 
+    def remove_job(jid):
+        """Deletes a job's files folder and its row."""
+        shutil.rmtree(os.path.join(jobs_dir, jid), ignore_errors=True)
+        db.run("DELETE FROM jobs WHERE id = ?", (jid,))
+
     def purge():
         t = time.time()
         if t - last_purge[0] >= 60:
@@ -282,8 +287,7 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
             # the test account's jobs are the sample results of the reviewers, kept longer than the others'
             for row in db.all("SELECT id FROM jobs WHERE (provider != 'test' AND created < ?) OR (provider = 'test' AND created < ?)",
                               (t - JOB_DAYS * 86400, t - test_keep_days * 86400)):
-                shutil.rmtree(os.path.join(jobs_dir, row["id"]), ignore_errors=True)
-                db.run("DELETE FROM jobs WHERE id = ?", (row["id"],))
+                remove_job(row["id"])
 
     app = FastAPI(title="aiai を試す", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.db = db
@@ -521,6 +525,10 @@ def create_app(env=None, providers=None, model=None, draw=None, run=None):
         os.makedirs(folder, exist_ok=True)
         db.run("INSERT INTO jobs VALUES (?, ?, ?, ?, 'waiting', '', '[]', ?, NULL)",
                (jid, s["provider"], s["sub"], kind, time.time()))
+        # the new job was accepted: the person's earlier finished or stopped jobs of this kind are replaced by it
+        for old in db.all("SELECT id FROM jobs WHERE provider = ? AND sub = ? AND kind = ? AND status IN ('done', 'error') AND id != ?",
+                          (s["provider"], s["sub"], kind, jid)):
+            remove_job(old["id"])
         steps = []
 
         def step(name):

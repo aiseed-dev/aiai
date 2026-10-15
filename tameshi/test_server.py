@@ -404,6 +404,24 @@ class ServerTest(unittest.TestCase):
         # none of this used the day's design job
         self.assertEqual(self.c.get("/api/me", headers=h).json()["left"]["sekkei"], 1)
 
+    def test_a_new_job_replaces_the_earlier_finished_jobs_of_the_same_kind(self):
+        h = self.google("u60")
+        a = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).json()["id"]
+        k = self.c.post("/api/jobs", data={"kind": "kadai", "mihon": "1"}, headers=h).json()["id"]
+        folder = lambda i: os.path.join(self.tmp.name, "jobs", i)
+        self.assertTrue(os.path.isdir(folder(a)))
+        # a refused request deletes nothing
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "chousa"}, headers=h).status_code, 422)
+        self.assertEqual(sorted(j["id"] for j in self.c.get("/api/jobs", headers=h).json()["jobs"]), sorted([a, k]))
+        b = self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).json()["id"]
+        self.assertEqual(sorted(j["id"] for j in self.c.get("/api/jobs", headers=h).json()["jobs"]), sorted([b, k]))
+        self.assertEqual(self.c.get(f"/api/jobs/{a}", headers=h).status_code, 404)
+        self.assertFalse(os.path.exists(folder(a)))
+        self.assertTrue(os.path.isdir(folder(k)))
+        # over the limit of the day: refused, and the finished job stays
+        self.assertEqual(self.c.post("/api/jobs", data={"kind": "chousa", "mihon": "1"}, headers=h).status_code, 429)
+        self.assertEqual(self.c.get(f"/api/jobs/{b}", headers=h).status_code, 200)
+
     def test_the_refusals_of_a_job_say_what_is_missing(self):
         h = self.google("u18")
         r = self.c.post("/api/jobs", data={"kind": "chousa"}, headers=h)
