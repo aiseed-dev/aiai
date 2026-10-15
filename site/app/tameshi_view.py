@@ -166,6 +166,13 @@ class TameshiView:
             await self.refresh()
             if self.screen and self.me:  # someone signed in has no use for the two screens: back to the stage
                 self.screen, back = "", "/tameshi/" + self.active
+            elif not self.screen and self.me is None and not self.info.get("error"):
+                # Not signed in: the stage does not open, the sign-in screen does (design 5.1). The place the person
+                # came for stays the open one, so that signing in opens it. The route change shows the screen,
+                # so render does not come here again.
+                self.active, self.aim = self.aim or self.active, ""
+                self.enter(self.active)
+                self.screen, back = "signin", "/tameshi/signin"
             self.show([self.current_root()])
             if not self.screen:
                 await self.arrive()
@@ -333,8 +340,7 @@ class TameshiView:
             ft.FilledButton("サインイン", on_click=self.log_in),
             self.signin_error,
             ft.Row([ft.Text("登録していない人は", size=14), ft.TextButton("新しく登録する", on_click=self.to("touroku"))],
-                   wrap=True, spacing=4, vertical_alignment=ft.CrossAxisAlignment.CENTER),
-            ft.TextButton("作るに戻る", on_click=self.back)])
+                   wrap=True, spacing=4, vertical_alignment=ft.CrossAxisAlignment.CENTER)])
         self.touroku_error = ft.Text("", size=13, color=ft.Colors.ERROR, selectable=True)
         self.touroku_id = ft.TextField(label="ID", helper="小文字の英数字と - _ で、3〜32 字")
         self.touroku_password = ft.TextField(label="パスワード", helper="8 字以上", password=True, can_reveal_password=True)
@@ -348,8 +354,7 @@ class TameshiView:
             ft.FilledButton("登録する", on_click=self.register),
             self.touroku_error,
             ft.Row([ft.Text("登録してある人は", size=14), ft.TextButton("サインイン", on_click=self.to("signin"))],
-                   wrap=True, spacing=4, vertical_alignment=ft.CrossAxisAlignment.CENTER),
-            ft.TextButton("作るに戻る", on_click=self.back)])
+                   wrap=True, spacing=4, vertical_alignment=ft.CrossAxisAlignment.CENTER)])
 
     def screen_box(self, title, controls):
         """A screen: one box of 420 px in the middle, with the title over the controls."""
@@ -433,10 +438,6 @@ class TameshiView:
         """A button that goes to a screen or a stage."""
         return lambda e: asyncio.create_task(self.go(route))
 
-    async def back(self, e):
-        """From a screen back to the stage that was open."""
-        await self.go(self.active)
-
     async def enter_with(self, path, error, body):
         """Signs in, or registers, with what the screen has written; then the person is back on the stage that was open."""
         try:
@@ -463,8 +464,8 @@ class TameshiView:
             await self.call("POST", "/api/logout", json={})
         except ApiError:
             pass
-        self.token, self.me, self.screen = "", None, ""
-        await self.refresh()
+        self.token, self.me, self.screen, self.aim = "", None, "", ""
+        await self.render()  # a signed-out person lands on the sign-in screen
 
     # ---- the answers of Gemini ---------------------------------------------------------
 
