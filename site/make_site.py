@@ -572,7 +572,7 @@ HEADER = """<header class="bar">
 
 FOOTER = """<footer>
   <p><strong>aiai</strong> AI 時代の AI 活用法</p>
-  <p class="small"><a href="/tsukaikata.html">使い方</a> ・ <a href="/news/">ニュース</a> ・ <a href="/kangaekata.html">考え方</a> ・ <a href="/kiji/">記事</a> ・ <a href="/sagasu.html">探す</a> ・ <a href="/tsukaikata.html#tools">一緒に使う物</a> ・ <a href="/kaiseki/">読まれ方の記録</a></p>
+  <p class="small"><a href="/tsukaikata.html">使い方</a> ・ <a href="/news/">ニュース</a> ・ <a href="/kangaekata.html">考え方</a> ・ <a href="/kiji/">記事</a> ・ <a href="/sagasu.html">探す</a> ・ <a href="/tsukaikata.html#tools">一緒に使う物</a> ・ <a href="/kaiseki/">読まれ方の記録</a> ・ <a href="/privacy.html">プライバシーポリシー</a></p>
   <p class="small">文書は CC BY 4.0、コードは AGPL-3.0-or-later です。見本の人、店、数字は、すべて架空です。このサイトは、国や役所が作った物ではありません。</p>
 </footer>"""
 
@@ -1073,6 +1073,8 @@ def main():
     # the pages the top page's table of contents leads to (hand-written, as the top page is)
     write(os.path.join(OUT, "eizou.html"), page("写真や映像を読む AI", read(os.path.join(HERE, "eizou.html")),
                                                  "畑のカメラの映像を AI が読み、記録する例"))
+    write(os.path.join(OUT, "privacy.html"), page("プライバシーポリシー", read(os.path.join(HERE, "privacy.html")),
+                                                   "このサイトとアプリで、何を預かり、何に使い、いつ消すか"))
     # the usage page is the short form of the user manual; its PDF is copied beside it (the flow is the top page's)
     write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)) + skill_source(skills) + COPY_SCRIPT, "手引きを AI に読ませる方法と、アプリを作る流れ"))
     docs = os.path.dirname(MANUAL)
