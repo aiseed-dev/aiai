@@ -34,6 +34,7 @@ class FakeGemini:
     def __init__(self):
         self.seen = []
         self.fail = False  # Gemini that stops a job
+        self.form = "phone"  # the form of the screen it answers; None leaves the field out
 
     def __call__(self, contents, system="", search=False, schema=None, **more):
         self.seen.append((contents, system, search))
@@ -41,7 +42,10 @@ class FakeGemini:
             raise server.gemini.GeminiError("Gemini が答えませんでした")
         text = contents[-1]["text"]
         if schema and "screens" in schema["properties"]:
-            return json.dumps({"screens": [{"id": "screen-01", "name": "課題一覧", "parts": ["課題一覧", "課題を登録"]}]}), []
+            screen = {"id": "screen-01", "name": "課題一覧", "parts": ["課題一覧", "課題を登録"]}
+            if self.form:
+                screen["form"] = self.form
+            return json.dumps({"screens": [screen]}), []
         if schema and "test" in schema["properties"]:
             return json.dumps({"report": "== 確かめ\n\n手順にそろっています。", "test": "= テストの手順\n\n== マニュアルの操作の確かめ\n\n直した版。"}), []
         if schema:
@@ -169,6 +173,23 @@ class ServerTest(unittest.TestCase):
     def job(self, h, kind, files=None, note=""):
         files = files or [("files", ("mirai.zip", materials_zip(), "application/zip"))]
         return self.c.post("/api/jobs", data={"kind": kind, "note": note}, files=files, headers=h)
+
+    def test_the_picture_is_drawn_in_the_form_of_the_screen(self):
+        h = {"Authorization": "Bearer " + self.log_in_test().json()["token"]}
+        for form, wide in (("pc", True), ("phone", False), (None, False)):
+            self.drawn.clear()
+            self.gemini.form = form
+            r = self.job(h, "sekkei")
+            self.assertEqual(r.status_code, 200, r.text)
+            j = self.c.get(f"/api/jobs/{r.json()['id']}", headers=h).json()
+            self.assertEqual(j["status"], "done", j)
+            self.assertEqual(len(self.drawn), 1)
+            self.assertIn("横長" if wide else "縦長", self.drawn[0])
+            self.assertNotIn("縦長" if wide else "横長", self.drawn[0])
+        # the screen list is asked with the materials (the SKILL.md) and the form
+        pick = [c[0][-1]["text"] for c in self.gemini.seen if c[0][-1]["text"].find("画面の一覧を JSON") >= 0][0]
+        self.assertIn("架空のアプリ", pick)
+        self.assertIn("form は", pick)
 
     def test_design_job_writes_the_documents_and_the_pictures(self):
         h = {"Authorization": "Bearer " + self.log_in_test().json()["token"]}

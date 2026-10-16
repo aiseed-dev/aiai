@@ -671,6 +671,10 @@ Gemini には、手引きの全文と、次の決まりを渡します。手順�
 問題点の一覧があれば、それぞれを設計書のどこで防いでいるかの表を入れるよう書きます。結果は `docs/design.adoc`、
 `docs/manual.adoc`、`docs/images/screen-NN.png`、`docs/kakunin.adoc`。
 
+画面の絵の形は、資料と設計書から決めます。「設計書から画面を拾う」で、画面ごとに、PC の画面か(`pc`)、スマートフォンの
+画面か(`phone`)も出させます(SKILL.md と設計書に書いてある方。書いていなければ `phone`)。PC の画面は横長のブラウザーか
+PC のアプリの窓として、スマートフォンの画面は縦長の画面として描かせます。
+
 === 7.4 テストの手順を作る(`tesuto`)
 
 関数 `tesuto(materials, note, folder, ask, step)`。`sekkei` が選ばれたら、その仕事の `docs/design.adoc`、
