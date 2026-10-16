@@ -11,6 +11,20 @@
 
 出典: Roboflow ブログ「Google Is Back! Gemini 4 Argon Leads Our Vision Benchmark」(2026-10-15)、https://roboflow.com/blog/gemini-4-argon-vision 、2026-10-16 に確かめました
 
+== Google の「Gemini 4 Argon」は、長い動画の理解の比べで 91.7% です。物に枠を付ける別の比べでも、GPT-6.1 Sol や Claude Opus 5.5 より高く出ています
+:分野: VLM
+:国・地域: 米国
+
+Google DeepMind は、Gemini 4 Argon のモデルカードを 2026 年 10 月 13 日に出しました。長い動画の理解を測る LVBench は 91.7% で、GPT-6 Astra の 87.5%、Claude Opus 5.5 の 83.7%、Claude Fable 5.1 の 79.7% より高くなっています。グラフを読む Chartography は 71.6% で、GPT-6 Astra の 71.0% とほぼ並んでいます(Google の自己申告です)。LVBench は、数時間に及ぶ長い動画から質問に答えさせる比べです(清華大学と Zhipu AI が作り、ICCV 2025 に出ています)。入力は文字、画像、音声、動画で、コンテキストは最大 100 万トークンです。モデルカードに料金は書かれていません。
+
+Ultralytics は 10 月 14 日に、現実の物の検出 36 種類のデータ(1 種類につき画像 3 枚、計 108 枚)で、物に枠を付ける自動の注釈の 26 のモデルを比べました。Gemini 4 Argon の mAP50 は 0.565 で、GPT-6.1 Sol は 0.491、Claude Opus 5.5 は 0.476、GPT-6 Astra は 0.470 です。工業用の基板と保安検査の X 線の画像は、Argon でも 0.2 を下回りました。費用は 1,000 枚あたり約 7.60 米ドルで、11 月 30 日までの導入価格です(その後は約 15 米ドル)。この比べは Ultralytics が自社の基準で行った物で、記事は、枠は下書きとして人が確かめ、自分の画像で試してから使うよう勧めています。
+
+LVBench の問題の数や動画の平均の長さは、元の論文では確かめていません。防犯カメラや畑のカメラの映像で同じ点数が出るかは、どの資料にも書かれていません。
+
+出典: Google DeepMind「Gemini 4 Argon - Model Card」(2026-10-13)、https://deepmind.google/models/model-cards/gemini-4-argon/ +
+出典: Ultralytics「Gemini 4 Argon Auto-Annotation」(2026-10-14)、https://www.ultralytics.com/blog/gemini-4-argon-auto-annotation +
+出典: Wang ほか「LVBench: An Extreme Long Video Understanding Benchmark」(ICCV 2025)、https://openaccess.thecvf.com/content/ICCV2025/html/Wang_LVBench_An_Extreme_Long_Video_Understanding_Benchmark_ICCV_2025_paper.html 、2026-10-16 に確かめました
+
 == 環境省が、2026 年度のクマの人身被害件数の速報値を 9 月分まで更新しました
 :分野: VLM
 :国・地域: 日本
@@ -49,3 +63,47 @@ NTT ドコモは、北海道にある基地局 2 局(山の手と白川)に、�
 発表には、料金、対応するカメラの機種、映像の保存期間は書かれていません。カメラの映像には人も写るので、使う側は、映像の扱いを導入前に確かめる必要があります。
 
 出典: セーフィー プレスリリース(2026-08-19 掲載、PR TIMES 配信の転載)、https://www.techno-edge.net/release/prtimes2/20260819/24271.html 、2026-10-16 に確かめました
+
+== Meta が上位モデル「Muse Wonder」と「Muse Wonder Full」を 10 月 12 日に出しました。API の料金は入力 100 万トークンあたり 4 米ドル、出力 20 米ドルです
+:分野: VLM
+:国・地域: 米国
+
+Meta Superintelligence Labs は 2026 年 10 月 12 日に、「最も高性能」とする Muse Wonder と Muse Wonder Full を出しました。Muse Wonder は Meta Model API と、ターミナルで動くコーディングエージェント Muse Code で使えます。Muse Wonder Full は Muse Code の購読者だけが使えます。会話をまたいで必要な文脈を持ち越す「Active Memory」と、難しい場面でも目標を追い、失敗から立て直し、大事な操作の前に確認する「Active Focus」が特徴です。保険の請求、賃貸契約の読み取り、アプリ作りのような仕事を想定しています(Meta の発表です)。発表には具体的な点数がなく、安全性の評価報告は「近日中」とされています。
+
+Meta Model API の料金表では、Muse Wonder 1.0 はコンテキスト 100 万トークンで、入力 4.00 米ドル、キャッシュされた入力 0.20 米ドル、出力 20.00 米ドル(いずれも 100 万トークンあたり)です。同じ表の Muse Spark 1.3 は入力 1.25 米ドル、出力 4.25 米ドルで、入力が Meta の製品の改善に使われない版です。「contributor」の付く版は入力 0.10 米ドル、出力 0.20 米ドルと安い代わりに、表に「製品の改善に使う」と書かれています。画像や動画を渡す仕事に使うときは、渡した内容がどちらの扱いになるかを、先に確かめる必要があります。
+
+出典: Meta「Introducing Muse Wonder and Muse Wonder Full」(2026-10-12、2026-10-13 更新)、https://about.fb.com/news/2026/10/introducing-muse-wonder-models/ +
+出典: Meta「Meta Model API」(日付の記載なし)、https://dev.meta.ai/products/meta-model-api 、2026-10-16 に確かめました
+
+== Meta が重みを公開する「Muse Spark Open」を 10 月 15 日に出しました。8160 億パラメータで、画像、動画、音声も入力できます
+:分野: VLM
+:国・地域: 米国
+
+Meta は 2026 年 10 月 15 日に、重みを公開する Muse Spark Open を出しました。全体で 8160 億パラメータのうち、1 トークンごとに約 420 億を使う構造で、コンテキストは 100 万トークンです。入力は文字、画像、動画、音声です。Meta は「米国製で最も高性能なオープンウェイト」と説明していますが、発表のページに点数の表はなく、比べた相手の名前もありません(Meta の発表です)。ライセンスは Apache 2.0 ではなく、商用に条件がある独自の「Muse Model License」です。
+
+画像と動画の点数は、Hugging Face のモデルカードにあります(いちばん高い推論の設定で、Meta の自己申告です)。比べた相手は Kimi K3 と Inkling の 2 つだけです。動画の VideoMMEv2 は 61.5 で、Kimi K3 の 65.4 より低く、Inkling の 36.9 より高くなっています。画像の ZeroBench(道具あり)は 50.0(Kimi K3 は 41.0)、SimpleVQA(道具あり)は 73.6(同 71.9)、物の動きの理解を測る IntPhys2 は 68.3(同 60.3)で、Spark Open が上です。BabyVision(道具あり)は 80.2(同 85.7)、WorldVQA(道具あり)は 49.4(同 51.0)で、下です。LVBench、Video-MME、MMMU、CharXiv の点数はありません。画像の中の文字を読む力や、物の数え上げ、位置を指す力の点数も、確かめた範囲では出ていません。詳しい評価の報告は「近日中」とされています。動画は、数秒で 100 ピクセルほどの小さい物だと「動画が見えない」と答えることがあり、短い辺は 448 ピクセル以上が勧められています。
+
+動かすのに要る記憶容量は、元の精度で約 1.6TB、NVFP4 で約 530GB です。512GB の Mac Studio(M5 Ultra)2 台を Thunderbolt 5 でつないで MLX で動かす方法と、Unsloth の約 2 ビットの GGUF で約 300GB の RAM と VRAM を使う方法が、Meta の開発者向けのページに書かれています。手元の PC 1 台では足りない大きさです。重みは Hugging Face、Amazon SageMaker、Google Cloud Model Garden、Microsoft Foundry にあり、Groq、Together AI、OpenRouter などの API でも使えます。
+
+出典: Meta AI Research「Introducing Muse Spark Open」(2026-10-15)、https://research.meta.ai/blog/muse-spark-open +
+出典: Meta「Build with Muse Spark Open」(2026-10-15)、https://dev.meta.ai/resources/blog/build-with-muse-spark-open +
+出典: Meta「Muse-Spark-Open-816B-A42B」モデルカード(Hugging Face、日付の記載なし)、https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B 、2026-10-16 に確かめました
+
+== Meta が 300 億パラメータの「Muse Glimmer」を Apache 2.0 で公開しています。普通の GPU 1 枚や Mac で動かせる大きさです
+:分野: VLM
+:国・地域: 米国
+
+Meta は 2026 年 8 月 10 日に、重みを Apache 2.0 で公開する Muse Glimmer を出しました。300 億パラメータで、手元で常に動かすエージェント、関数呼び出し、手元でのコーディング、AI が別の AI の答えを採点する用途を想定し、普通の GPU 1 枚か Mac で動かせる大きさとしています(Meta の発表です)。重みは Hugging Face にあり、Ollama、LM Studio、vLLM、OpenRouter などでも使えます。モデルの説明のページは「画像を含む知覚が組み込まれている」と書いていますが、画像を入力できるかは明記しておらず、コンテキストの長さも書いていません。現場の写真を読ませる用途に使えるかは、試して確かめる必要があります。
+
+Muse Spark Open(同じ Muse の公開モデル)が手元の PC 1 台では動かせない大きさなのに対し、Glimmer は手元で動かせる側です。
+
+出典: Meta AI Research「Introducing Muse Glimmer」(2026-08-10)、https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model +
+出典: Meta「Muse Glimmer」(日付の記載なし)、https://dev.meta.ai/models/muse-glimmer 、2026-10-16 に確かめました
+
+== Meta が賞金 100 万ドルのオンラインのハッカソンを 10 月 26 日から開きます。Muse の API と Muse Code が使え、応募は 10 月 25 日までです
+:分野: VLM
+:国・地域: 米国
+
+Meta は、Cerebral Valley の運営で「Meta Global AI Developer Hackathon」を、2026 年 10 月 26 日から 11 月 4 日までの 10 日間、オンラインで開きます。賞金は合計 100 万米ドルで、個人・学生向けと、スタートアップ向けの 2 部門です。参加は採用された人が無料で、採用は 2 万人までです。応募は 10 月 13 日に始まり、10 月 25 日 23:59(米国東部時間)が締め切りで、受け付けは随時審査されます。審査は 11 月 4 日から 8 日、最終発表は 11 月 9 日です。使えるのは Meta Model API の Muse Spark 系、Muse Image、SAM 3.1、公開された重みのモデル、Muse Code で、Baseten、Modal、Fireworks の利用枠もあります(掲載ページの内容です)。賞金の内訳は、ページに書かれていません。
+
+出典: Cerebral Valley「Meta Global AI Developer Hackathon」(日付の記載なし)、https://cerebralvalley.ai/e/meta-ai-developer-hackathon 、2026-10-16 に確かめました
