@@ -44,8 +44,9 @@ description: 自分のサーバーやシステムを、委託先に丸投げせ�
    確かめます。OpenWrt では、`/etc/config/system` の `log_ip`、`log_port`、`log_proto` で送り先を決めます
    (OpenWrt「Logging」、https://openwrt.org/docs/guide-user/base-system/log.essentials 、2026-10-16 に
    確かめました)。送れないときは、次に買い替えるときの
-   条件にします。会社のネットワークを選び、組み、毎日点検するときは、aiai tools の手引き(ルーターを選ぶ
-   `router/`、毎日の点検 `tenken/`、https://github.com/aiseed-dev/aiai-tools )を使います
+   条件にします。会社のネットワークを選び、組み、毎日点検するときは、aiai tools の手引きを使います。ルーターを選ぶ
+   手引きは https://github.com/aiseed-dev/aiai-tools/blob/main/router/README.md 、毎日の点検は
+   https://github.com/aiseed-dev/aiai-tools/blob/main/tenken/README.md です
 5. 毎日のログを数える仕組みを作ります。aiai の `tools/kougeki.py` は、SSH のログインの試み、穴を
    探す HTTP の要求、外に開いている口を 1 日 1 回数え、adoc と json に書きます。本人のサーバーに
    合わせて、本人の AI が直して使えます
