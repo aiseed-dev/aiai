@@ -20,6 +20,42 @@ VLM をこれから使える場所のニュースも、この分野に入れる�
 - 鳥獣対策: シカ、イノシシ、サル、カラス、クマなどが、畑や建物に入らないようにすること。捕獲よりも、
   入らせないこと(柵、音、光、カメラで見つけて知らせる)を中心に。動物と一緒に暮らす工夫も
 
+== まず見る所
+
+検索の前に、分野ごとに次を見ます。どれも、新しい物を知るための入り口です。記事にするときは、元の出どころ(会社の
+発表、モデルの説明のページ、論文、役所の資料)まで辿り、元を出典にします。2026-10-16 に、どれも開けることを
+確かめました。
+
+=== VLM
+
+- Roboflow のブログ(https://roboflow.com/blog): 新しい VLM を現場の使い方で比べ、製造の検査などでの使い方を書く。
+  比べは、この会社が自分で決めた基準の物なので、使うときはそう書く
+- Hugging Face の Daily Papers(https://huggingface.co/papers): その日に注目された論文の一覧
+- arXiv の画像の分野の新着(https://arxiv.org/list/cs.CV/new)
+- Simon Willison のブログの VLM の記事(https://simonwillison.net/tags/vision-llms/): 新しい VLM を自分で試した
+  記録。手元の PC で動かした結果も書く
+- OCRBench v2(https://99franklin.github.io/ocrbench_v2/): 画像の中の文字を読む力の比べ
+- Hugging Face の新しいモデルの説明のページと、モデルの作り手の公式の発表
+
+=== 建物の機器
+
+- JVN(https://jvn.jp/): 日本の製品の弱点の知らせ
+- IPA の重要なセキュリティ情報(https://www.ipa.go.jp/security/security-alert/)
+- 米国 CISA の、実際に悪用された弱点の一覧(https://www.cisa.gov/known-exploited-vulnerabilities-catalog)
+- 個人情報保護委員会(https://www.ppc.go.jp/): 識別情報の扱いの決まりの変更、漏えいの知らせ
+
+=== 鳥獣対策
+
+- 環境省「クマに関する各種情報・取組」(https://www.env.go.jp/nature/choju/effort/effort12/effort12.html):
+  出没の数、人身被害の数、対策
+- 農林水産省「鳥獣被害対策コーナー」(https://www.maff.go.jp/j/seisan/tyozyu/higai/)
+- 県や市町村の発表と、地元の新聞
+
+=== 使い方の決まり
+
+- Yahoo!ニュースのように、ほかの新聞社の記事を集めて載せる所は、元の新聞社の記事まで辿り、元の記事を出典にする
+- 会社の発表(PR TIMES など)は使ってよい。ただし、中身の分からない宣伝だけの物は使わない
+
 == 扱わない物
 
 - 伝統食品
