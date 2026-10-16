@@ -1,0 +1,295 @@
+= 関係するアプリの今
+:toc:
+:toc-title: 目次
+
+2026-10-16 に、Gemini が Google 検索で公式サイトなどを読んでまとめました。
+
+== Google Cloud Security Command Center
+
+選んだ理由: 資料と本人の言葉にあるGoogle Cloudのサービスであり、VMの記録や開いている口を調べて危険と対策を知らせる点が似ています。
+
+=== 運営者
+
+Google（Google Cloud）が運営しています。
+
+=== 規模
+
+公式サイトの発表には、数千のGoogle Cloudの顧客を守っていると書かれています。具体的な利用者数や対象サーバーの台数、売上高の数字は、読んだページには書かれておらず、分かりません。
+
+=== 機能
+
+Google Cloudの環境にある設定の間違い、プログラムの弱点（脆弱性）、攻撃の兆候を見つけて知らせるサービスです。専用のソフト（エージェント）を入れずに調べる方法と、入れて調べる方法の両方があります。
+
+主な機能は次のとおりです。
+
+* 資産の発見と一覧の表示（仮想マシンやコンテナなど）
+* 設定の間違いの発見
+* 仮想マシン（Compute Engine）やコンテナなどで動く疑わしい動きや攻撃の検知
+* 攻撃の道筋の計算と、危険度の点数化
+* Mandiantの知識を使った弱点（CVE）の評価と脅威の調査
+* AIの資産やモデル、データの保護
+* ログの分析（SIEM）と、手順書（プレイブック）を使った対応の自動化（SOAR）
+
+=== 料金
+
+3つの段階（ティア）があります。なお、Enterpriseは非推奨となり、2027年5月21日に終了してPremiumへ自動的に移ることが公式の案内に出ています。
+
+[cols="1,2,2", options="header"]
+|===
+| 段階 | 料金の仕組み | 金額
+
+| Standard
+| 追加の料金なし
+| 無料
+
+| Premium
+| 1年または複数年の定額、または使った分だけ払う従量課金（組織全体またはプロジェクト単位）
+| 定額は年間最低15,000米ドル。従量課金は、Compute EngineやCloud Run、AlloyDBなどが1 vCPU時間あたり0.0057米ドル（組織単位）または0.0071米ドル（プロジェクト単位）、BigQueryの分析が1 TiBあたり0.80米ドル（組織単位）または1.00米ドル（プロジェクト単位）など。
+
+| Enterprise（非推奨）
+| 1年または複数年の定額
+| Google Cloudの年間利用予定額または契約額の大きい方の5%
+|===
+
+これらとは別に、ログの保存（Cloud Logging）や、追加の検査機能（Web Security ScannerやSensitive Data Protection、外部の検査ツールなど）を使うと、その分の料金が別にかかります。
+
+=== 使っている外部サービス
+
+Google Cloudの外のサービスやツールとつなぐ仕組みとして、次のものが書かれています。
+
+* Amazon Web Services（AWS）およびMicrosoft Azure（これらにつないで設定の間違いや脅威を見つける）
+* 外部の会社の検査ツール（サードパーティ製スキャナーの検査結果を取り込む）
+* Jira、SMS、Gmail（通知を送る先として使う）
+
+このサービス自体が裏で動くために使っている他社の外部サービスがあるかどうかは、読んだページには書かれておらず、分かりません。
+
+=== 問題点
+
+読んだ資料に書かれている事実から分かる、利用者にとっての問題点と、運営の作りの問題点は次のとおりです。
+
+==== 利用者にとって
+
+* 有料の段階（Premium）で脅威の検知などを使う場合、定額では年間最低15,000米ドルかかり、従量課金でも仮想マシンの稼働時間やログの保存量に応じた料金がかかるため、個人や小さい規模では費用が高くなります。
+* 本体の料金とは別に、ログの保存や検査機能の利用で追加の料金がかかることがあり、全体の費用が分かりにくいです。
+* 多くの項目やプロジェクトをまとめて監視するため、問題のない通知（ノイズ）と本当に対処が必要な危険とを見分ける作業が必要になります。
+* 利用者が資産の名前やメモに顧客名や口座番号などの大切な情報を書いてしまうと、そのまま記録されてしまうため、自分で気をつけて書かないようにする必要があります。
+
+==== 運営の作り
+
+* サーバーの記録や設定の情報はすべてGoogle Cloud側に集められ、サービスの改善やモデルの改良のためにGoogleによって処理されます。これを止める（オプトアウトする）には、サポートへ連絡する必要があります。
+* 保存されるデータは、初期設定ではGoogleが管理する鍵で暗号化されます。自分で鍵を管理する仕組み（CMEK）を使うには、別のサービス（Cloud Key Management Service）を組み合わせて設定する必要があります。
+* Enterpriseの段階が2027年5月に終了してPremiumに移されるなど、サービスの区分や料金の仕組みが運営側の都合で変わることがあります。
+
+== Logwatch
+
+サーバーの上で毎日動いて、SSH や Web の記録から失敗の数などをまとめ、人が読める 1 日分の記録を作る点が似ています。
+
+=== 運営者
+
+運営している会社や法人はありません。有志が集まって作るオープンソースの企画として運営されています。もともとの作者は Kirk Bauer 氏です。SourceForge の公式ページには、管理者として bjorn1、jpyeron、kirkbauer、mtremaine、opoplawski の 5 つのアカウントが載っています。2010年3月26日に SourceForge に登録されました。
+
+=== 規模
+
+資金の調達や売り上げはありません。公開されている情報から分かる規模は次のとおりです。
+
+[cols="1,2"]
+|===
+|項目 |内容
+
+|ダウンロード数
+|SourceForge で累計 100,000 回以上、または月間 10,000 回以上のダウンロードを達成した企画に贈られる賞（Open Source Excellence badge）を受けています。2026年7月22日に公開された版（7.15）のページには、週に 30 回のダウンロードと記録されています。
+
+|配布先
+|Red Hat Enterprise Linux、Ubuntu、Debian などの主要な Linux の公式パッケージとして最初から用意されています。パッケージからの利用者が何人いるかは分かりません。
+
+|評価の数
+|SourceForge に 12 件の評価があり、平均は 5.0 点満点です。
+|===
+
+=== 機能
+
+Linux や Unix のサーバーの記録（ログ）を読み、指定した期間のまとめを作る Perl 言語のプログラムです。
+
+* 毎日決まった時間に自動で動き（`/etc/cron.daily` の仕組み）、その日の記録を集計します。
+* SSH（sshd）のログインの失敗、Web サーバー（http）の記録、メールサーバー（postfix）、ディスクの空き容量、パッケージの更新などをサービスごとに集計します。
+* 集計の詳しさを、低（Low）、中（Med）、高（High）、または 0 から 10 の数字で選べます。
+* 結果は、文字だけ（テキスト）または HTML の形で、画面に出すか、ファイルに保存するか、メールで送ることができます。
+
+=== 料金
+
+無料です。MIT ライセンスで公開されており、個人の利用でも会社の利用でもお金はかかりません。有料の版や、有料のサポートの契約もありません。
+
+=== 使っている外部サービス
+
+プログラムが動くときに通信する外部のクラウドサービスはありません。
+
+* 開発と配布の場所として、SourceForge（ソースコードの管理、ファイルの配布、掲示板、課題の管理）を使っています。
+* サーバーの中で動くときは、Linux の定期実行の仕組み（cron）と、メールを送る仕組み（Postfix などのメール送信プログラム）を使います。外のメールアドレスに送るときは、利用者が自分で用意した外部のメール中継サーバー（SMTP サーバー）を使うことがあります。
+
+=== 問題点
+
+==== 利用者にとっての問題点
+
+* 毎日の報告が長くなりすぎることがあります。初期設定のまま使うと、普通の動作や他の道具で見ている項目までたくさん書かれるため、量が多くなって読まれなくなり、大事な問題を見落とすことがあります。
+* 記録を絞り込む規則が Perl 言語の正規表現で書かれています。OpenSSH や Postfix などのソフトが更新されて記録の書き方が少し変わると、規則に合わなくなった行がすべて「未分類の記録（Unmatched Entries）」としてそのままメールに並び、報告が急に長くなります。
+* 要らない記録を消したり規則を直したりするには、設定ファイルに正規表現を書くか、Perl 言語のプログラムを書き換える必要があります。設定の調整が難しく、間違いが起きやすいと指摘されています。
+* 報告をメールで受け取る作りになっているため、サーバーにメールを送るソフト（Postfix など）を入れて設定する必要があります。VPS では、25 番ポートの制限、名前解決（DNS）や逆引きの設定、迷惑メールの判定などの理由で、メールが届かない問題が起きやすいです。
+* 1 日に 1 回 cron で動く仕組みなので、その場で異常に気づくことはできません。次に動くまでの間に侵入者に記録を消される隙があることも指摘されています。
+
+==== 運営の作りの問題点
+
+* 会社や資金を持たない有志の集まりで運営されているため、お金を払って頼める窓口や保証がありません。
+* プログラムで扱いやすい JSON や XML の形で結果を出す機能の追加が提案されましたが、2024年5月に、管理の手間が足りないという理由で断られています。新しい機能の追加や、別の企画との連携が広げにくい作りになっています。
+
+== CrowdSec
+
+SSHのログインの失敗や穴を探すHTTPの要求を記録から見つけ、攻撃の回数や送り元のIPアドレスを画面で確認できる点が似ています。
+
+=== 運営者
+
+フランスのモンルージュ（20 rue Maurice Arnoux, 92120, Montrouge, France）に本社を置く CrowdSec SAS（簡易株式社団、登録番号 880 140 496）が運営しています。最高経営責任者（CEO）は Philippe Humeau 氏です。また、文書の著作権表示には CrowdSec, Inc. の記載もあります。
+
+=== 規模
+
+世界190か国以上に70,000人以上のアクティブな利用者がいます。ネットワーク全体で毎日平均4,000万件以上の攻撃元のIPアドレスに関する情報が共有されています。また、別の公式記事には約150,000人の利用者がいるという記載もあります。
+
+=== 機能
+
+サーバーの記録や通信を調べ、攻撃を見つけて遮断し、その情報を管理画面で確認する機能があります。
+
+[cols="1,3", options="header"]
+|===
+| 部品・画面 | できること
+
+| Security Engine
+| サーバーの記録（sshdやnginxなど）を読み取り、短時間の連続したSSHログイン失敗などの攻撃の型を見つけて、遮断などの判断を下します。
+
+| Remediation Components (Bouncers)
+| Security Engine の判断を受け取り、ファイアウォールやWebサーバーなどで攻撃元のIPアドレスの通信を遮断したり、確認画面（Captcha）を出したりします。
+
+| AppSec Component
+| WebサーバーへのHTTPの要求を調べ、公開されている弱点（CVE）を突く通信や不正な要求を見つけて遮断します。
+
+| CrowdSec Console
+| ブラウザ（app.crowdsec.net）から複数のサーバーの状態をまとめて見る管理画面です。検知した警告の集計、攻撃元のIPアドレスや国、攻撃の種類を確認できます。有料のプランでは、AIを使って普段と違う警告の急増や狙いを定めた攻撃を見つけ、通知と対処の手順を送る機能（Am I Under Attack）があります。
+
+| Blocklists / CTI
+| 他の利用者のサーバーで検知された攻撃元のIPアドレスの共有リストを受け取り、自分のサーバーに攻撃が届く前に遮断します。また、特定のIPアドレスの危険度を画面やAPIで調べることができます。
+|===
+
+=== 料金
+
+登録した Security Engine の数などに応じて料金が変わる仕組み（Pay As You Grow）をとっています。
+
+[cols="1,1,3", options="header"]
+|===
+| プラン・項目 | 料金 | 内容
+
+| Community プラン
+| 無料
+| 個人や愛好家向けのプランです。Security Engine の利用、CrowdSec Console での基本的な監視、最大3つまでのブロックリストの購読ができます。
+
+| Enterprise プラン (CrowdSec Console Premium)
+| 月額29ドルから（または1つの Security Engine あたり月額31ドル、詳細は問い合わせ）
+| 組織向けのプランです。ブロックリストの購読数の制限がなくなり、警告の長期保存、背景の雑音の除外、AIによる異常検知と通知（Am I Under Attack）、APIの利用などができます。
+
+| 追加のオプション
+| 各月額1,000ドル
+| 緊急の不具合修正（Emergency bug fixes）と、優先サポート（Premium service and support）がそれぞれ用意されています。
+|===
+
+=== 使っている外部サービス
+
+公式サイトのプライバシーポリシー、法的表示、公式ブログ、および AWS Marketplace の説明によると、以下の外部サービスを使っています。
+
+* Amazon Web Services (AWS): クラウド基盤、サーバーレス環境、AWS Systems Manager / Secrets Manager、および製品（ブロックリストやWAFルールなど）の提供基盤として使っています。
+* Google Cloud Platform (GCP) / Firebase: データの処理に使っています。
+* Webflow Inc.: 公式サイト（www.crowdsec.net）のホスティングに使っています。
+* Slack / ClickUp: 業務やデータの処理に使っています。
+* GitHub: ソースコードの管理に使っています。
+
+支払い処理に使っている具体的な外部サービス名は、読んだ資料からは分かりません。
+
+=== 問題点
+
+==== 利用者にとっての問題点
+
+* 自分のサーバーに専用の常駐プログラム（Security Engine）を追加で入れる必要があります。
+* 画面（CrowdSec Console）で記録を見るためには、外のサービス（app.crowdsec.net）にメールアドレスとパスワードでアカウントを作ってサインインし、コマンドを実行して自分のサーバーを登録する必要があります。
+* 攻撃を検知したとき、攻撃元のIPアドレス、日時、攻撃の種類がフランスの運営会社（CrowdSec SAS）へ自動で送られ、他の利用者と共有されます。記録を外のサービスに一切送らずに手元だけで管理画面を使うことはできません。
+* AIを使って異常を見つけて対処の手順を知らせる機能（Am I Under Attack）を使うには、月額29ドルからの有料プランを契約する必要があります。
+* 利用規約によると、運営会社は理由を示さずにいつでも利用者のアカウントを停止または解約できる権利を持っています。また、無償のサポートは返信までの時間が保証されていません。
+
+==== 運営の作りの問題点
+
+* 検知するプログラム（Security Engine）や遮断するプログラム（Bouncers）、ローカルAPI（LAPI）、データベース（SQLiteやPostgreSQLなど）、さらにAWSのサーバーレス基盤やマイクロサービスで動く管理画面（CrowdSec Console）など、多くの部品を組み合わせた大きな作りになっています。管理画面はAWSの基盤なしでは動かせないため、オープンソースにはなっていません。
+* 攻撃の検知だけでなく、通信の遮断や確認画面の表示など、サーバーの通信に手を加える仕組みが組み込まれています。
+* 外のサービス（AWS、GCP、Firebaseなど）を使って世界中の利用者から毎日4,000万件以上の通信の記録を集めて処理する作りになっており、欧州連合（EU）の外へデータを送るための法的な手続き（標準契約条項など）や個人情報の管理が必要になります。また、過去に130個以上の公開リポジトリと多数の非公開リポジトリのソースコード、および一部の利用者のメールアドレス（83件）が漏洩する事故が起きています。
+
+== まとめ
+
+=== 避けるべきこと
+
+* 報告を長くしすぎること。未分類の行をそのまま並べたり、問題のない通知をたくさん出したりすると、毎日読まれなくなります。
+* サーバーに専用の常駐プログラムやメール送信ソフトを追加で入れること。設定が難しくなり、メールが届かない問題も起きます。
+* 記録を外のサービスに送って集めたり、外の画面にサインインさせたりすること。情報漏洩の危険や、運営側の都合で機能や料金が変わる問題が起きます。
+* 高い定額料金や、全体の費用が分かりにくい従量課金をかけること。
+* 通信の遮断など、サーバーの動きに自動で手を加えること。
+
+=== 取り入れるとよいこと
+
+* サーバーにもとからある定期実行の仕組みで、毎日決まった時間に前日の記録を集計すること。
+* 調べる対象を、SSHのログイン失敗、穴を探すHTTPの要求、外に開いている口だけに絞ること。
+* 結果を、人が読める形（adoc）とプログラムが読める形（json）の両方でサーバーの中に保存し、本人のPCからSSHで写して読むこと。
+* AIには集計した数と上位のIPアドレスだけを渡し、普段との違いと対処の要否を8行以内で短く書かせること。
+* 標準ライブラリだけのPythonで作り、かかる費用をAIの利用料だけにすること。
+
+== 読んだ資料
+
+* https://cloud.google.com/blog/products/identity-security/introducing-security-command-center-enterprise[google.com]
+* https://docs.cloud.google.com/security-command-center/docs/concepts-data-security-overview[google.com]
+* https://cloud.google.com/security/products/security-command-center[google.com]
+* https://docs.cloud.google.com/security-command-center/docs[google.com]
+* https://docs.cloud.google.com/security-command-center/docs/service-tiers[google.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGX2p14Fenm3llPyQ67Xibp4ae2GYDTHjiFkSBNP1is3JbOskoiZniUoRR5o-ED0ask5-oRp9QcdRAZtyvPmlY7Ok3hwDxCrAbwTD-fR9EI-nv7maG6n5gcWni1oS0JijIogazzfz5UqZ1qsMAXPBuhwyrtVpnfmsHZ1b54BaJJaulIPXzfrI3naSWQa7PgLaR7[devoteam.com]
+* https://docs.cloud.google.com/security-command-center/docs/security-command-center-overview[google.com]
+* https://cloud.google.com/security-command-center/pricing[google.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEwRBAYBrjoDqXGfxMJXuI4UhPgr4YKu4oir8G5X-yLlByK1BGExz1A27t3R-q0LXqYVfXyMOcGV1Tmh-96LaoHejwxibaHJhZ7YI5kdgngSwM2ngKwgGxKAfYDLhQ9-9UmtnHMGXokoV5tVKbD9NuAOKRxHr63JELfiMDLAxTMzm_hd6O7rKGwCDaSQDLiXqlTvBL0-d1K-QBIJZItJ3rhyZvf-AxAR86Pvi4-Lo-J5BwGPE43RLR0ZGzmYicWIiWwKxHQTh5G8R7I9Nd-5OJN[medium.com]
+* https://www.applytosupply.digitalmarketplace.service.gov.uk/g-cloud/services/801683047678906[service.gov.uk]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGu2vK_PinZeEHR-sC9S9eioCR3Dhh0NHTc8R5yAvmf4JMMDvAe5NkTg9IGdbPLsmLfh0bP32FP3S9GdhyrFkXIUxZn_RiNFtOw0tQwYCicj9QqFhy5vI0SuVGHd7yyvaNCzWGYR4Z0Bsv52JHPNMadhSkz3JXztjMR3A==[nhimg.org]
+* https://checkthat.ai/brands/logwatch[checkthat.ai]
+* https://www.cs.hmc.edu/~geoff/logmuncher.html[hmc.edu]
+* https://sourceforge.net/projects/logwatch/[sourceforge.net]
+* https://sourceforge.net/projects/logwatch/files/logwatch-7.15/[sourceforge.net]
+* https://www.thomas-krenn.com/en/wiki/Install_logwatch[thomas-krenn.com]
+* https://www.rpmfind.net/linux/rpm2html/search.php?query=logwatch[rpmfind.net]
+* https://hostperl.com/kb/tutorials/configure-logwatch-email-reports-ubuntu-vps-complete-setup[hostperl.com]
+* https://sourceforge.net/p/logwatch/git/ci/master/tree/[sourceforge.net]
+* https://sourceforge.net/projects/logwatch/files/[sourceforge.net]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHV46ul07nVFB9RmxSfjqhuoSE25YXs0dPmy5MgT1V20LonHHI6_1aZ3HOir82U5vokIeZuaW7PYTW6CHhRqoNufiWP2-Q9OTTyekwVJ11QMRoWClipgyIj9os5TRVdBUfibuMOXlW-IAnQpONpSX5LSL7VLaFXH2ly5hbmJuvR-yJQ6uiwLSdOv2fGFPdFg9qkJ3lGAXsn1VrmfJcxRGGdW_E=[serverfault.com]
+* https://bugzilla.redhat.com/show_bug.cgi?id=1317620[redhat.com]
+* https://forum.iredmail.org/topic17805-solved-logwatch-postfix-unmatched-entries-very-long.html[iredmail.org]
+* https://www.crowdsec.net/solutions/mssp[crowdsec.net]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE5e_EW-eVdIDH4pWAPJXde-ogCD_4FqdzsMSqu3LiSOLyFWRXvqYalD-h8sfHeKo5nXz9TGq4-WQadYV9FIREvHAfV30RbJxUi9vFohKkUrFjERoSUvKepS2Ol4Rgo[ramnode.com]
+* https://www.crowdsec.net/blog/monitor-cyber-threats-with-crowdsec-console[crowdsec.net]
+* https://www.crowdsec.net/legal-notices[crowdsec.net]
+* https://docs.crowdsec.net/u/console/blocklists/subscription/[crowdsec.net]
+* https://www.crowdsec.net/[crowdsec.net]
+* https://www.crowdsec.net/blog/tanstack-supply-chain-attack-analysis[crowdsec.net]
+* https://docs.crowdsec.net/u/console/intro/[crowdsec.net]
+* https://docs.crowdsec.net/docs/next/observability/usage_metrics/[crowdsec.net]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHbjzbYrMOoRbRAFAfK8K8gt08H2rF_XE0ncxb95TziDeDvJaTUjSwMxv5C5JvLoJmxXn1NXSrgjFaTG7D0kmcMoD_2pZaMpQA6nl4eeAmOIgkRDnNPSQb1knnq52fNXC3WnXWWXVpKvhk=[lumadock.com]
+* https://www.crowdsec.net/blog/am-i-under-attack[crowdsec.net]
+* https://docs.crowdsec.net/u/cti_api/intro/[crowdsec.net]
+* https://www.crowdsec.net/pricing[crowdsec.net]
+* https://www.enterprisenetworkingplanet.com/security/intrusion-detection-prevention-systems/[enterprisenetworkingplanet.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGA6o2ZLOmJA4t5Y5i9WF9TJTiPdKmQw9j6nGnlvN2WFnxHpXjT_lXYTXsViPQJzF70GMsYPlpScbg7SCUGWkIhsYrDaHI_RFTNYS4PbMLFpwQ8wrgvhnDHthpbL32RGU8XuP9qkYqIWUiyF9gn9UzEz0yaKFbizQDbFH0HrzBmtZ2HejvOqcu10hRVsU-E84Xk9kPUggCTsQ==[reddit.com]
+* https://www.crowdsec.net/privacy-policy[crowdsec.net]
+* https://aws.amazon.com/marketplace/seller-profile?id=c1f20b36-8816-4910-8817-318365a122dc[amazon.com]
+* https://academy.crowdsec.net/terms[crowdsec.net]
+* https://academy.crowdsec.net/privacy[crowdsec.net]
+* https://www.crowdsec.net/blog/monitoring-suspicious-behavior-on-shared-hosting-platforms[crowdsec.net]
+* https://learn.secbyte.org/tools/crowdsec[secbyte.org]
+* https://docs.crowdsec.net/u/getting_started/post_installation/console/[crowdsec.net]
+* https://klokk.me/privacy[klokk.me]
+* https://bastion-security.io/legal/privacy/[bastion-security.io]

@@ -1,0 +1,119 @@
+= kougeki の今あるアプリの課題
+:toc:
+:toc-title: 目次
+
+2026-10-16 に、Gemini が Google 検索で公式サイトなどを読んでまとめました。
+
+== Google Cloud Security Command Center
+
+=== 利用者にとっての問題点
+
+* 有料の段階（Premium）で脅威の検知などを使う場合、定額では年間最低 15,000 米ドルがかかります。従量課金でも、Compute Engine や Cloud Run、AlloyDB などが 1 vCPU 時間あたり 0.0057 米ドル（組織単位）または 0.0071 米ドル（プロジェクト単位）、BigQuery の分析が 1 TiB あたり 0.80 米ドル（組織単位）または 1.00 米ドル（プロジェクト単位）かかります。個人や小さい規模で使うには費用が高くなります。これは公式の料金ページ（cloud.google.com/security-command-center/pricing）と Medium の解説記事に書いてありました。
+* 本体の料金とは別に、ログの保存（Cloud Logging）や追加の検査機能（Sensitive Data Protection など）で間接的な料金がかかることがあり、料金の仕組みが分かりにくく、利用量が増えると費用が急に上がることがあります。これは公式の料金ページ（cloud.google.com/security-command-center/pricing）と、評価サイトの G2 の利用者の評価に書いてありました。
+* 多くの項目やプロジェクトをまとめて監視するため、問題のない通知（ノイズ）と本当に対処が必要な危険とを見分けて整理する作業が必要になります。また、画面の使い方を覚えるまでに時間がかかり、メールで通知を受け取る方法が分かりにくいという声があります。これは解説記事（nhimg.org）と、評価サイトの Gartner Peer Insights および G2 の利用者の評価に書いてありました。
+* 利用者が資産の名前やメモ、検出結果の説明に顧客名や口座番号などの大切な情報を書いてしまうと、そのまま記録されてしまいます。これを防ぐには、利用者が自分で気をつけて書かないようにするか、別のサービス（Sensitive Data Protection）を組み合わせる必要があります。これは公式のデータセキュリティのページ（docs.cloud.google.com/security-command-center/docs/concepts-data-security-overview）に書いてありました。
+
+=== 運営の作りの問題点
+
+* サーバーの記録（Cloud Logging の中身）や資産の設定、IAM の設定、API の利用状況などの情報はすべて Google Cloud 側に集められ、サービスの改善やモデルの改良のために Google Cloud プライバシー通知に基づいて Google によって処理されます。この処理を止める（オプトアウトする）には、利用者が自分で Google Cloud のサポートへ連絡する必要があります。これは公式のデータセキュリティのページ（docs.cloud.google.com/security-command-center/docs/concepts-data-security-overview）に書いてありました。
+* 保存されるデータは、初期設定では Google が管理する鍵で暗号化されます。利用者が自分で鍵を管理する仕組み（CMEK）を使うには、別のサービス（Cloud Key Management Service）を組み合わせて設定する必要があります。これは公式のデータセキュリティのページ（docs.cloud.google.com/security-command-center/docs/concepts-data-security-overview）に書いてありました。
+* Enterprise の段階が非推奨となり、2027年5月21日に終了して Premium へ自動的に移されることや、2026年1月1日から Premium の従量課金の対象に Cloud Run と AlloyDB が追加されたことなど、サービスの区分や料金の仕組みが運営側の都合で変わることがあります。これは公式の段階の説明ページ（docs.cloud.google.com/security-command-center/docs/service-tiers）と公式の料金ページ（cloud.google.com/security-command-center/pricing）に書いてありました。
+* 公式の障害情報のページ（status.cloud.google.com）には最近の障害の報告はなく、このサービス自体で過去に起きた障害の詳しい内容や情報の漏えいの発表は、読んだページには書かれておらず、分かりません。
+
+== Logwatch
+
+=== 利用者にとっての問題点
+
+* **報告が長くなりすぎること（未分類の記録の増加）**: Logwatch は、書き方が分からない記録の行を解釈や集計ができず、「未分類の記録（Unmatched Entries）」としてそのまま報告に出します。OS や OpenSSH、Postfix などのソフトが更新されて記録の書き方が変わったときに Logwatch 側の規則が追いついていないと、普通のログアウトや起動時の記録などが大量に未分類の記録としてメールに並び、報告が長くなります。このことは、Stack Exchange の解説、Red Hat Bugzilla（Bug 1317620、Bug 1504979 など）、および Rocky Linux の掲示板に書かれています。
+* **不要な行を消す設定や手直しの手間**: 未分類の記録や普通の動作の記録を報告から消すには、`/usr/share/doc/logwatch` などの説明を読んで自分で絞り込みの設定を作るか、Perl 言語のプログラムを書き換える必要があります。また、原因を調べるために `--debug 100` をつけて動かしたときは、`/var/cache/logwatch` に作られた一時ファイルが自動で消えないため、自分で消す必要があります。このことは、Rocky Linux の掲示板と SourceForge の Logwatch の活動記録（Ticket #11 への回答）に書かれています。
+* **新しい記録の仕組み（systemd-journald）での設定の手間**: Debian 12 などの新しい Linux では、従来の文字の記録ファイル（`/var/log/auth.log` など）が作られず、`systemd-journald` によるバイナリの記録が使われることがあります。このままでは Logwatch が SSH（sshd）などの記録を読めないため、設定ファイルで `LogFile` を一度空にしてから `none` を指定し、`*JournalCtl` を使う設定や空のファイルを作る作業が必要になります。このことは、usebox.net の記事と Stack Exchange の質問・回答に書かれています。
+* **メールで受け取るためのソフトの導入と不達の問題**: 毎日の報告をメールで受け取るには、サーバーに Postfix や mailutils などのメール送信ソフトを入れて設定する必要があります。VPS では、運営会社による 25 番ポート（外向けのメール送信）の制限、名前解決（DNS）や逆引き（rDNS）の設定の不備、迷惑メール判定などが原因でメールが届かないことがあり、外のメール中継サーバー（SMTP リレー）の設定などが別で必要になります。このことは、Hostperl と HostMyCode の手順書に書かれています。
+
+=== 運営の作りの問題点
+
+* **会社による運営や有料の窓口がないこと**: SourceForge の公式ページによると、Logwatch は MIT ライセンスで公開されている無償のオープンソース企画であり、個人の集まりで管理されています。利用規約や料金のページはなく、お金を払って頼めるサポート窓口や保証もありません。
+* **JSON や XML で出力する機能がないこと**: プログラムで読みやすい XML や JSON の形で結果を出す機能（Merge Request #73）が提案されましたが、開発者の Bjorn 氏から「このコードを Logwatch に取り込んで維持していくことができない」という理由で、2024年5月26日のメールおよびその後のコメントにて断られ、別の企画として分けるように案内されています。このことは、SourceForge の Logwatch の活動記録（Merge Request #73）に書かれています。
+* **過去に公表されたプログラムの弱点（脆弱性）**: 米国立標準技術研究所（NIST）の NVD や脆弱性データベース（CVE）には、過去の版の弱点が公表されています。版 2.6-2 より前の `secure` スクリプトには、記録ファイルの中の特定の文字列が正規表現の一部として使われることでプログラムが異常終了し、悪意のある動きの検知を妨げられる問題（CVE-2005-1061）がありました。また、版 7.3.6 の `logwatch.pl` には、Samba サーバーのユーザー名などを通じて記録ファイル名にシェルの特殊文字を入れられると、外から任意の命令を実行される問題（CVE-2011-1018）がありました。このことは、NVD（nist.gov）、cyber-defence.io、および feedly.com の CVE 記録に書かれています。
+* **運営による情報の漏えいや通信の障害**: Logwatch は外のクラウドサービスを持たず、利用者のサーバーの中で動くプログラムであるため、運営側からの利用者の情報の漏えいや、運営のサーバーの停止による障害の発表は、読んだページにはありませんでした（SourceForge の reviews ページにある 11〜12 件の利用者の評価にも、そうした報告があるかは書かれておらず分かりません）。
+
+== CrowdSec
+
+=== 利用者にとっての問題点
+
+* 自分のサーバーに専用の常駐プログラム（Security Engine）を追加で入れる必要があります。これは公式サイト（https://www.crowdsec.net/）や公式の説明書（https://docs.crowdsec.net/u/console/intro/）に書かれています。
+* 管理画面（CrowdSec Console）で記録を見るには、外のサービス（app.crowdsec.net）にメールアドレスとパスワードでアカウントを作ってサインインし、コマンドを実行して自分のサーバーを登録する必要があります。これは公式の説明書（https://docs.crowdsec.net/u/getting_started/post_installation/console/ および https://docs.crowdsec.net/u/console/intro/）に書かれています。
+* 攻撃を検知したとき、攻撃元のIPアドレス、日時、攻撃の種類がフランスの運営会社（CrowdSec SAS）へ自動で送られ、他の利用者と共有されます。記録を外のサービスに送らずに手元だけで管理画面を使うことはできません。これは公式の説明書（https://docs.crowdsec.net/docs/next/observability/usage_metrics/）やプライバシーポリシー（https://www.crowdsec.net/privacy-policy）、ソフトウェアの紹介ページ（SoftwareAdvice の CrowdSec ページ）に書かれています。
+* 無料の Community プランでは、購読できるブロックリストが最大3つまでに制限されています。また、AIを使って普段と違う警告の急増を見つけて通知と対処の手順を送る機能（Am I Under Attack）や、警告の長期保存、背景の雑音の除外、APIの利用などを使うには、月額29ドルから（または1つの Security Engine あたり月額31ドル）の有料プラン（Enterprise プラン）を契約する必要があります。緊急の不具合修正や優先サポートのオプションには、それぞれ月額1,000ドルかかります。これらは料金のページ（https://www.crowdsec.net/pricing）や公式ブログ（https://www.crowdsec.net/blog/am-i-under-attack）、ブロックリストの説明書（https://docs.crowdsec.net/u/console/blocklists/subscription/）に書かれています。
+* 運営会社は、理由を示さずにいつでも利用者のアカウントを停止または解約できる権利を持っています。また、無償のサポートでは返信までの時間が保証されていません。これらは利用規約（https://academy.crowdsec.net/terms など）に書かれています。
+* 2026年5月に起きたソースコードの漏えい事故の際、83人の利用者のメールアドレスと、51人の投資候補者の名前やメールアドレスが一緒に漏えいしました。これは2026年9月の公式発表（https://www.crowdsec.net/blog/tanstack-supply-chain-attack-analysis）およびそれを報じた記事（The Hacker News など）に書かれています。
+
+=== 運営の作りの問題点
+
+* 検知するプログラム（Security Engine）、通信を遮断するプログラム（Remediation Components / Bouncers）、ローカルAPI（LAPI）、データベース（SQLiteやPostgreSQLなど）、さらに Amazon Web Services（AWS）のサーバーレス基盤やマイクロサービスで動く管理画面（CrowdSec Console）など、多くの部品を組み合わせた大きな作りになっています。管理画面はAWSの基盤なしでは動かせないため、オープンソースにはなっていません。これらは公式ブログ（https://www.crowdsec.net/blog/monitor-cyber-threats-with-crowdsec-console）や公式サイト、AWS Marketplace の出品ページ（https://aws.amazon.com/marketplace/seller-profile?id=c1f20b36-8816-4910-8817-318365a122dc）に書かれています。
+* 記録を読んで数えるだけでなく、ファイアウォール（nftables、iptables、AWS WAF など）や Web サーバー（Nginx など）と連携して、通信の遮断や確認画面（Captcha）の表示など、サーバーの通信に自動で手を加える仕組みが組み込まれています。これは公式サイトや AWS Marketplace の説明、SoftwareAdvice の紹介ページに書かれています。
+* AWS、Google Cloud Platform（GCP）、Firebase、Webflow、Slack、ClickUp、GitHub などの多くの外部サービスを使って、世界中の利用者から毎日平均4,000万件以上の攻撃元のIPアドレスに関する情報を集めて処理する作りになっています。そのため、欧州連合（EU）の外へデータを送るための法的な手続き（標準契約条項など）や個人情報の管理が必要になります。これらはプライバシーポリシー（https://www.crowdsec.net/privacy-policy および https://academy.crowdsec.net/privacy）や法的表示（https://www.crowdsec.net/legal-notices）に書かれています。なお、支払い処理にどの外部サービスを使っているかは、読んだページには書かれておらず、分かりません。
+* 開発に使う GitHub の管理や外部パッケージの利用から情報が漏れる危険があります。実際に2026年5月、退職した従業員のパソコンが「TanStack」のサプライチェーン攻撃（またはワーム）によって侵害され、残っていた GitHub の OAuth トークンを盗まれました。その結果、130個以上の公開リポジトリと約170個の非公開リポジトリ（管理画面のソースコード、AWS の処理手順、コネクタ、自動化の仕組みなど）が盗まれ、約4か月後の2026年9月16日に外部の掲示板で公開されて初めて発覚しました。当時は開発者のパソコンに端末保護ソフト（エンドポイント保護ソフト）を入れることを義務づけていなかったことも公表されています。これらは公式の調査発表（https://www.crowdsec.net/blog/tanstack-supply-chain-attack-analysis）および SecurityWeek、Dark Reading、The Hacker News の記事に書かれています。
+* 管理画面（CrowdSec Console）や API などの稼働状況や過去の通信障害の履歴については、読んだページには具体的な記載がなく、分かりません。
+
+== 作るアプリで防ぐこと
+
+. **高い料金や、分かりにくい追加の費用がかかること** +
+Google Cloud Security Command Center の、有料の段階（Premium）が定額で年間最低 15,000 米ドルかかり、従量課金でも稼働時間や分析量に応じた費用がかかる問題点と、ログの保存や追加の検査機能で間接的な料金がかかり費用が急に上がる問題点、および CrowdSec の、AI による異常検知と対処の手順の通知（Am I Under Attack）や警告の長期保存を使うには月額 29 ドルからの有料プランが必要になる問題点を防ぎます。作るアプリは無料で、かかる費用は AI の利用料だけにします。
+
+. **報告が長くなりすぎたり、問題のない通知が多くて見分けにくくなったりすること** +
+Google Cloud Security Command Center の、問題のない通知（ノイズ）と本当に対処が必要な危険とを見分けて整理する作業が必要になる問題点と、Logwatch の、ソフトの更新で記録の書き方が変わったときに「未分類の記録（Unmatched Entries）」が大量に並んで報告が長くなりすぎる問題点を防ぎます。また、本人の「前は、そのログを AI に渡して、何が来ているか、手を打つことはあるかを、毎日聞いていました」という手間の不満も解決します。作るアプリは、数える物を SSH のログイン失敗、穴を探す HTTP の要求、外に開いている口だけに絞り、AI の所見も 8 行以内で短く書かせます。
+
+. **サーバーの記録や大切な情報を外のサービスに送って集めたり、AI にログをそのまま渡したりすること** +
+Google Cloud Security Command Center の、記録や設定がすべて Google Cloud 側に集められて処理され、資産の名前やメモに書いた大切な情報も記録されてしまう問題点と、CrowdSec の、攻撃元の IP アドレスや日時が運営会社へ自動で送られて共有され、過去に利用者のメールアドレスや非公開リポジトリが漏えいした問題点を防ぎます。本人が前にしていた、ログをそのまま AI に渡すやり方も改めます。作るアプリは、記録をサーバーの本人のフォルダーに置き、外のサービスには送りません。AI に渡すのも、その日の数と多かった送り元の IP アドレス 5 つまでだけにします。
+
+. **外の画面にアカウントを作ってサインインさせたり、運営側の都合で機能や契約を変えられたりすること** +
+Google Cloud Security Command Center の、画面の使い方を覚えるのに時間がかかり、Enterprise の終了などサービスの区分や料金が運営側の都合で変わる問題点と、CrowdSec の、管理画面を見るために外のサービスにメールアドレスとパスワードでアカウントを作ってサインインしサーバーを登録する必要があり、運営会社の判断でいつでもアカウントを停止・解約される問題点を防ぎます。作るアプリは、本人 1 人が使い、サインインはありません。本人の PC の aiai のアプリの「サーバー」のタブで、1 つの画面で読めるようにします。
+
+. **サーバーに専用の常駐プログラムやメール送信ソフトなどの部品を追加で入れること** +
+Logwatch の、報告をメールで受け取るために Postfix などのメール送信ソフトを入れて設定する必要があり、25 番ポートの制限や DNS の設定不備でメールが届かない問題点と、CrowdSec の、専用の常駐プログラム（Security Engine）やデータベース、ローカル API など多くの部品を入れる必要がある問題点を防ぎます。作るアプリは、標準ライブラリだけの Python で作り、サーバーには何も足しません。記録はメールで送らず、本人の PC から SSH で写して読みます。
+
+. **記録の絞り込みや新しい記録の仕組みへの対応で、難しい設定の手直しや一時ファイルの削除が必要になること** +
+Logwatch の、不要な行を消すために正規表現の設定や Perl プログラムの書き換えが必要になり、デバッグ実行時の一時ファイル（`/var/cache/logwatch`）も自分で消す必要がある問題点と、`systemd-journald` を使う新しい Linux で設定ファイルの書き換えや空のファイルの作成が必要になる問題点を防ぎます。作るアプリは、言われていないことは足さず、決まった 3 つの対象だけを数えて自動で記録を作るため、利用者が設定を手直ししたり一時ファイルを消したりする手間をなくします。
+
+. **プログラムが読める形（JSON）で記録を出せないこと** +
+Logwatch の、管理の手間を理由に JSON や XML で結果を出す機能の追加が断られ、プログラムで読みやすい形で出力できない問題点を防ぎます。作るアプリは、1 日 1 つ、人が読める形（adoc）とプログラムが読む形（json）の両方をサーバーの本人のフォルダーに置きます。
+
+. **記録の文字やファイル名からプログラムが異常終了したり、外の命令を実行されたりすること** +
+Logwatch の、記録の中の文字列が正規表現の一部として使われて異常終了する弱点（CVE-2005-1061）や、記録ファイル名にシェルの特殊文字を入れられると任意の命令を実行される弱点（CVE-2011-1018）を防ぎます。作るアプリは、root で動かして記録を読むため、シェルの命令を組み立てて実行するような危ない作り方をせず、標準ライブラリだけの Python で安全に数えます。
+
+. **通信の遮断など、サーバーの動きに自動で手を加えること** +
+CrowdSec の、ファイアウォールや Web サーバーと連携して通信の遮断や確認画面の表示を自動で行う問題点を防ぎます。作るアプリは、記録を読んで数えるだけにし、AI も読んで書くだけで、サーバーには何もしません。
+
+. **サーバーの中に AI を呼ぶための鍵ファイルを置くこと** +
+Google Cloud Security Command Center の、データの暗号化の鍵を自分で管理するには別のサービス（Cloud Key Management Service）を組み合わせる必要がある問題点や、CrowdSec の、開発者の端末から GitHub のトークンが盗まれて情報漏えいにつながった問題点を防ぎます。作るアプリは、Google Cloud の上ではサーバーに鍵を置かずに Gemini を呼び、または本人の PC の AI（Claude Code）を使うことで、サーバーからの鍵の漏えいを防ぎます。
+
+== 読んだ資料
+
+* https://cloud.google.com/security-command-center/pricing[google.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE2uAEKzeMjvf1bENR3FPUlo1lRfr_llRSgiMFhkHIcEce5V5JIRcyHW9rosG0zIqvuGQR3XVnxAwSSqPSkjPnPPDwrU5rutsqyGnG3Bibj3vqUGH7M-tM9dtUEz4Yl9DsjjPtflWCK5-PbmMh9sSUASCpoCBoUSWdhMGsZtAGhJRQD_9jp6U2dEc4j-C82xKMbzD_o46dHHiyB0r_SbpbfA0UwkHY_czSmlGbEEI9x3F1zYfRITiK6Dx4cVItRMyRjvfIMNrzepZpcbU_TzC8RIg==[medium.com]
+* https://docs.cloud.google.com/security-command-center/docs/concepts-data-security-overview[google.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFMt5rgGVSHc68PHnAr5yO5MHcsQmeNavN-ESGFcjVmU-UgBZ5yswpbYfDFrOemuk1bXLgrC7bz4Ql5ql-Lm5wpNYI964r461QnpywfsIxQaiTP2qqE0ytKY4Z-y0Fs3p25U1BnD8sio-219_sBqNznr_b2N0LpdoEiElYfiWBgkRGtmA==[g2.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG128vz0SYB0RIGMWob1vy7_Nx7EZagQA9tuYfoqHYZnjftpuF4Xe94orIeFBM9LCoJgolin26MH13NY0kwI-uIdMigKXpXRrqJuWy3XJF7ZDPdLG9QOOUUYFuFXuqcpOVxeO27LgTjjmdDEa7OlKIDepJbTd3X-no0_Kw=[nhimg.org]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGN9LiLcAQEAQGgC0VbOpDSzwyBJQGOSVWSLgtS_oGJxU0uEulZy9YpnNDhAjvGBKORnmVZjfAOq4vg5RwFRZDc5lfRIKnWU2zeZrVTr2TNvSRlrwHgSuL1egYduiRYDiq3Gb6rYiwTgJij9hDBKoomNk1ZmqdCV25bt4QdeFKUcfdHuKdcX5o=[gartner.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHdeWsDn70Tq631ksuPVw5iSi6kBNicXn1JyhMC7T8lSsWFfKdGJBHyJTwZ9wjVALXwLdoYdEuwLDPgMPzSauHxeQFOT4lesnjdh3559z5d45xOtZh39V0F0A85wO0MHLGqVkyBRH2rS0h1oPGsrD1XZNR0pOJHX_JRYpNYNYG3EcK-UlngSaspsxtoO9PdPaYZIcCC[g2.com]
+* https://status.cloud.google.com/summary[google.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHLaC5ECwj8QBcIA5-3AqpaEJ_AATIr_TKzoq_nQb0MHRbDy2xJ-hTfqtC2b9OVWzRdLdX8OP02p6Kl5qpqeOOQUQGvZaOWR_J1ztKmoZ4LRdPirAQJg3DbqgflHHxFVM1pvK3uxhVFAcAU46HSzHl6AsiKM6o41XK8OeBlRriFQQcSfk_iHVU4RtjUwwSt1IO-5AJ50sHwQydoy_vXk3I=[stackexchange.com]
+* https://forums.rockylinux.org/t/is-there-a-modern-replacement-for-logwatch/17650[rockylinux.org]
+* https://bugzilla.redhat.com/show_bug.cgi?id=209405[redhat.com]
+* https://bugzilla.redhat.com/show_bug.cgi?id=1317620[redhat.com]
+* https://bugzilla.redhat.com/show_bug.cgi?id=1504979[redhat.com]
+* https://sourceforge.net/u/bjorn1/profile/[sourceforge.net]
+* https://www.usebox.net/jjm/blog/logwatch-and-systemd-journal/[usebox.net]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG-whICQBMgUiEn2LF4zgk7JEsSohg6j5i1x2ijyJdH7p4XZQMiCQ68ix260LHjZPfhbBGvOh7FAfXA5qkxDms6Rp4e5R-CGerZkcC_OGe5vh-jMHGvOeG6LBuDngrpcdrrvarxt-_ESDYuqDO7w4u0Vflpk2Nq7hEP7F3dQZZOQ-8l4se4wHZY[stackexchange.com]
+* https://hostperl.com/kb/tutorials/configure-logwatch-email-reports-ubuntu-vps-complete-setup[hostperl.com]
+* https://www.hostmycode.com/tutorials/email-queue-troubleshooting-tutorial-2026-fix-stuck-postfix-mail-queue-hosting-vps[hostmycode.com]
+* https://sourceforge.net/projects/logwatch/[sourceforge.net]
+* https://feedly.com/cve/CVE-2011-1018[feedly.com]
+* https://nvd.nist.gov/vuln/detail/cve-2005-1061[nist.gov]
+* https://www.cyber-defence.io/tools/cve/CVE-2005-1061[cyber-defence.io]
+* https://www.softwareadvice.com.au/software/267630/crowdsec[softwareadvice.com.au]
+* https://thehackernews.com/2026/09/crowdsec-says-tanstack-npm-attack-led.html[thehackernews.com]
+* https://aws.amazon.com/marketplace/seller-profile?id=c1f20b36-8816-4910-8817-318365a122dc[amazon.com]
+* https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGDgpx4dQA3Cup3P-F58Lax5-fYgl1wCaApZJ1I7coTZ4ZA0ukl7ue11U2IKazf6MC4kImLhHiDhxBqXxpo_jE6qFzibvbl1oAV9LUh7V3QpLfwsYA8JT9e6-euahSgQecwHaf-hmpgR003A1GWeiY0AKTrTDMaZCZ5TTjq08GCRTuyP9p_2MBlkoiIwB4hUC7SMJ4dDW7TeNssFqI9mLwo8Ip8[darkreading.com]
+* https://www.securityweek.com/crowdsec-confirms-source-code-stolen-in-supply-chain-attack/[securityweek.com]
+* https://www.crowdsec.net/blog/crowdsec-statement-source-code-exposure[crowdsec.net]
