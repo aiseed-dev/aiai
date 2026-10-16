@@ -39,6 +39,9 @@ VLM をこれから使える場所のニュースも、この分野に入れる�
 
 === 建物の機器
 
+- CSA(Matter と Aliro を決める団体)のニュースの一覧(https://csa-iot.org/newsroom/): 団体の発表と、団体が
+  紹介する記事。Cloudflare の確かめの画面で開けない日は、ブラウザーで開くか、紹介されている元の記事
+  (9to5Mac、HomeKit News など)から辿る
 - JVN(https://jvn.jp/): 日本の製品の弱点の知らせ
 - IPA の重要なセキュリティ情報(https://www.ipa.go.jp/security/security-alert/)
 - 米国 CISA の、実際に悪用された弱点の一覧(https://www.cisa.gov/known-exploited-vulnerabilities-catalog)
