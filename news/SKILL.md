@@ -78,6 +78,7 @@ python news/tsukuru.py --ai claude     # Claude Code
 python news/tsukuru.py --ai gemini     # Gemini CLI
 python news/tsukuru.py --ai codex      # Codex CLI
 python news/tsukuru.py --prompt-only   # 頼み文だけを出す(CLI の無い AI に貼る)
+python news/tsukuru.py --check news/2026-10-16.adoc   # 書いた adoc の形を確かめる
 ```
 
 **アプリで**: aiai のアプリを自分の PC で動かすと、「ニュース」のタブで、下書きを作り、

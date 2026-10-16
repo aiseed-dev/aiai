@@ -3,7 +3,9 @@
     "allow": [
       "WebSearch",
       "WebFetch",
-      "Edit(/news/*.adoc)"
+      "Edit(/news/*.adoc)",
+      "Bash(python3 news/tsukuru.py --prompt-only)",
+      "Bash(python3 news/tsukuru.py --check *)"
     ]
   }
 }

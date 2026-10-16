@@ -123,7 +123,13 @@ def main():
     ap.add_argument("--date", help="YYYY-MM-DD(既定は今日、日本時間)")
     ap.add_argument("--model", help="その CLI に渡すモデルの名前")
     ap.add_argument("--prompt-only", action="store_true", help="頼み文だけを出す")
+    ap.add_argument("--check", metavar="ADOC", help="書いた adoc の形を確かめるだけ(直す所が無ければ何も出さない)")
     a = ap.parse_args()
+    if a.check:
+        problems = check(a.check)
+        for p in problems:
+            print(p)
+        return 1 if problems else 0
     today = datetime.date.fromisoformat(a.date) if a.date else datetime.datetime.now(TZ).date()
     prompt = request(today)
     if a.prompt_only:

@@ -18,6 +18,7 @@ python news/tsukuru.py --ai claude     # Claude Code で今日の分を書かせ
 python news/tsukuru.py --ai gemini     # Gemini CLI で
 python news/tsukuru.py --ai codex      # Codex CLI で
 python news/tsukuru.py --prompt-only   # 頼み文だけを出す(CLI の無い AI に貼る)
+python news/tsukuru.py --check news/2026-10-16.adoc   # 書いた adoc の形を確かめる
 ```
 
 できた `news/YYYY-MM-DD.adoc` を人が読んで直してから、コミットします。aiai のサイトには、
