@@ -1,0 +1,65 @@
+= aiai ニュース 2026-10-17
+:日付: 2026-10-17
+
+== NVIDIA が、画像、文書、動画を読む「Nemotron 3.5 Super VL」を重みを公開して出しました。1200 億パラメータで、1 トークンあたり 120 億が動きます
+:分野: VLM
+:国・地域: 米国
+
+NVIDIA は 2026 年 10 月 15 日に、Nemotron 3.5 Super VL を出しました(会社の発表です)。全体で 1200 億パラメータの Mixture of Experts で、1 トークンあたり 120 億パラメータが動きます。入力は文字、画像、動画で、コンテキストは最大 100 万トークンです。ライセンスは OpenMDW-1.1 で、モデルの説明のページには、商用にも非商用にも使えると書かれています。重みのほかに、学習に使ったデータの一部と学習の手順も公開するとしています。
+
+モデルの説明のページにある比べでは、英語の OCRBench v2 が 68.12 で、Qwen3.5-122B-A10B の 68.3 とほぼ同じです。長い文書の MMLongBench-Doc は 62.82、動画の Video-MME v2 は 32.85 で、Qwen3.8-Flash-Next(67.9 と 45.1)より低くなっています(NVIDIA の自己申告です)。動画は 1 本 2 分までで、vLLM の手順では 1 秒に 2 枚、最大 256 枚の画像として読みます。動かす機械は、モデルの説明のページには H100 4 枚か GB200 2 枚と書かれていますが、会社のブログは DGX Spark や Jetson でも動くとしており、小さな機械でどの形で動かすのかは、資料だけでは分かりません。
+
+同じ日に、2 ビットに量子化して 24 GB のメモリーに収まる「Nemotron 3.5 Bolt 74B-A9B」も出ました。こちらは手元の PC で動かす物で、llama.cpp、Ollama、LM Studio で動かせるとしています。
+
+出典: NVIDIA ブログ「Open From Data Center to Desktop: NVIDIA Expands Nemotron Family With Highest Efficiency Super VL and Bolt Models」(2026-10-15)、https://blogs.nvidia.com/blog/nemotron-3.5-super-vl/ +
+出典: Hugging Face「nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16」モデルカード(2026-10-15)、https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16 +
+出典: NVIDIA Technical Blog「NVIDIA Nemotron 3.5 Super VL Powers Specialized Agents with Multimodal Reasoning」(2026-10-15)、https://developer.nvidia.com/blog/nvidia-nemotron-3-5-super-vl-powers-specialized-agents-with-multimodal-reasoning 、2026-10-17 に確かめました
+
+== 動画を読む AI は、画面に重ねた文字が映像と食い違うと、正答率が 90.1% から 51.9% に落ちます。中国の研究者が 5,063 件の比べで示しました
+:分野: VLM
+:国・地域: 中国
+
+香港中文大学(深圳)と Tencent の研究者は、2026 年 10 月 15 日に arXiv に出した論文「VisualTrust」で、動画の上に書かれた文字が映像と食い違うとき、AI がどちらを信じるかを調べました。同じ動画に、文字なし、正しい文字、1 か所だけ事実を変えた文字の 3 つの版を作り、5,063 件の質問にしています。11 のモデルの平均の正答率は、文字なしで 90.1%、食い違う文字があると 51.9% でした。文字なしで正しく答えた物のうち 42.8% が、文字に合わせた誤った答えに変わっています。Gemini 3.5 Flash と Gemini 3.1 Pro Preview は食い違う文字があっても 68.1% と 70.9% で、Qwen3.5 と Gemma 4 の各モデルは 38.2% から 51.4% でした。論文は、映像の証拠を先に確かめてから答える手順(DEAR)を足すと、3 つのモデルで 81.8% から 85.2% に戻るとしています。
+
+防犯カメラや現場の写真には、日時や場所の文字が映像に重なっています。写真を AI に見せて判断を頼むとき、画面の文字が間違っていれば AI もそれに引きずられることが、この比べから分かります。
+
+同じ週に、香港理工大学と OPPO などの研究者は、動画の「いつ」「どこに」「何が」を 1 つの枠で測る比べ「OmniCompass」を出しました。820 本の動画で 2,460 問を 50 のモデルに解かせ、最も良い Gemini 3.8 Flash でも全体の点は 42.8% で、いつ起きたかを当てる課題は最も良い物でも 27.1% です。データは CC BY-NC-SA 4.0 で Hugging Face に置かれています。
+
+出典: Zhu ほか「VisualTrust: Video Reasoning under On-Screen Claim Framing」(arXiv:2610.21159、2026-10-15)、https://arxiv.org/abs/2610.21159 +
+出典: Liu ほか「OmniCompass: A Holistic Benchmark for Omni-Modal Video Grounding and Understanding」(arXiv:2610.18829、2026-10-13)、https://arxiv.org/abs/2610.18829 +
+出典: Hugging Face「VCLab-PolyU/OmniCompass」データセット、https://huggingface.co/datasets/VCLab-PolyU/OmniCompass 、2026-10-17 に確かめました
+
+== 米国のネブラスカ大学が、太陽電池と LoRa で動くカメラをブドウ畑に置き、マメコガネの食害の程度を Jetson Orin Nano で判定して 5 週間送り続けました
+:分野: VLM
+:国・地域: 米国
+
+ネブラスカ大学リンカーン校などの研究者は、2026 年 10 月 14 日に arXiv に出した論文で、ブドウの葉がマメコガネ(Japanese beetle)にどれだけ食べられたかを畑で自動で判定する装置「DefoliationCAM」を示しました。NVIDIA の Jetson Orin Nano で 4K の写真 1 枚を約 1.5 秒で処理し、太陽電池で動き、結果は LoRa(915 MHz、1 回 30 バイト)で Web の画面に送ります。畑で集めた 29,674 枚の切り出し画像で学習し、合成した画像を足すとマクロ F1 が 0.768 から 0.838 に上がりました。使うモデルは MobileNet 系の 108 万パラメータで、ResNet-50 の 2,352 万パラメータより小さい物です。
+
+2026 年 8 月 12 日から 9 月 16 日まで、ネブラスカ州の試験場のブドウ畑に 2 台を置き、7 時から 19 時まで 30 分ごとに撮って、約 900 回の送信のうち 92% 前後が届きました。電池の残量は 1 日の平均で 75% を下回りませんでした。費用とコードの公開は、論文に書かれていません。言葉で答える VLM ではなく、決まった段階に分ける小さなモデルですが、電源も通信も無い畑で画像の判断を回し続けた例として、同じ形で鳥獣や作物の見張りに使えます。
+
+出典: Li ほか「DefoliationCAM: An Edge-AI System for Real-Time Insect Defoliation Severity Assessment in Grapevines」(arXiv:2610.20879、2026-10-14)、https://arxiv.org/abs/2610.20879 、2026-10-17 に確かめました
+
+== IP カメラのアプリ「EseeCloud」に、作り付けのパスワードで誰でもログインできる弱点があります。米国 CISA が知らせ、作り手は返事をしていません
+:分野: VLM
+:国・地域: 中国
+
+米国の CISA は 2026 年 10 月 15 日に、中国の Guangzhou Juan IoT Technology の IP カメラ用のアプリと機器のソフト「EseeCloud」の弱点 3 つを知らせました。アプリ 4.9.6 以前と機器のソフト 4.9.86.0 以前が対象です。最も重い CVE-2026-107617(CVSS v3.1 で 9.8)は、プログラムに書き込まれたパスワードで機器にログインできる物です。ほかの 2 つは、他人の機器を自分のアカウントに付け替えられる物(CVE-2026-97858)と、登録済みの機器の番号を大量に探り当てられる物(CVE-2026-105664)です。合わせると、知らない人が他人のカメラを乗っ取れます。作り手は CISA の連絡に答えておらず、直した版は無いと書かれています。CISA は、カメラをインターネットに直に出さず、外から見るときは VPN を通すよう勧めています。見つけたのは東京理科大学の Donghyeon Lee さんと GMO Flatt Security です。日本の JVN も 10 月 16 日に、この知らせを含む CISA の一覧を出しました。
+
+EseeCloud は、安い IP カメラに付いてくるアプリの 1 つで、日本の App Store にも「EseeCloud(IP Pro, VR Cam)」として載っています(App Store の作り手の表示は Guangdong Juan Intelligent Technology で、CISA の表記と少し違います)。App Store の版は 4.14.0 で、CISA が対象とするアプリ 4.9.6 以前より新しい番号ですが、CISA の知らせには直した版が書かれていないので、新しい版で直っているかは分かりません。家や店や空き家に置いたカメラが、この種のアプリで動いていないかを確かめ、動いていればインターネットから直に見られない置き方にすることが、使う人にできることです。
+
+出典: CISA「ICS Advisory ICSA-26-288-02: Guangzhou Juan IoT Technology EseeCloud」(2026-10-15)、https://www.cisa.gov/news-events/ics-advisories/icsa-26-288-02 +
+出典: JVN「JVNVU#96928590 CISA ICS Advisory / ICS Medical Advisory(2026年10月15日)」(2026-10-16)、https://jvn.jp/vu/JVNVU96928590/index.html +
+出典: App Store「EseeCloud(IP Pro, VR Cam)」、https://apps.apple.com/jp/app/id1032277907 、2026-10-17 に確かめました
+
+== 個人情報保護委員会が、改正法の課徴金の政令の考え方を出しました。氏名が無くても、住所、電話、メールアドレス、Cookie ID が付いたデータは、課徴金の対象から外れません
+:分野: VLM
+:国・地域: 日本
+
+個人情報保護委員会は、2026 年 10 月 14 日の第 372 回の委員会で、改正個人情報保護法(令和 8 年法律第 56 号)の政令と規則の「基本的な考え方③」を出しました。扱うのは 3 つです。1 つ目は、氏名が無くても連絡が取れる情報(電話番号、住所、メールアドレス、Cookie ID など)を「連絡可能個人関連情報」として、不適正な利用と不正な取得を禁じることです。2 つ目は、オプトアウト届出で名簿を売る事業者に、売り先の身元と利用目的の確認を義務づけることです。3 つ目は課徴金で、不適正な利用、不正な取得、第三者提供の制限の違反、統計作成等の特例の違反のうち、本人の数が 1,000 人を基準とする大きな事案で、違反から直接得た財産的利益の全額を納めさせる考え方です。自分から報告した事業者は、額が 50% 減ります。
+
+第三者提供の違反のうち、氏名などの識別できる記述、連絡が取れる記述、クレジットカード番号、蓄積された位置情報や購買履歴のどれも含まないデータだけを提供した場合に限って、課徴金の対象から外す方向です。言い換えると、氏名を消しても、メールアドレスや電話番号が残っていれば外れません。この資料は政令と規則の考え方で、ガイドラインは今後の委員会で順次検討するとしています。施行の日は、この資料には書かれていません。
+
+申し込みや取り置きで預かるメールアドレスや電話番号、カメラの映像に付く出入りの記録は、この区分に入ります。預かる物を必要な物だけにし、期限が来たら消す決まりを先に作っておくことが、小さな事業でもできることです。
+
+出典: 個人情報保護委員会事務局「個人情報の保護に関する法律等の一部を改正する法律 政令・規則の整備に向けた基本的な考え方について③(不適正利用等防止、規律遵守の実効性確保のための規律)」(2026-10-14)、https://www.ppc.go.jp/files/pdf/261014_kihonntekinakanngaekatanitsuite_3.pdf +
+出典: 個人情報保護委員会「令和8年改正個人情報保護法について」、https://www.ppc.go.jp/personalinfo/legal/r8kaiseihogohou 、2026-10-17 に確かめました
