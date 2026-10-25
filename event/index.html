@@ -46,7 +46,7 @@
 手引き(SKILL.md、静的サイトと Flet のフォームへの作り直し)に沿って、一緒に作ってください。
 私は HTML も JavaScript も分かりません。PC は Windows です。
 今日の目標の一つが、静的なサイトを Cloudflare Pages に公開することです。
-まず HTML を作って手元のブラウザーで見て、それから Cloudflare に上げます。次に、1 の段のプロンプトを送ります。</textarea>
+まず中身を Markdown で書き、Python のプログラムでページを作って手元のブラウザーで見て、それから Cloudflare に上げます。この後、1 の段のプロンプトを送ります。</textarea>
 <button class="button primary" type="button" data-copy="p0">プロンプトをコピー</button>
 </div>
 <p>PC が Mac か Linux なら、「Windows」を書き換えます。</p>
@@ -96,7 +96,7 @@
 </div>
 <p>手元で見るときは、<code>python -m http.server 8000 -d public</code> を動かし、ブラウザーで <code>http://localhost:8000/</code> を開きます。<code>public/index.html</code> をダブルクリックで開くと、リンクが開かないことがあります。止めるときは、そのターミナルで Ctrl + C を押します。</p>
 <p>Claude のチャットで作ったときは、Claude が示したファイル(<code>content/</code> の Markdown と <code>build.py</code>)を、作業のフォルダーに同じ名前で保存します。保存した名前の最後が <code>.md</code>、<code>.py</code> になっているかを確かめます(Windows では、<code>.txt</code> が付くことがあります)。</p>
-<p><strong>確かめること:</strong> <code>http://localhost:8000/</code> でトップページが出ること。お知らせの一覧と一つ一つのお知らせが開くこと(フォームへのリンクは「準備中」が出ればよい)。ブラウザーの幅を狭くして(スマートフォンの幅)、崩れていないこと。</p>
+<p><strong>確かめること:</strong> <code>http://localhost:8000/</code> でトップページが出ること。お知らせの一覧と一つ一つのお知らせが開くこと(フォームへのリンクは「準備中」が出ればよい)。パソコンの幅と、ブラウザーの幅を狭くしたとき(スマートフォンの幅)の両方で、崩れていないこと。</p>
 <p><strong>お知らせを足してみる:</strong> 「content/oshirase/ にお知らせを 1 つ足してください。題は〇〇、本文は〇〇です」と頼み、<code>python build.py</code> を動かして、トップページと一覧に出ることを確かめます。これからは、この形でお知らせを足します。</p>
 <p>見た目を直したいときは、見えたとおりに頼みます。例:「トップの見出しが大きすぎます。半分くらいにしてください」</p>
 
