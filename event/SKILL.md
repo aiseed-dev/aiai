@@ -102,6 +102,11 @@ Python の部品(`flet`、`cf-publish`)は、作業のフォルダーの仮想�
 `wrangler.toml` には、`name`、`main`、`compatibility_date`、R2 のバインディング(`TOIAWASE`、バケット `toiawase`)、
 `[vars]` の `SITE_ORIGIN`、`MAX_PER_MINUTE`、`MAX_PER_DAY` を書きます。npm の部品は使いません(cf-publish はまとめる道具を持たないため)。
 
+上限は、送られる量を絞るだけです。多数の送り元から集中して送られると、上限で断っていても Worker は呼ばれ続け、問い合わせも
+受けられなくなります。そのときは、まず受け口を止めます(`cf-publish worker deploy worker --no-workers-dev` で Worker の URL を閉じ、
+サイトのフォームへのリンクを外して上げ直す)。最後の守りは認証(Apple ID と Google ID で、送る人を確かめてから受ける)です。この手引きでは
+作りません。
+
 Worker を上げる前に、R2 を手元の偽物にした試験を書いて、上の確かめを 1 つずつ試します。Node.js があれば `node` で動かします。
 
 ### 担当者のアプリ
