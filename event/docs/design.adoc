@@ -97,16 +97,34 @@ API トークン、アカウントの ID、`STAFF_TOKEN` は、参加者が自�
 
 時間内に終わらなかった段は、参加者のページの順に、後から一人で進められます。
 
-== 8. 確かめたことと、まだ確かめていないこと
+== 8. 確かめたこと
 
-* Flet 1.0.4 の Web アプリ(`flet publish` で書き出した物)から `pyodide.http.pyfetch` で POST すると、ブラウザーが送る前の問い合わせ
-  (CORS)をし、`Origin` を付けて JSON を送り、手元の受け口が受け取った(2026-10-25)。`flet build web` で書き出した物では、まだ試していない
-* 手引きの Worker の確かめ(送り元、形、長さ、リンクの数、1 日の件数、担当者の鍵)は、同じ決まりで書いた Worker と、R2 を偽物にした
-  8 件の試験で、Node.js 24.19.0 で通った(2026-10-25)。その Worker は、見本のコードを置かないと決めたので消した
-* `flet build web` は、Flutter SDK が無いと、入れるかを聞いてから自動で入れる(flet_cli 1.0.4 の `flutter_base.py`)。版は Flutter 3.44.8
-* cf-publish の `worker deploy` は、README に「実物の Cloudflare アカウントに対してまだ 1 度も走らせていない」とある(0.3.1)。
-  勉強会の前に、実物で通す必要がある
-* Cloudflare の API トークンの権限の名前と、workers.dev のサブドメインと R2 を初めて使うときの操作は、ダッシュボードで確かめていない
+2026-10-25 に、発注者の Cloudflare のアカウントで、手引きのとおりに 0〜6 の段を通しました。参加者の Claude の代わりに、aiai の管理者
+(Claude Code)が手引きを読んで作り、確かめました。使った版は、flet 1.0.4(Flutter 3.44.8)、cf-publish 0.3.1、Node.js 24.19.0 です。
+
+[cols="1,4"]
+|===
+| 段 | 結果
+
+| 2 | Pages のプロジェクト「aiai-event-test」ができ、`https://aiai-event-test.pages.dev` でページが開いた
+| 3 | R2 を偽物にした試験 8 件が通った。`cf-publish worker deploy` が Worker「toiawase」を上げ、R2 のバケット「toiawase」を作り、
+  `https://toiawase.<サブドメイン>.workers.dev` を出した。外から試すと、送る前の問い合わせは 204、`Origin` の無い送りとよそのサイトからの送りは
+  403、鍵の無い担当者の口は 401、鍵のある一覧は 200 だった
+| 4 | `flet build web --base-url toiawase` は 40 秒ほどで終わり、書き出した物は 13 MB だった。フォームから、空のお名前と、`@` の無い
+  メールアドレスは、Worker の理由が画面に出て断られた。正しい内容は「受け付けました」が出て、入力が消えた。リンク 3 つは 400 で断られた
+| 5 | 担当者のアプリが受け取り、`~/toiawase/` に保存し、R2 から消した。もう一度押すと 0 件だった
+|===
+
+通して分かり、手引きと参加者のページに足したこと:
+
+* cf-publish が上げるたびに出す `https://<8 桁>.<プロジェクト名>.pages.dev` は、その回だけの URL で、上げた直後は開けなかった。
+  `SITE_ORIGIN` には `https://<プロジェクト名>.pages.dev` を書く
+* Python の `urllib` の既定の `User-Agent`(`Python-urllib/3.13`)で Worker を呼ぶと、Cloudflare が「error code: 1010」(403)で断った。
+  アプリの名前を `User-Agent` に付けると通った
+* Worker が置く受け付けの時刻は UTC なので、担当者のアプリでは日本時間に直して見せる
+
+まだ確かめていないこと: Cloudflare の API トークンの権限の名前と、workers.dev のサブドメインと R2 を初めて使うときの画面(発注者の
+アカウントでは、どちらも前から使えた)。Windows と Mac での `flet build web`。
 
 == 9. 次回
 

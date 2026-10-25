@@ -94,7 +94,9 @@ Worker を上げる前に、R2 を手元の偽物にした試験を書いて、�
 - 送り先と鍵は、`~/.config/toiawase.env` の `TOIAWASE_URL` と `TOIAWASE_TOKEN` から読みます。画面に入れる欄は置きません
 - ボタン「受け取る」で、置いてある物を 1 件ずつ読み、`~/toiawase/` に JSON で保存し、保存できた物だけを R2 から消します。
   保存に失敗した物は消しません
-- 保存した物を新しい順に並べ、受け付けた時刻、お名前、メールアドレス、内容を見せます
+- 保存した物を新しい順に並べ、受け付けた時刻(日本時間に直す)、お名前、メールアドレス、内容を見せます
+- Worker を呼ぶときは、アプリの名前を `User-Agent` に付けます(例: `toiawase-uketori/1.0`)。Python の `urllib` が既定で名乗る
+  `Python-urllib/3.x` は、Cloudflare に「error code: 1010」(403)で断られます
 
 問い合わせには、お名前とメールアドレスが入ります。Cloudflare には長く置かず、受け取ったら消します。
 
@@ -113,9 +115,11 @@ Cloudflare には cf-publish(https://github.com/aiseed-dev/cf-publish)で上げ�
 - `STAFF_TOKEN` は、本人が `python -c "import secrets; print(secrets.token_urlsafe(32))"` で作り、`~/.config/toiawase.env` と、
   上げるときの環境の変数にだけ置きます
 - R2 のバケットは、無ければ `worker deploy` が作ります
+- Pages の URL は `https://<プロジェクト名>.pages.dev` です。cf-publish が上げるたびに出す `https://<8 桁>.<プロジェクト名>.pages.dev` は、
+  その回だけの URL で、上げた直後は開けないことがあります。`SITE_ORIGIN` には、決まった方の URL を書きます
 - Worker の URL は、`--workers-dev` を付けたときに出ます。アカウントに workers.dev のサブドメインがまだ無いときは、本人に
   ダッシュボードの「Workers & Pages」を一度開いてもらいます
-- 順番: Pages を上げて URL を知る → `SITE_ORIGIN` に書く → Worker を上げて URL を知る → `WORKER_URL` に書いて書き出す →
+- 順番: Pages を上げる → `https://<プロジェクト名>.pages.dev` を `SITE_ORIGIN` に書く → Worker を上げて URL を知る → `WORKER_URL` に書いて書き出す →
   Pages をもう一度上げる
 
 ### 秘密の値

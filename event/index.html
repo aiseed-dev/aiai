@@ -66,12 +66,12 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
 できたら、Pages のプロジェクトの名前を「(英小文字の名前)」にして上げるコマンドを教えてください。</textarea>
 <button class="button primary" type="button" data-copy="p2">頼む文をコピー</button>
 </div>
-<p><strong>確かめること:</strong> cf-publish が出した <code>https://〜.pages.dev</code> を開き、ページが出ること。リンクを押して、開かないページが無いこと(フォームはまだ無いので、フォームへのリンクは開かなくてよい)。</p>
+<p><strong>確かめること:</strong> <code>https://(プロジェクトの名前).pages.dev</code> を開き、ページが出ること。リンクを押して、開かないページが無いこと(フォームはまだ無いので、フォームへのリンクは開かなくてよい)。cf-publish が最後に出す <code>https://(8 桁).(プロジェクトの名前).pages.dev</code> は、その回だけの URL です。上げた直後は開けないことがあります。</p>
 <p>見た目を直したいときは、見えたとおりに頼みます。例:「トップの見出しが大きすぎます。半分くらいにしてください」</p>
 
 <h2>3. 受け口(Worker と R2)を作って公開する</h2>
 <div class="tanomu">
-<textarea id="p3" readonly rows="5">手引きの 3 の段です。お知らせのページの URL は https://(2 で出た URL).pages.dev でした。
+<textarea id="p3" readonly rows="5">手引きの 3 の段です。お知らせのページの URL は https://(プロジェクトの名前).pages.dev です。
 worker/ に受け口を作ってください。上げる前に、R2 を偽物にした試験を書いて、手引きの確かめを 1 つずつ試してください。
 STAFF_TOKEN は私が作ってファイルに書くので、作り方と置き場所だけ教えてください。
 試験が通ったら、上げるコマンドを教えてください。</textarea>
@@ -87,7 +87,7 @@ toiawase/ に問い合わせのフォームを Flet で作り、flet build web �
 できたら、Pages にもう一度上げるコマンドを教えてください。</textarea>
 <button class="button primary" type="button" data-copy="p4">頼む文をコピー</button>
 </div>
-<p>初めての <code>flet build web</code> は、Flutter SDK を自動で入れるので時間がかかります。入れるかを聞かれたら、<code>y</code> で答えます。</p>
+<p>初めての <code>flet build web</code> は、Flutter SDK を自動で入れるので時間がかかります。入れるかを聞かれたら、<code>y</code> で答えます。Flutter SDK が入っていれば、書き出しは 1 分ほどです。</p>
 <p><strong>確かめること:</strong> <code>https://〜.pages.dev/toiawase/</code> を開き、フォームから 1 件送って「受け付けました」が出ること。</p>
 <p><strong>確かめること:</strong> お名前を空にする、メールアドレスに <code>@</code> を入れない、内容にリンクを 3 つ書く。どれも理由が出て、受け付けられないこと。</p>
 <p>送れないときは、画面に出た文をそのまま Claude に貼ります。何も出ないときは、ブラウザーの開発者ツール(F12)の「Console」に出た赤い文を貼ります。</p>
@@ -98,7 +98,8 @@ toiawase/ に問い合わせのフォームを Flet で作り、flet build web �
 送り先と鍵を書くファイルの書き方も教えてください。鍵は私が書きます。</textarea>
 <button class="button primary" type="button" data-copy="p5">頼む文をコピー</button>
 </div>
-<p><strong>確かめること:</strong> 「受け取る」を押すと、4 で送った物が出ること。<code>~/toiawase/</code> に保存されていること。もう一度押しても、同じ物が増えないこと(Cloudflare から消えたこと)。</p>
+<p>「受け取れませんでした: HTTP Error 403」と出たら、「error code: 1010 かもしれません。手引きの User-Agent の所を見て直してください」と頼みます。</p>
+<p><strong>確かめること:</strong> 「受け取る」を押すと、4 で送った物が出ること。受け付けた時刻が日本時間で出ること。<code>~/toiawase/</code> に保存されていること。もう一度押しても、同じ物が増えないこと(Cloudflare から消えたこと)。</p>
 
 <h2>6. 通して確かめる</h2>
 <div class="tanomu">
