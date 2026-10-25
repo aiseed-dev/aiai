@@ -20,16 +20,19 @@
 <li>担当者のアプリ(Flet)。R2 から受け取って PC に保存し、R2 から消します</li>
 </ul>
 
-<h2>用意する物</h2>
-<ol>
-<li><strong>Python の入った PC</strong>(Windows、Mac、Linux)と、<strong>Claude</strong>。無料版でも参加できます。有料版なら Claude Code が使え、Claude がファイルを書き、コマンドを動かすので、早く進みます。Claude のチャット(claude.ai やアプリ)で進めるときは、Claude が示したファイルを自分で保存し、コマンドを自分で動かします</li>
-<li><strong>Cloudflare のアカウント</strong>(無料)。無ければ、下の「Cloudflare の設定」で作ります</li>
-</ol>
+<h2>事前の準備</h2>
+<p>当日までに、次の物を用意しておきます(<a href="https://connpass.com/event/410690/">connpass</a> の案内と同じです)。</p>
+<ul>
+<li>Python が動く環境</li>
+<li>Cloudflare のアカウント(無料)</li>
+<li>Claude のアカウント(無料版でも参加できます。有料版なら Claude Code が使えるので、作業が早く進みます)</li>
+<li>Google のアカウント(Meet に入るため)</li>
+</ul>
+<p>Claude Code では、Claude がファイルを書き、コマンドを動かします。Claude のチャット(claude.ai やアプリ)で進めるときは、Claude が示したファイルを自分で保存し、コマンドを自分で動かします。</p>
 
 <h2>Cloudflare の設定</h2>
-<p>ここは Claude ではなく、自分でダッシュボード(https://dash.cloudflare.com/)を開いてします。上から順に済ませます。</p>
+<p>当日、最初にします。ここは Claude ではなく、自分でダッシュボード(https://dash.cloudflare.com/)を開いてします。</p>
 <ol>
-<li><strong>アカウントを作る</strong>。無料のアカウントで足ります</li>
 <li><strong>アカウントの ID をコピーする</strong>。「Workers &amp; Pages」を開くと、「Account Details」に <strong>アカウントの ID</strong> があります<br>
   <span class="small">出典: Cloudflare「workers.dev」(https://developers.cloudflare.com/workers/configuration/routing/workers-dev/)、「Find account and zone IDs」(https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/)。2026-10-25 に確かめた</span></li>
 <li><strong>API トークンを作る</strong>。右上の人の印 →「My Profile」→「API Tokens」→「Create Token」→ 雛形を使わずに作る(Custom token)。名前を付け、権限に「Account → Cloudflare Pages → Edit」を足します。目標 1 には、この 1 つで足ります。
