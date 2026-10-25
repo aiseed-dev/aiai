@@ -21,12 +21,12 @@ PHP や WordPress で動いているサイトを、PHP を使わない形に作�
 
 1. 載せる中身を決めます
    - 今のサイトがある場合: 緊急なので、今のサイトの棚卸しはしません。本人に今のサイトの URL か、ページの文章を出してもらい、
-     今のサイトのトップページと、トップページからリンクしているお知らせのページがあればそのページの 2 つを静的なページにします。
-     トップページからお知らせのページへのリンクも作ります。2 つに載っている中身(文章、画像、
-     リンク)を取り出して、ページごとに一覧にまとめます。今のサイトに書いていない事実は足しません
+     トップページと、トップページからリンクしているお知らせのページ(あれば)の 2 つに載っている中身(文章、画像、リンク)を
+     取り出して、ページごとに一覧にまとめます。今のサイトに書いていない事実は足しません
    - 新しく作る場合: 本人に聞かずに、本人が書いた中身で、すぐにお知らせのページを作ります(1 と 2 の段を続けてする)。空いている所は
      「(ここに〇〇を書く)」の形で空けておき、本人が書いていない事実は足しません。直すのは、本人が後でします
-2. ページ(今のサイトがあればトップページと、あればお知らせのページ。新しく作るならお知らせのページ)を作り、Cloudflare Pages に上げます。本人がブラウザーで開いて確かめます
+2. ページを作り、Cloudflare Pages に上げます。今のサイトがある場合は、1 の段の一覧からトップページとお知らせのページ(あれば)を作り、
+   トップページからお知らせのページへリンクします。本人がブラウザーで開いて確かめます
 3. 受け口の Worker と R2 のバケットを上げます
 4. 問い合わせのフォームを Flet で作り、`flet build web` で書き出して、静的なサイトと一緒にもう一度上げます
 5. 担当者のアプリを Flet で作ります
@@ -118,17 +118,18 @@ Cloudflare には cf-publish(https://github.com/aiseed-dev/cf-publish)で上げ�
 | 静的なサイトとフォーム | `cf-publish public --project <プロジェクト名>` |
 | Worker と R2 のバケット | `cf-publish worker deploy worker --secret STAFF_TOKEN --workers-dev` |
 
-- API トークンには、「Cloudflare Pages: 編集」「Workers Scripts: 編集」「Workers R2 Storage: 編集」の 3 つの権限を付けます。
+- API トークンの権限は、目標 1 には「Cloudflare Pages: 編集」だけで足ります。目標 2 の前に「Workers Scripts: 編集」と
+  「Workers R2 Storage: 編集」を足します。
   トークンとアカウントの ID は、本人が `~/.config/cloudflare/pages.env` に `CLOUDFLARE_API_TOKEN=` と
   `CLOUDFLARE_ACCOUNT_ID=` の形で書きます
 - `STAFF_TOKEN` は、本人が `python -c "import secrets; print(secrets.token_urlsafe(32))"` で作り、`~/.config/toiawase.env` と、
   上げるときの環境の変数にだけ置きます
 - R2 のバケットは、無ければ `worker deploy` が作ります。その前に、本人がダッシュボードで R2 を使い始める手続き(支払いの方法の登録を
-  求められる)を済ませておく必要があります。済んでいないと言われたら、参加者のページの「Cloudflare の設定」を見てもらいます
+  求められる)を済ませておく必要があります。済んでいないと言われたら、参加者のページの「Cloudflare の設定を足す」を見てもらいます
 - Pages の URL は `https://<プロジェクト名>.pages.dev` です。cf-publish が上げるたびに出す `https://<8 桁>.<プロジェクト名>.pages.dev` は、
   その回だけの URL で、上げた直後は開けないことがあります。`SITE_ORIGIN` には、決まった方の URL を書きます
-- Worker の URL は、`--workers-dev` を付けたときに出ます。アカウントに workers.dev のサブドメインがまだ無いときは、本人に
-  ダッシュボードの「Workers & Pages」を一度開いてもらいます
+- Worker の URL は、`--workers-dev` を付けたときに出ます。サブドメインが無いと言われたときは、本人に
+  ダッシュボードの「Workers & Pages」を開き、「Your subdomain」を見てもらいます
 - 順番: Pages を上げる → `https://<プロジェクト名>.pages.dev` を `SITE_ORIGIN` に書く → Worker を上げて URL を知る → `WORKER_URL` に書いて書き出す →
   Pages をもう一度上げる
 
