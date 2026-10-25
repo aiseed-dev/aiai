@@ -577,11 +577,9 @@ FOOTER = """<footer>
 </footer>"""
 
 # The record of how the pages are read (kaiseki/): no cookie and no ID, sent to
-# The study session's pages (event/<name>.html), in the order of the steps; the index links to the rest
-EVENT_PAGES = [("index", "目次"), ("0", "0. 手引きを Claude に渡す"), ("1", "1. 載せる中身を決める"),
-               ("2", "2. ページを作って、手元で見る"), ("3", "3. Cloudflare に公開する"), ("design", "デザインを考える"),
-               ("junbi2", "目標 2 の準備"), ("4", "4. 受け口(Worker と R2)"), ("5", "5. 問い合わせのフォーム"),
-               ("6", "6. 担当者のアプリ"), ("7", "7. 通して確かめる")]
+# The study session's pages (event/<name>.html): one for each goal, each linking to the other
+EVENT_PAGES = [("index", "静的サイトと Flet のフォームへの作り直し", "目標 1: 静的なサイトの公開"),
+               ("mokuhyou2", "目標 2: 問い合わせのフォームの作成", "目標 2: 問い合わせのフォームの作成")]
 
 # this site's own server, with aiai's events (kaiseki-aiai.js) on top
 KAISEKI_TAGS = """<script src="/kaiseki.js" data-to="/kaiseki" data-ask="no" defer></script>
@@ -1085,19 +1083,17 @@ def main():
     # with links to the step before and after; the guide is also served as is, for Claude to read
     event = os.path.join(ROOT, "event")
     guide = read(os.path.join(event, "SKILL.md"))
-    for i, (name, title) in enumerate(EVENT_PAGES):
+    for i, (name, title, _) in enumerate(EVENT_PAGES):
         body = read(os.path.join(event, f"{name}.html")).replace(
             "<!-- event-skill -->", f'<textarea id="event-skill" hidden>{html.escape(guide)}</textarea>')
-        if name != "index":
-            before = EVENT_PAGES[i - 1] if i > 1 else None
-            after = EVENT_PAGES[i + 1] if i + 1 < len(EVENT_PAGES) else None
-            body += ('<nav class="dan-nav">'
-                     + (f'<a href="/event/{before[0]}.html">← {html.escape(before[1])}</a>' if before else "<span></span>")
-                     + '<a href="/event/">目次</a>'
-                     + (f'<a href="/event/{after[0]}.html">{html.escape(after[1])} →</a>' if after else "<span></span>")
-                     + "</nav>")
+        before = EVENT_PAGES[i - 1] if i > 0 else None
+        after = EVENT_PAGES[i + 1] if i + 1 < len(EVENT_PAGES) else None
+        body += ('<nav class="dan-nav">'
+                 + (f'<a href="/event/{before[0]}.html">← {html.escape(before[2])}</a>' if before else "<span></span>")
+                 + (f'<a href="/event/{after[0]}.html">{html.escape(after[2])} →</a>' if after else "<span></span>")
+                 + "</nav>")
         write(os.path.join(OUT, "event", f"{name}.html"), page(
-            title if name != "index" else "静的サイトと Flet のフォームへの作り直し", body + COPY_SCRIPT,
+            title, body + COPY_SCRIPT,
             "勉強会: PHP のサイトを、静的なサイトと Flet のフォームに作り直す。Claude に渡すプロンプトと、確かめること"))
     write(os.path.join(OUT, "event", "SKILL.md"), guide)
     shutil.copyfile(os.path.join(event, "static-site.pdf"), os.path.join(OUT, "event", "static-site.pdf"))

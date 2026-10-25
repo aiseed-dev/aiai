@@ -1,0 +1,61 @@
+<p class="kicker">勉強会 2026-10-25(日)20:00〜21:00</p>
+<h1>目標 2: 問い合わせのフォームの作成</h1>
+<p class="lead"><a href="/event/">目標 1</a> の静的なサイトに、問い合わせのフォームを足します。時間内に終わらなくても、このページの順に、後から一人で進められます。</p>
+
+<div class="prose">
+
+<h2>準備</h2>
+<p>フォームは誰でも送れる口なので、来た物は全部疑い、量を絞ります。それでも集中して送られたら受け口を止めます。最後の守りは認証ですが、今回は作りません。</p>
+<p>先に、ダッシュボードで 3 つ足します。</p>
+<ol>
+<li><strong>R2 を使い始める</strong>: 「Storage &amp; databases」→「R2」→「Overview」で、R2 を足す手続きを最後まで進めます。<strong>支払いの方法(カード、PayPal など)の登録を求められます。</strong>カードを確かめるために少しの金額が一時的に押さえられることがあり、後で戻ります。毎月の無料の枠(保存 10 GB、Class A の操作 100 万回、Class B の操作 1,000 万回)があり、ふだんの問い合わせの量なら十分にその中に収まります。通らないときは、先に「Billing」の「Payment methods」で支払いの方法を足します<br>
+  <span class="small">出典: Cloudflare「Get started」(https://developers.cloudflare.com/r2/get-started/)、「Pricing」(https://developers.cloudflare.com/r2/pricing/)。2026-10-25 に確かめた</span></li>
+<li><strong>Worker の名前</strong>: 「Workers &amp; Pages」の「Your subdomain」にあります</li>
+<li><strong>トークンの権限</strong>: 「API Tokens」で 3 の段のトークンを編集し、「Workers Scripts → Edit」と「Workers R2 Storage → Edit」を足します</li>
+</ol>
+<p>R2 にカードなどを登録したくないときは、Google フォームを作ってサイトからリンクする手もあります。その場合、4〜6 の段は要りません。</p>
+
+<h2>4. 受け口(Worker と R2)</h2>
+<div class="tanomu">
+<textarea id="p4w" readonly rows="6">手引きの 4 の段です。静的なサイトの URL は https://(プロジェクトの名前).pages.dev です。
+worker/ に受け口を作ってください。上げる前に、R2 を偽物にした試験を書いて、手引きの確かめを 1 つずつ試してください。
+STAFF_TOKEN は私が作ってファイルに書くので、作り方と置き場所だけ教えてください。
+1 分と 1 日に受ける数は、案を出してから私と決めてください。
+試験が通ったら、上げるコマンドを教えてください。</textarea>
+<button class="button primary" type="button" data-copy="p4w">プロンプトをコピー</button>
+</div>
+<p><strong>確かめること:</strong> 試験がすべて通る。上げると <code>https://toiawase.〜.workers.dev</code> が出る。</p>
+
+<h2>5. 問い合わせのフォーム</h2>
+<div class="tanomu">
+<textarea id="p5f" readonly rows="5">手引きの 5 の段です。Worker の URL は https://(4 で出た URL).workers.dev でした。
+仮想環境に flet が入っていなければ、入れるコマンドから教えてください。
+toiawase/ に問い合わせのフォームを Flet で作り、flet build web で書き出して、public/toiawase/ の「準備中」のページと入れ替えてください。
+できたら、Pages にもう一度上げるコマンドを教えてください。</textarea>
+<button class="button primary" type="button" data-copy="p5f">プロンプトをコピー</button>
+</div>
+<p>初めての <code>flet build web</code> は Flutter SDK を入れるので時間がかかります。入れるかを聞かれたら <code>y</code> です。</p>
+<p><strong>確かめること:</strong> <code>https://〜.pages.dev/toiawase/</code> から 1 件送ると「受け付けました」が出る。空のお名前、<code>@</code> の無いメールアドレス、リンク 3 つは、理由が出て断られる。</p>
+
+<h2>6. 担当者のアプリ</h2>
+<div class="tanomu">
+<textarea id="p6u" readonly rows="4">手引きの 6 の段です。uketori/ に担当者のアプリを Flet で作り、短い利用者マニュアルも作ってください。
+保存先は、案を出してから私と決めてください。
+送り先と鍵を書くファイルの書き方も教えてください。鍵は私が書きます。</textarea>
+<button class="button primary" type="button" data-copy="p6u">プロンプトをコピー</button>
+</div>
+<p><strong>確かめること:</strong> 利用者マニュアルのとおりに使える。「受け取る」で 5 で送った物が出て、保存先に保存され、もう一度押しても増えない。「HTTP Error 403」なら、「error code: 1010 かもしれません。手引きの User-Agent の所を見て直してください」と頼みます。</p>
+
+<h2>7. 通して確かめる</h2>
+<div class="tanomu">
+<textarea id="p7t" readonly rows="3">手引きの 7 の段です。確かめた結果を書きます。(うまくいった所と、うまくいかなかった所)
+まだ確かめていない物と、古いサイトを止める前にすることを並べてください。</textarea>
+<button class="button primary" type="button" data-copy="p7t">プロンプトをコピー</button>
+</div>
+<p><strong>確かめること:</strong> 古いサーバーの PHP と管理画面を、公開したままにしていない。</p>
+
+<h2>次回の予定</h2>
+<p>問い合わせの中身は識別情報(お名前、メールアドレスなど)なので、Cloudflare に長く置かず、社内のサーバーに移します。次回は、フォームを受け取る社内のサーバーを Debian で作ります。</p>
+<p>質問は、Flet の日本語のチャンネル(Discord)で受け付けます。案内は <a href="https://connpass.com/event/410690/">connpass</a> にあります。</p>
+
+</div>
