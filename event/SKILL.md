@@ -114,7 +114,8 @@ Cloudflare には cf-publish(https://github.com/aiseed-dev/cf-publish)で上げ�
   `CLOUDFLARE_ACCOUNT_ID=` の形で書きます
 - `STAFF_TOKEN` は、本人が `python -c "import secrets; print(secrets.token_urlsafe(32))"` で作り、`~/.config/toiawase.env` と、
   上げるときの環境の変数にだけ置きます
-- R2 のバケットは、無ければ `worker deploy` が作ります
+- R2 のバケットは、無ければ `worker deploy` が作ります。その前に、本人がダッシュボードで R2 を使い始める手続き(支払いの方法の登録を
+  求められる)を済ませておく必要があります。済んでいないと言われたら、参加者のページの「Cloudflare の設定」を見てもらいます
 - Pages の URL は `https://<プロジェクト名>.pages.dev` です。cf-publish が上げるたびに出す `https://<8 桁>.<プロジェクト名>.pages.dev` は、
   その回だけの URL で、上げた直後は開けないことがあります。`SITE_ORIGIN` には、決まった方の URL を書きます
 - Worker の URL は、`--workers-dev` を付けたときに出ます。アカウントに workers.dev のサブドメインがまだ無いときは、本人に

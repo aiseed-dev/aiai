@@ -16,16 +16,33 @@
 <h2>始まる前に</h2>
 <ol>
 <li><strong>Python の入った PC</strong>(Windows、Mac、Linux)と、<strong>Claude</strong>。無料版でも参加できます。有料版なら Claude Code が使え、Claude がファイルを書き、コマンドを動かすので、早く進みます。無料版では、Claude が示したファイルを自分で保存し、コマンドを自分で動かします</li>
-<li><strong>Cloudflare の API トークン</strong>。Cloudflare のダッシュボードの「My Profile」→「API Tokens」→「Create Token」で、「Create Custom Token」を選び、次の 3 つの権限を付けて作ります
+<li><strong>Cloudflare の設定</strong>。下の「Cloudflare の設定」の 1〜4 を済ませます</li>
+</ol>
+
+<h3>Cloudflare の設定</h3>
+<p>ここは Claude ではなく、自分でダッシュボード(https://dash.cloudflare.com/)を開いてします。上から順に済ませます。</p>
+<ol>
+<li><strong>アカウントを作る</strong>。無料のアカウントで足ります</li>
+<li><strong>R2 を使い始める</strong>。「Storage &amp; databases」→「R2」→「Overview」を開き、R2 を足す手続き(checkout)を最後まで進めます。この手続きでは、<strong>支払いの方法(カード、PayPal など)の登録を求められます</strong>。問い合わせを置くのに R2 が要るので、ここは越えるしかありません。R2 には毎月の無料の枠(保存 10 GB、Class A の操作 100 万回、Class B の操作 1,000 万回。外への転送は無料)があり、この勉強会で使う量は、その中に収まります<br>
+  <span class="small">出典: Cloudflare「Get started」(https://developers.cloudflare.com/r2/get-started/)、「Pricing」(https://developers.cloudflare.com/r2/pricing/)、「Update billing information」(https://developers.cloudflare.com/billing/get-started/update-billing-info/)。2026-10-25 に確かめた</span></li>
+<li><strong>Workers を一度開く</strong>。「Workers &amp; Pages」を開きます。「Your subdomain」に、Worker の URL(<code>(名前).workers.dev</code>)に使う名前が出ています。変えるときは「Change」を押します。同じ画面の「Account Details」に、<strong>アカウントの ID</strong> があります。コピーしておきます<br>
+  <span class="small">出典: Cloudflare「workers.dev」(https://developers.cloudflare.com/workers/configuration/routing/workers-dev/)、「Find account and zone IDs」(https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/)。2026-10-25 に確かめた</span></li>
+<li><strong>API トークンを作る</strong>。右上の人の印 →「My Profile」→「API Tokens」→「Create Token」→ 雛形を使わずに作る(Custom token)。名前を付け、権限に次の 3 つを足します
   <ul>
   <li>Account → Cloudflare Pages → Edit</li>
   <li>Account → Workers Scripts → Edit</li>
   <li>Account → Workers R2 Storage → Edit</li>
   </ul>
-  作ったトークンと、ダッシュボードに出ているアカウントの ID は、自分で <code>~/.config/cloudflare/pages.env</code> に書きます(書き方は、下の 1 の段で Claude に聞きます)。<strong>トークンは Claude のチャットに貼りません。</strong></li>
-<li><strong>workers.dev のサブドメイン</strong>。ダッシュボードの「Workers &amp; Pages」を一度開いておきます。初めて開いたときに作られます</li>
-<li><strong>R2</strong>。ダッシュボードの「R2」を開き、使い始める操作をしておきます</li>
+  「Continue to summary」→「Create Token」で、トークンが出ます。<br>
+  <span class="small">出典: Cloudflare「Create API token」(https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)。2026-10-25 に確かめた</span><br>
+  <strong>トークンは 1 度しか出ません。</strong>すぐにコピーし、次の 0 の段で作るファイルに書きます。<strong>Claude のチャットには貼りません</strong></li>
 </ol>
+<p>止まりやすい所:</p>
+<ul>
+<li>R2 の手続きで支払いの方法が通らない、同じ画面に戻る。先に「Billing」の「Payment methods」の「Add Payment Method」で支払いの方法を足してから、R2 の画面に戻ります</li>
+<li>トークンをコピーする前に画面を閉じた。そのトークンを消して、作り直します</li>
+<li>トークンに権限が足りない(後で cf-publish が「権限が無い」と言う)。「API Tokens」でトークンを編集し、上の 3 つが入っているかを見ます</li>
+</ul>
 
 <h2>0. 手引きを Claude に渡す</h2>
 <p>最初に、この勉強会の手引き(何を作るか、何を確かめるか、何を決めてあるか)を Claude に渡します。</p>
