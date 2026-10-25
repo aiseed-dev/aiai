@@ -577,6 +577,12 @@ FOOTER = """<footer>
 </footer>"""
 
 # The record of how the pages are read (kaiseki/): no cookie and no ID, sent to
+# The study session's pages (event/<name>.html), in the order of the steps; the index links to the rest
+EVENT_PAGES = [("index", "目次"), ("0", "0. 手引きを Claude に渡す"), ("1", "1. 載せる中身を決める"),
+               ("2", "2. ページを作って、手元で見る"), ("3", "3. Cloudflare に公開する"), ("design", "デザインを考える"),
+               ("junbi2", "目標 2 の準備"), ("4", "4. 受け口(Worker と R2)"), ("5", "5. 問い合わせのフォーム"),
+               ("6", "6. 担当者のアプリ"), ("7", "7. 通して確かめる")]
+
 # this site's own server, with aiai's events (kaiseki-aiai.js) on top
 KAISEKI_TAGS = """<script src="/kaiseki.js" data-to="/kaiseki" data-ask="no" defer></script>
 <script src="/kaiseki-aiai.js" defer></script>"""
@@ -1075,14 +1081,24 @@ def main():
                                                  "畑のカメラの映像を AI が読み、記録する例"))
     write(os.path.join(OUT, "privacy.html"), page("プライバシーポリシー", read(os.path.join(HERE, "privacy.html")),
                                                    "このサイトとアプリで、何を預かり、何に使い、いつ消すか"))
-    # the study session's page: what to ask Claude at each step; its guide is also served as is, for Claude to read
+    # the study session: an index and one page per step, each with the prompt to give Claude and what to check,
+    # with links to the step before and after; the guide is also served as is, for Claude to read
     event = os.path.join(ROOT, "event")
     guide = read(os.path.join(event, "SKILL.md"))
-    write(os.path.join(OUT, "event", "index.html"), page(
-        "静的サイトと Flet のフォームへの作り直し",
-        read(os.path.join(event, "index.html")).replace(
-            "<!-- event-skill -->", f'<textarea id="event-skill" hidden>{html.escape(guide)}</textarea>') + COPY_SCRIPT,
-        "勉強会: PHP のサイトを、静的なサイトと Flet のフォームに作り直す。Claude に渡すプロンプトと、確かめること"))
+    for i, (name, title) in enumerate(EVENT_PAGES):
+        body = read(os.path.join(event, f"{name}.html")).replace(
+            "<!-- event-skill -->", f'<textarea id="event-skill" hidden>{html.escape(guide)}</textarea>')
+        if name != "index":
+            before = EVENT_PAGES[i - 1] if i > 1 else None
+            after = EVENT_PAGES[i + 1] if i + 1 < len(EVENT_PAGES) else None
+            body += ('<nav class="dan-nav">'
+                     + (f'<a href="/event/{before[0]}.html">← {html.escape(before[1])}</a>' if before else "<span></span>")
+                     + '<a href="/event/">目次</a>'
+                     + (f'<a href="/event/{after[0]}.html">{html.escape(after[1])} →</a>' if after else "<span></span>")
+                     + "</nav>")
+        write(os.path.join(OUT, "event", f"{name}.html"), page(
+            title if name != "index" else "静的サイトと Flet のフォームへの作り直し", body + COPY_SCRIPT,
+            "勉強会: PHP のサイトを、静的なサイトと Flet のフォームに作り直す。Claude に渡すプロンプトと、確かめること"))
     write(os.path.join(OUT, "event", "SKILL.md"), guide)
     shutil.copyfile(os.path.join(event, "static-site.pdf"), os.path.join(OUT, "event", "static-site.pdf"))
     # the usage page is the short form of the user manual; its PDF is copied beside it (the flow is the top page's)

@@ -1,6 +1,6 @@
 <p class="kicker">勉強会 2026-10-25(日)20:00〜21:00</p>
 <h1>PHP のサイトを、静的なサイトと Flet のフォームに作り直す</h1>
-<p class="lead">目標 1 は、PHP を使わない静的なサイトを、自分の Cloudflare に公開すること。目標 2 は、問い合わせのフォームを作ることです。コードは Claude が書きます。上から順に、プロンプトをコピーして Claude に貼り、「確かめること」を見ます。</p>
+<p class="lead">目標 1 は、PHP を使わない静的なサイトを、自分の Cloudflare に公開すること。目標 2 は、問い合わせのフォームを作ることです。コードは Claude が書きます。段ごとのページに、Claude に渡すプロンプトと「確かめること」があります。</p>
 
 <div class="prose">
 
@@ -14,142 +14,24 @@
 <li>Google のアカウント(Meet に入るため)</li>
 </ul>
 
-<h2>0. 手引きを Claude に渡す</h2>
-<ol>
-<li>作業のフォルダーを 1 つ作ります(例: <code>static-site</code>)</li>
-<li>Claude Code なら、そのフォルダーで開きます。Claude のチャット(claude.ai やアプリ)なら、Claude が示したファイルを自分でこのフォルダーに保存し、コマンドを自分で動かします</li>
-<li>「手引きをコピー」を押して Claude に貼り、続けて下のプロンプトを貼ります</li>
+<h2>目標 1: 静的なサイトの公開</h2>
+<ol class="dan-list" start="0">
+<li><a href="/event/0.html">手引きを Claude に渡す</a></li>
+<li><a href="/event/1.html">載せる中身を決める</a></li>
+<li><a href="/event/2.html">ページを作って、手元で見る</a></li>
+<li><a href="/event/3.html">Cloudflare に公開する</a></li>
 </ol>
-<div class="actions">
-  <button class="button" type="button" data-copy="event-skill">手引きをコピー</button>
-</div>
-<!-- event-skill -->
-<div class="tanomu">
-<textarea id="p0" readonly rows="5">PHP に緊急の脆弱性(CVE-2026-109618、CVE-2026-109619)が公開されました。PHP を使わない静的なサイトにします。
-手引き(SKILL.md、静的サイトと Flet のフォームへの作り直し)に沿って、一緒に作ってください。
-私は HTML も JavaScript も分かりません。PC は Windows です。
-まず中身を Markdown で書き、Python のプログラムでページを作って手元のブラウザーで見て、それから Cloudflare に上げます。この後、1 の段のプロンプトを送ります。</textarea>
-<button class="button primary" type="button" data-copy="p0">プロンプトをコピー</button>
-</div>
-<p>PC が Mac か Linux なら、「Windows」を書き換えます。</p>
-
-<h2>1. 載せる中身を決める</h2>
-<p>中身は Markdown のファイルに書き、Python のプログラム(<code>build.py</code>)がページを作ります。お知らせを足すときは、ファイルを 1 つ足して <code>build.py</code> を動かすだけです。今のサイトがあるかどうかで、プロンプトを選びます。</p>
-
-<h3>今のサイトがある場合</h3>
-<div class="tanomu">
-<textarea id="p1" readonly rows="6">手引きの 1 の段です。今のサイトは https://(自分のサイトの URL)です。PHP で動いているので、静的なサイトに作り直します。
-今のサイトのトップページに載っている中身(文章、画像、リンク)を取り出して、content/index.md に書いてください。
-トップページからお知らせにリンクしていれば、お知らせの一覧のページ(「次へ」で続くページも)と、一覧からリンクしている一つ一つのお知らせのページを、一連で取り出し、content/oshirase/ に 1 件 1 ファイルで書いてください。
-お知らせが何件あったかも教えてください。
-今のサイトに書いていない事実は、足さないでください。</textarea>
-<button class="button primary" type="button" data-copy="p1">プロンプトをコピー</button>
-</div>
-<p>Claude がサイトを読めないときは、今のページの文章をコピーして貼ります。</p>
-<p><strong>確かめること:</strong> トップページの中身が抜けていないか。お知らせのファイルの数が、今の件数と合っているか。古い中身が入っていないか。</p>
-
-<h3>新しく作る場合</h3>
-<p>見本の中身が入っています。自分の会社や店で作るときは、欄の中で書き替えてからコピーします。分からない所は空けたままでかまいません。2 の段まで一度に進みます。</p>
-<div class="tanomu">
-<textarea id="p1n" rows="13">手引きの 1 と 2 の段です。今のサイトはありません。PHP を使わない静的なサイトを、新しく作ります。
-私に聞かずに、下の中身で、content/index.md と、content/oshirase/ のお知らせ(1 件 1 ファイル)をすぐに書いてください。
-下で空けてある所だけを「(ここに〇〇を書く)」の形で空けておいてください。書いていない事実は足さないでください。
-続けて build.py を作り、ページを作って、手元のブラウザーで見るところまで、コマンドを 1 つずつ教えてください。
-
-名前: 架空の工務店(架空の見本。ページにも架空と書いてください)
-何をしているか: 家の修理とリフォーム。小さな修理から受けます
-お知らせ: 10 月 25 日 サイトを作り直しました。PHP を使わない形になりました。/ 10 月 20 日 年末年始の休みは、12 月 29 日から 1 月 4 日までです。
-営業日と時間: 月曜から土曜、9 時から 18 時。日曜と祝日は休み
-連絡先: (ここに電話番号を書く)</textarea>
-<button class="button primary" type="button" data-copy="p1n">プロンプトをコピー</button>
-</div>
-
-<h2>2. ページを作って、手元で見る</h2>
-<p>新しく作る場合は、1 の段でここまで進んでいます。</p>
-<div class="tanomu">
-<textarea id="p2" readonly rows="4">手引きの 2 の段です。content/ を読んで public/ にページを作る build.py を作ってください。
-この作業のフォルダーに Python の仮想環境を作り、markdown を入れるところから、コマンドを 1 つずつ教えてください。
-ページを作ったら、手元のブラウザーで見るコマンドも教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p2">プロンプトをコピー</button>
-</div>
-<p>手元で見るのは、<code>python -m http.server 8000 -d public</code> を動かして <code>http://localhost:8000/</code> です。ファイルをダブルクリックで開くと、リンクが開きません。Claude のチャットで作ったときは、保存した名前の最後が <code>.md</code>、<code>.py</code> になっているかを見ます。</p>
-<p><strong>確かめること:</strong> トップページ、お知らせの一覧、一つ一つのお知らせが開く(フォームは「準備中」でよい)。パソコンの幅でも、幅を狭くしても崩れない。「お知らせを 1 つ足してください」と頼んで <code>python build.py</code> を動かすと、トップページと一覧に出る。</p>
-
-<h2>3. Cloudflare に公開する</h2>
-<p>ダッシュボード(https://dash.cloudflare.com/)で、自分で 2 つ用意します。</p>
-<ol>
-<li><strong>アカウントの ID</strong>: 「Workers &amp; Pages」の「Account Details」にあります</li>
-<li><strong>API トークン</strong>: 右上の人の印 →「My Profile」→「API Tokens」→「Create Token」→ Custom token。権限は「Account → Cloudflare Pages → Edit」の 1 つ。「Continue to summary」→「Create Token」で出ます。1 度しか出ないので、すぐにコピーします。コピーし損ねたら、消して作り直します。<strong>Claude のチャットには貼りません</strong><br>
-  <span class="small">出典: Cloudflare「Create API token」(https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)。2026-10-25 に確かめた</span></li>
-</ol>
-<div class="tanomu">
-<textarea id="p3" readonly rows="5">手引きの 3 の段です。2 の段の仮想環境に cf-publish を入れるコマンドを教えてください。
-Cloudflare の API トークンとアカウントの ID は、私が自分でファイルに書きます。置き場所と書き方だけ教えてください。値はここには貼りません。
-それから、Pages のプロジェクトの名前の案を入れて、public/ を上げるコマンドを教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p3">プロンプトをコピー</button>
-</div>
-<p><strong>確かめること:</strong> <code>https://(プロジェクトの名前).pages.dev</code> で、手元と同じページが出る。スマートフォンでも開く。cf-publish が最後に出す 8 桁入りの URL は、その回だけの物で、すぐには開けないことがあります。</p>
-<p>直したときは、<code>python build.py</code> を動かしてから、同じコマンドでもう一度上げます。</p>
-
-<p class="goal"><strong>ここまでで、目標 1 を達成です。</strong>PHP もデータベースも無い静的なサイトが、自分の Cloudflare から世界に出ました。費用はかかっていません。</p>
-
-<h2>デザインを考える</h2>
-<div class="tanomu">
-<textarea id="pd" readonly rows="3">手引きの「デザインを考える」です。業種に合うデザインの案を 3 つ出してください。
-案ごとに、いちばん目立たせる物、色、字体を短く書いてください。私が選んでから作り直してください。</textarea>
-<button class="button primary" type="button" data-copy="pd">プロンプトをコピー</button>
-</div>
-<p><strong>確かめること:</strong> 選んだ案になっていて、パソコンとスマートフォンの両方で崩れていない。</p>
+<p><a href="/event/design.html">デザインを考える</a>(目標 1 の後に)</p>
 
 <h2>目標 2: 問い合わせのフォームの作成</h2>
-<p>時間内に終わらなくても、後から一人で進められます。フォームは誰でも送れる口なので、来た物は全部疑い、量を絞ります。それでも集中して送られたら受け口を止めます。最後の守りは認証ですが、今回は作りません。</p>
-<p>先に、ダッシュボードで 3 つ足します。</p>
-<ol>
-<li><strong>R2 を使い始める</strong>: 「Storage &amp; databases」→「R2」→「Overview」で、R2 を足す手続きを最後まで進めます。<strong>支払いの方法(カード、PayPal など)の登録を求められます。</strong>カードを確かめるために少しの金額が一時的に押さえられることがあり、後で戻ります。毎月の無料の枠(保存 10 GB、Class A の操作 100 万回、Class B の操作 1,000 万回)があり、ふだんの問い合わせの量なら十分にその中に収まります。通らないときは、先に「Billing」の「Payment methods」で支払いの方法を足します<br>
-  <span class="small">出典: Cloudflare「Get started」(https://developers.cloudflare.com/r2/get-started/)、「Pricing」(https://developers.cloudflare.com/r2/pricing/)。2026-10-25 に確かめた</span></li>
-<li><strong>Worker の名前</strong>: 「Workers &amp; Pages」の「Your subdomain」にあります</li>
-<li><strong>トークンの権限</strong>: 「API Tokens」で 3 の段のトークンを編集し、「Workers Scripts → Edit」と「Workers R2 Storage → Edit」を足します</li>
+<p>時間内に終わらなくても、後から一人で進められます。</p>
+<p><a href="/event/junbi2.html">目標 2 の準備</a>(R2 を使い始める、トークンの権限)</p>
+<ol class="dan-list" start="4">
+<li><a href="/event/4.html">受け口(Worker と R2)</a></li>
+<li><a href="/event/5.html">問い合わせのフォーム</a></li>
+<li><a href="/event/6.html">担当者のアプリ</a></li>
+<li><a href="/event/7.html">通して確かめる</a></li>
 </ol>
-<p>R2 にカードなどを登録したくないときは、Google フォームを作ってサイトからリンクする手もあります。その場合、4〜6 の段は要りません。</p>
-
-<h2>4. 受け口(Worker と R2)</h2>
-<div class="tanomu">
-<textarea id="p4w" readonly rows="6">手引きの 4 の段です。静的なサイトの URL は https://(プロジェクトの名前).pages.dev です。
-worker/ に受け口を作ってください。上げる前に、R2 を偽物にした試験を書いて、手引きの確かめを 1 つずつ試してください。
-STAFF_TOKEN は私が作ってファイルに書くので、作り方と置き場所だけ教えてください。
-1 分と 1 日に受ける数は、案を出してから私と決めてください。
-試験が通ったら、上げるコマンドを教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p4w">プロンプトをコピー</button>
-</div>
-<p><strong>確かめること:</strong> 試験がすべて通る。上げると <code>https://toiawase.〜.workers.dev</code> が出る。</p>
-
-<h2>5. 問い合わせのフォーム</h2>
-<div class="tanomu">
-<textarea id="p5f" readonly rows="5">手引きの 5 の段です。Worker の URL は https://(4 で出た URL).workers.dev でした。
-仮想環境に flet が入っていなければ、入れるコマンドから教えてください。
-toiawase/ に問い合わせのフォームを Flet で作り、flet build web で書き出して、public/toiawase/ の「準備中」のページと入れ替えてください。
-できたら、Pages にもう一度上げるコマンドを教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p5f">プロンプトをコピー</button>
-</div>
-<p>初めての <code>flet build web</code> は Flutter SDK を入れるので時間がかかります。入れるかを聞かれたら <code>y</code> です。</p>
-<p><strong>確かめること:</strong> <code>https://〜.pages.dev/toiawase/</code> から 1 件送ると「受け付けました」が出る。空のお名前、<code>@</code> の無いメールアドレス、リンク 3 つは、理由が出て断られる。</p>
-
-<h2>6. 担当者のアプリ</h2>
-<div class="tanomu">
-<textarea id="p6u" readonly rows="4">手引きの 6 の段です。uketori/ に担当者のアプリを Flet で作り、短い利用者マニュアルも作ってください。
-保存先は、案を出してから私と決めてください。
-送り先と鍵を書くファイルの書き方も教えてください。鍵は私が書きます。</textarea>
-<button class="button primary" type="button" data-copy="p6u">プロンプトをコピー</button>
-</div>
-<p><strong>確かめること:</strong> 利用者マニュアルのとおりに使える。「受け取る」で 5 で送った物が出て、保存先に保存され、もう一度押しても増えない。「HTTP Error 403」なら、「error code: 1010 かもしれません。手引きの User-Agent の所を見て直してください」と頼みます。</p>
-
-<h2>7. 通して確かめる</h2>
-<div class="tanomu">
-<textarea id="p7t" readonly rows="3">手引きの 7 の段です。確かめた結果を書きます。(うまくいった所と、うまくいかなかった所)
-まだ確かめていない物と、古いサイトを止める前にすることを並べてください。</textarea>
-<button class="button primary" type="button" data-copy="p7t">プロンプトをコピー</button>
-</div>
-<p><strong>確かめること:</strong> 古いサーバーの PHP と管理画面を、公開したままにしていない。</p>
 
 <h2>Claude への頼み方</h2>
 <ul>

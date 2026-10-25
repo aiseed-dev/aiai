@@ -946,3 +946,6 @@ sup { line-height: 0; }
   color: var(--fg); background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; resize: vertical; }
 .tanomu .button { margin-top: 8px; }
 .prose .goal { background: var(--bg-2); border-left: 4px solid var(--accent); border-radius: 8px; padding: 12px 16px; }
+.dan-list li { margin: 6px 0; }
+.dan-nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.95rem; }
+.dan-nav a { text-decoration: none; }

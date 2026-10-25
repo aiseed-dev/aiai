@@ -1,0 +1,16 @@
+<p class="kicker">目標 1: 静的なサイトの公開</p>
+<h1>2. ページを作って、手元で見る</h1>
+
+<div class="prose">
+
+<p>新しく作る場合は、1 の段でここまで進んでいます。</p>
+<div class="tanomu">
+<textarea id="p2" readonly rows="4">手引きの 2 の段です。content/ を読んで public/ にページを作る build.py を作ってください。
+この作業のフォルダーに Python の仮想環境を作り、markdown を入れるところから、コマンドを 1 つずつ教えてください。
+ページを作ったら、手元のブラウザーで見るコマンドも教えてください。</textarea>
+<button class="button primary" type="button" data-copy="p2">プロンプトをコピー</button>
+</div>
+<p>手元で見るのは、<code>python -m http.server 8000 -d public</code> を動かして <code>http://localhost:8000/</code> です。ファイルをダブルクリックで開くと、リンクが開きません。Claude のチャットで作ったときは、保存した名前の最後が <code>.md</code>、<code>.py</code> になっているかを見ます。</p>
+<p><strong>確かめること:</strong> トップページ、お知らせの一覧、一つ一つのお知らせが開く(フォームは「準備中」でよい)。パソコンの幅でも、幅を狭くしても崩れない。「お知らせを 1 つ足してください」と頼んで <code>python build.py</code> を動かすと、トップページと一覧に出る。</p>
+
+</div>

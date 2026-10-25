@@ -1,0 +1,24 @@
+<p class="kicker">目標 1: 静的なサイトの公開</p>
+<h1>0. 手引きを Claude に渡す</h1>
+
+<div class="prose">
+
+<ol>
+<li>作業のフォルダーを 1 つ作ります(例: <code>static-site</code>)</li>
+<li>Claude Code なら、そのフォルダーで開きます。Claude のチャット(claude.ai やアプリ)なら、Claude が示したファイルを自分でこのフォルダーに保存し、コマンドを自分で動かします</li>
+<li>「手引きをコピー」を押して Claude に貼り、続けて下のプロンプトを貼ります</li>
+</ol>
+<div class="actions">
+  <button class="button" type="button" data-copy="event-skill">手引きをコピー</button>
+</div>
+<!-- event-skill -->
+<div class="tanomu">
+<textarea id="p0" readonly rows="5">PHP に緊急の脆弱性(CVE-2026-109618、CVE-2026-109619)が公開されました。PHP を使わない静的なサイトにします。
+手引き(SKILL.md、静的サイトと Flet のフォームへの作り直し)に沿って、一緒に作ってください。
+私は HTML も JavaScript も分かりません。PC は Windows です。
+まず中身を Markdown で書き、Python のプログラムでページを作って手元のブラウザーで見て、それから Cloudflare に上げます。この後、1 の段のプロンプトを送ります。</textarea>
+<button class="button primary" type="button" data-copy="p0">プロンプトをコピー</button>
+</div>
+<p>PC が Mac か Linux なら、「Windows」を書き換えます。</p>
+
+</div>
