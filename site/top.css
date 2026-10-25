@@ -939,3 +939,9 @@ sup { line-height: 0; }
   main.doc.has-waku > .waku { grid-column: 2; grid-row: 1; position: sticky; top: 84px; margin: 0; max-width: none; }
   .waku-cards { grid-template-columns: 1fr; }
 }
+
+/* the study session's page: a request to copy and paste to Claude, with its button below */
+.tanomu { margin: 12px 0 16px; }
+.tanomu textarea { display: block; width: 100%; box-sizing: border-box; font: inherit; font-size: 0.95rem; line-height: 1.6;
+  color: var(--fg); background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; resize: vertical; }
+.tanomu .button { margin-top: 8px; }

@@ -1075,6 +1075,15 @@ def main():
                                                  "畑のカメラの映像を AI が読み、記録する例"))
     write(os.path.join(OUT, "privacy.html"), page("プライバシーポリシー", read(os.path.join(HERE, "privacy.html")),
                                                    "このサイトとアプリで、何を預かり、何に使い、いつ消すか"))
+    # the study session's page: what to ask Claude at each step; its guide is also served as is, for Claude to read
+    event = os.path.join(ROOT, "event")
+    guide = read(os.path.join(event, "SKILL.md"))
+    write(os.path.join(OUT, "event", "index.html"), page(
+        "静的サイトと Flet のフォームへの作り直し",
+        read(os.path.join(event, "index.html")).replace(
+            "<!-- event-skill -->", f'<textarea id="event-skill" hidden>{html.escape(guide)}</textarea>') + COPY_SCRIPT,
+        "勉強会: PHP のサイトを、静的なサイトと Flet のフォームに作り直す。Claude に頼む文と、確かめること"))
+    write(os.path.join(OUT, "event", "SKILL.md"), guide)
     # the usage page is the short form of the user manual; its PDF is copied beside it (the flow is the top page's)
     write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)) + skill_source(skills) + COPY_SCRIPT, "手引きを AI に読ませる方法と、アプリを作る流れ"))
     docs = os.path.dirname(MANUAL)

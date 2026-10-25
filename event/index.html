@@ -1,0 +1,125 @@
+<p class="kicker">勉強会 2026-10-25(日)20:00〜21:00</p>
+<h1>PHP のサイトを、静的なサイトと Flet のフォームに作り直す</h1>
+<p class="lead">コードは Claude が書きます。このページは、Claude にどう頼むかと、何を確かめるかを、段ごとに並べた物です。上から順に、頼む文をコピーして Claude に貼り、確かめていきます。</p>
+
+<div class="prose">
+
+<h2>作る物</h2>
+<ul>
+<li>お知らせのページ(静的な HTML)。Cloudflare Pages に無料で公開します</li>
+<li>問い合わせのフォーム(Flet で作り、<code>flet build web</code> で Web のページにします)</li>
+<li>問い合わせの受け口(Cloudflare Worker)。送られた物を確かめ、通った物だけを R2 に置きます</li>
+<li>担当者のアプリ(Flet)。R2 から受け取って PC に保存し、R2 から消します</li>
+</ul>
+<p>問い合わせのフォームは、誰でも送れる口です。来た物は全部疑い、量を絞ります。何をどう確かめるかは、Claude に渡す手引きに書いてあります。</p>
+
+<h2>始まる前に</h2>
+<ol>
+<li><strong>Python の入った PC</strong>(Windows、Mac、Linux)と、<strong>Claude</strong>。無料版でも参加できます。有料版なら Claude Code が使え、Claude がファイルを書き、コマンドを動かすので、早く進みます。無料版では、Claude が示したファイルを自分で保存し、コマンドを自分で動かします</li>
+<li><strong>Cloudflare の API トークン</strong>。Cloudflare のダッシュボードの「My Profile」→「API Tokens」→「Create Token」で、「Create Custom Token」を選び、次の 3 つの権限を付けて作ります
+  <ul>
+  <li>Account → Cloudflare Pages → Edit</li>
+  <li>Account → Workers Scripts → Edit</li>
+  <li>Account → Workers R2 Storage → Edit</li>
+  </ul>
+  作ったトークンと、ダッシュボードに出ているアカウントの ID は、自分で <code>~/.config/cloudflare/pages.env</code> に書きます(書き方は、下の 1 の段で Claude に聞きます)。<strong>トークンは Claude のチャットに貼りません。</strong></li>
+<li><strong>workers.dev のサブドメイン</strong>。ダッシュボードの「Workers &amp; Pages」を一度開いておきます。初めて開いたときに作られます</li>
+<li><strong>R2</strong>。ダッシュボードの「R2」を開き、使い始める操作をしておきます</li>
+</ol>
+
+<h2>0. 手引きを Claude に渡す</h2>
+<p>最初に、この勉強会の手引き(何を作るか、何を確かめるか、何を決めてあるか)を Claude に渡します。</p>
+<ul>
+<li>Claude Code なら、下の頼む文を貼るだけです。手引きは Claude が読みに行きます</li>
+<li>無料版なら、先に「手引きをコピー」を押して貼り、続けて頼む文を貼ります</li>
+</ul>
+<div class="actions">
+  <button class="button" type="button" data-copy="event-skill">手引きをコピー</button>
+  <a class="button" href="/event/SKILL.md">手引きを開く</a>
+</div>
+<!-- event-skill -->
+<div class="tanomu">
+<textarea id="p0" readonly rows="6">https://aiai.aiseed.dev/event/SKILL.md の手引き(静的サイトと Flet のフォームへの作り直し)に沿って、一緒に作ってください。
+私は HTML も JavaScript も分かりません。PC は Windows です。
+まず、作業のフォルダーを作り、Python の仮想環境に flet と cf-publish を入れるところまで、コマンドを 1 つずつ教えてください。
+Cloudflare の API トークンとアカウントの ID は、私が自分でファイルに書きます。置き場所と書き方だけ教えてください。</textarea>
+<button class="button primary" type="button" data-copy="p0">頼む文をコピー</button>
+</div>
+<p>PC が Mac か Linux なら、「Windows」を書き換えます。</p>
+<p><strong>確かめること:</strong> <code>flet --version</code> と <code>cf-publish --help</code> が動くこと。</p>
+<p><strong>確かめること:</strong> トークンを書いたファイルが、作業のフォルダーの外(<code>~/.config/cloudflare/</code>)にあること。</p>
+
+<h2>1. 今のサイトを棚卸しする</h2>
+<div class="tanomu">
+<textarea id="p1" readonly rows="4">手引きの 1 の段です。今のサイトは https://(自分のサイトの URL)です。
+ページの一覧と、サーバーで動いている物(フォーム、検索、会員、コメント、決済、管理画面での投稿)を表にしてください。
+フォームとお知らせのほかの物は、手引きの「失う物と代わりの手段」から、私が選べるように並べてください。</textarea>
+<button class="button primary" type="button" data-copy="p1">頼む文をコピー</button>
+</div>
+<p>サイトの URL を出したくないときや、今日は見本で試すときは、「架空の会社の見本で進めてください」と頼みます。</p>
+<p><strong>確かめること:</strong> 表に、今のサイトにあるページが抜けていないか。フォームで何が来て、誰が受け取っているか。ここは Claude には分からないので、自分で書き足します。</p>
+
+<h2>2. お知らせのページを作って公開する</h2>
+<div class="tanomu">
+<textarea id="p2" readonly rows="4">手引きの 2 の段です。棚卸しの表のお知らせを元に、public/ にお知らせのページを作ってください。
+問い合わせのフォームへのリンクも置いてください。
+できたら、Pages のプロジェクトの名前を「(英小文字の名前)」にして上げるコマンドを教えてください。</textarea>
+<button class="button primary" type="button" data-copy="p2">頼む文をコピー</button>
+</div>
+<p><strong>確かめること:</strong> cf-publish が出した <code>https://〜.pages.dev</code> を開き、ページが出ること。リンクを押して、開かないページが無いこと(フォームはまだ無いので、フォームへのリンクは開かなくてよい)。</p>
+<p>見た目を直したいときは、見えたとおりに頼みます。例:「トップの見出しが大きすぎます。半分くらいにしてください」</p>
+
+<h2>3. 受け口(Worker と R2)を作って公開する</h2>
+<div class="tanomu">
+<textarea id="p3" readonly rows="5">手引きの 3 の段です。お知らせのページの URL は https://(2 で出た URL).pages.dev でした。
+worker/ に受け口を作ってください。上げる前に、R2 を偽物にした試験を書いて、手引きの確かめを 1 つずつ試してください。
+STAFF_TOKEN は私が作ってファイルに書くので、作り方と置き場所だけ教えてください。
+試験が通ったら、上げるコマンドを教えてください。</textarea>
+<button class="button primary" type="button" data-copy="p3">頼む文をコピー</button>
+</div>
+<p><strong>確かめること:</strong> 試験がすべて通ること。試験の中に、よそのサイトからの送り、空のお名前、長すぎる内容、1 日の上限、鍵の無い担当者の口が入っていること。</p>
+<p><strong>確かめること:</strong> 上げたときに <code>https://toiawase.〜.workers.dev</code> が出ること。サブドメインが無いと言われたら、ダッシュボードの「Workers &amp; Pages」を開いてから、もう一度上げます。</p>
+
+<h2>4. 問い合わせのフォームを作る</h2>
+<div class="tanomu">
+<textarea id="p4" readonly rows="4">手引きの 4 の段です。Worker の URL は https://(3 で出た URL).workers.dev でした。
+toiawase/ に問い合わせのフォームを Flet で作り、flet build web で書き出して、public/toiawase/ に写してください。
+できたら、Pages にもう一度上げるコマンドを教えてください。</textarea>
+<button class="button primary" type="button" data-copy="p4">頼む文をコピー</button>
+</div>
+<p>初めての <code>flet build web</code> は、Flutter SDK を自動で入れるので時間がかかります。入れるかを聞かれたら、<code>y</code> で答えます。</p>
+<p><strong>確かめること:</strong> <code>https://〜.pages.dev/toiawase/</code> を開き、フォームから 1 件送って「受け付けました」が出ること。</p>
+<p><strong>確かめること:</strong> お名前を空にする、メールアドレスに <code>@</code> を入れない、内容にリンクを 3 つ書く。どれも理由が出て、受け付けられないこと。</p>
+<p>送れないときは、画面に出た文をそのまま Claude に貼ります。何も出ないときは、ブラウザーの開発者ツール(F12)の「Console」に出た赤い文を貼ります。</p>
+
+<h2>5. 担当者のアプリを作る</h2>
+<div class="tanomu">
+<textarea id="p5" readonly rows="3">手引きの 5 の段です。uketori/ に担当者のアプリを Flet で作ってください。
+送り先と鍵を書くファイルの書き方も教えてください。鍵は私が書きます。</textarea>
+<button class="button primary" type="button" data-copy="p5">頼む文をコピー</button>
+</div>
+<p><strong>確かめること:</strong> 「受け取る」を押すと、4 で送った物が出ること。<code>~/toiawase/</code> に保存されていること。もう一度押しても、同じ物が増えないこと(Cloudflare から消えたこと)。</p>
+
+<h2>6. 通して確かめる</h2>
+<div class="tanomu">
+<textarea id="p6" readonly rows="4">手引きの 6 の段です。確かめた結果を書きます。
+(うまくいった所と、うまくいかなかった所を書く)
+手引きの「確かめ方」で、まだ確かめていない物があれば教えてください。古いサイトを止める前に、することも並べてください。</textarea>
+<button class="button primary" type="button" data-copy="p6">頼む文をコピー</button>
+</div>
+<p><strong>確かめること:</strong> 古いサーバーの PHP と管理画面を、公開したままにしていないこと。ここが動いていると、静的にした意味がありません。</p>
+
+<h2>Claude への頼み方</h2>
+<ul>
+<li><strong>見えた物を、そのまま伝えます。</strong>エラーの文はコピーして貼ります。画面は「どこに、何が、どう出たか」を書きます</li>
+<li><strong>1 度に 1 つ頼みます。</strong>直したい所が 3 つあれば、1 つずつ頼み、そのたびに確かめます</li>
+<li><strong>決まっていることを変えたいときは、先にそう言います。</strong>例:「フォームに電話番号の欄を足したい。手引きのどこを変えるかから教えて」。手引きを直してから作り直すと、確かめも一緒に直ります</li>
+<li><strong>秘密の値は貼りません。</strong>API トークンと STAFF_TOKEN は、自分でファイルに書きます。貼ってしまったら、そのトークンを Cloudflare で無効にして作り直します</li>
+<li><strong>分からない言葉は、そのまま聞きます。</strong>「CORS とは何ですか。いま私がすることはありますか」のように聞けば足ります</li>
+</ul>
+
+<h2>次回</h2>
+<p>問い合わせには、お名前とメールアドレスが入ります。Cloudflare には長く置かず、社内のサーバーに移します。次回は、フォームを受け取る社内のサーバーを Debian で作ります。</p>
+<p>質問は、Flet の日本語のチャンネル(Discord)で受け付けます。勉強会の案内は <a href="https://connpass.com/event/410690/">connpass</a> にあります。</p>
+
+</div>
