@@ -1082,7 +1082,7 @@ def main():
         "静的サイトと Flet のフォームへの作り直し",
         read(os.path.join(event, "index.html")).replace(
             "<!-- event-skill -->", f'<textarea id="event-skill" hidden>{html.escape(guide)}</textarea>') + COPY_SCRIPT,
-        "勉強会: PHP のサイトを、静的なサイトと Flet のフォームに作り直す。Claude に頼む文と、確かめること"))
+        "勉強会: PHP のサイトを、静的なサイトと Flet のフォームに作り直す。Claude に渡すプロンプトと、確かめること"))
     write(os.path.join(OUT, "event", "SKILL.md"), guide)
     # the usage page is the short form of the user manual; its PDF is copied beside it (the flow is the top page's)
     write(os.path.join(OUT, "tsukaikata.html"), page("使い方", usage_page(read(MANUAL)) + skill_source(skills) + COPY_SCRIPT, "手引きを AI に読ませる方法と、アプリを作る流れ"))

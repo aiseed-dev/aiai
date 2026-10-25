@@ -4,7 +4,7 @@
 
 <div class="prose">
 
-<p>コードは Claude が書きます。このページには、Claude に頼む文と、確かめることを、段ごとに並べてあります。上から順に、頼む文をコピーして Claude に貼り、確かめていきます。</p>
+<p>コードは Claude が書きます。このページには、Claude に渡すプロンプトと、確かめることを、段ごとに並べてあります。上から順に、プロンプトをコピーして Claude に貼り、確かめていきます。</p>
 
 <h2>作る物</h2>
 <p><strong>目標</strong></p>
@@ -44,8 +44,8 @@
 <h2>0. 手引きを Claude に渡す</h2>
 <p>最初に、この勉強会の手引き(何を作るか、何を確かめるか、何を決めてあるか)を Claude に渡します。</p>
 <ul>
-<li>Claude Code なら、下の頼む文を貼るだけです。手引きは Claude が読みに行きます</li>
-<li>無料版なら、先に「手引きをコピー」を押して貼り、続けて頼む文を貼ります</li>
+<li>Claude Code なら、下のプロンプトを貼るだけです。手引きは Claude が読みに行きます</li>
+<li>無料版なら、先に「手引きをコピー」を押して貼り、続けてプロンプトを貼ります</li>
 </ul>
 <div class="actions">
   <button class="button" type="button" data-copy="event-skill">手引きをコピー</button>
@@ -58,28 +58,43 @@
 今日の目標は、お知らせのページを Cloudflare Pages に公開するところまでです。
 まず、作業のフォルダーを作り、Python の仮想環境に cf-publish を入れるところまで、コマンドを 1 つずつ教えてください。
 Cloudflare の API トークンとアカウントの ID は、私が自分でファイルに書きます。置き場所と書き方だけ教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p0">頼む文をコピー</button>
+<button class="button primary" type="button" data-copy="p0">プロンプトをコピー</button>
 </div>
 <p>PC が Mac か Linux なら、「Windows」を書き換えます。</p>
 <p><strong>確かめること:</strong> <code>cf-publish --help</code> を打って、使い方の説明が出ること。</p>
 <p><strong>確かめること:</strong> トークンを書いたファイルが、作業のフォルダーの外(<code>~/.config/cloudflare/</code>)にあること。</p>
 
-<h2>1. 今のサイトを棚卸しする</h2>
+<h2>1. 載せる中身を決める</h2>
+<p>今のサイトがあるかどうかで、プロンプトを選びます。</p>
+
+<h3>今のサイトがある場合(棚卸し)</h3>
 <div class="tanomu">
-<textarea id="p1" readonly rows="4">手引きの 1 の段です。今のサイトは https://(自分のサイトの URL)です。
+<textarea id="p1" readonly rows="5">手引きの 1 の段です。今のサイトは https://(自分のサイトの URL)です。
 ページの一覧と、サーバーで動いている物(フォーム、検索、会員、コメント、決済、管理画面での投稿)を表にしてください。
+お知らせのページに載せる中身(お知らせ、会社や店の説明、連絡先など)を、今のサイトから取り出して並べてください。
 フォームとお知らせのほかの物は、手引きの「失う物と代わりの手段」から、私が選べるように並べてください。</textarea>
-<button class="button primary" type="button" data-copy="p1">頼む文をコピー</button>
+<button class="button primary" type="button" data-copy="p1">プロンプトをコピー</button>
 </div>
-<p>サイトの URL を出したくないときや、今日は見本で試すときは、「架空の会社の見本で進めてください」と頼みます。</p>
+<p>サイトの URL を出したくないときは、今のページの文章をコピーして貼ります。無料版の Claude がサイトを読めないときも、同じようにします。</p>
 <p><strong>確かめること:</strong> 表に、今のサイトにあるページが抜けていないか。フォームで何が来て、誰が受け取っているか。ここは Claude には分からないので、自分で書き足します。</p>
+
+<h3>新しく作る場合</h3>
+<div class="tanomu">
+<textarea id="p1n" readonly rows="5">手引きの 1 の段です。今のサイトはありません。新しくお知らせのページを作ります。
+載せる中身を決めたいので、何を載せるかを私に 1 つずつ聞いてください(会社や店の名前、何をしているか、お知らせ、営業日と時間、連絡先など)。
+答えは私が書きます。書いていない事実は、作らないでください。
+最後に、載せる中身を 1 つの一覧にまとめてください。</textarea>
+<button class="button primary" type="button" data-copy="p1n">プロンプトをコピー</button>
+</div>
+<p>今日は見本で試すときは、「架空の会社の見本で進めてください。架空と書いてください」と書きます。</p>
+<p><strong>確かめること:</strong> 一覧の中身が、自分が答えたことと合っているか。Claude が足した事実が無いか。</p>
 
 <h2>2. お知らせのページを作って公開する</h2>
 <div class="tanomu">
-<textarea id="p2" readonly rows="4">手引きの 2 の段です。棚卸しの表のお知らせを元に、public/ にお知らせのページを作ってください。
+<textarea id="p2" readonly rows="4">手引きの 2 の段です。1 の段で決めた中身を元に、public/ にお知らせのページを作ってください。
 問い合わせのフォームへのリンクも置いてください。
 できたら、Pages のプロジェクトの名前を「(英小文字の名前)」にして上げるコマンドを教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p2">頼む文をコピー</button>
+<button class="button primary" type="button" data-copy="p2">プロンプトをコピー</button>
 </div>
 <p><strong>確かめること:</strong> <code>https://(プロジェクトの名前).pages.dev</code> を開き、ページが出ること。リンクを押して、開かないページが無いこと(フォームはまだ無いので、フォームへのリンクは開かなくてよい)。cf-publish が最後に出す <code>https://(8 桁).(プロジェクトの名前).pages.dev</code> は、その回だけの URL です。上げた直後は開けないことがあります。</p>
 <p>見た目を直したいときは、見えたとおりに頼みます。例:「トップの見出しが大きすぎます。半分くらいにしてください」</p>
@@ -113,7 +128,7 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
 OAuth のクライアント(Desktop app)の JSON のファイルは、私が保存してあります。置き場所を教えてください。中身はここには貼りません。
 「受け取る」を押すと、前に読んだ時刻より後の回答を読み、PC のフォルダーに JSON で保存して、新しい順に見せてください。
 フォームの ID は (Google フォームの URL の /d/ と /edit の間の文字) です。</textarea>
-<button class="button primary" type="button" data-copy="p7">頼む文をコピー</button>
+<button class="button primary" type="button" data-copy="p7">プロンプトをコピー</button>
 </div>
 <p>API では回答を消せません(読むことと一覧しかできません)。受け取った回答は、Google フォームの画面で担当者が消します。クライアントの JSON のファイルは秘密の値です。Claude のチャットに貼らず、作業のフォルダーの外に置きます。<br>
 <span class="small">出典: Google「Method: forms.responses.list」(https://developers.google.com/workspace/forms/api/reference/rest/v1/forms.responses/list)、「Python quickstart」(https://developers.google.com/workspace/forms/api/quickstart/python)。2026-10-25 に確かめた</span></p>
@@ -124,7 +139,7 @@ OAuth のクライアント(Desktop app)の JSON のファイルは、私が保�
 worker/ に受け口を作ってください。上げる前に、R2 を偽物にした試験を書いて、手引きの確かめを 1 つずつ試してください。
 STAFF_TOKEN は私が作ってファイルに書くので、作り方と置き場所だけ教えてください。
 試験が通ったら、上げるコマンドを教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p3">頼む文をコピー</button>
+<button class="button primary" type="button" data-copy="p3">プロンプトをコピー</button>
 </div>
 <p><strong>確かめること:</strong> 試験がすべて通ること。試験の中に、よそのサイトからの送り、空のお名前、長すぎる内容、1 日の上限、鍵の無い担当者の口が入っていること。</p>
 <p><strong>確かめること:</strong> 上げたときに <code>https://toiawase.〜.workers.dev</code> が出ること。サブドメインが無いと言われたら、ダッシュボードの「Workers &amp; Pages」を開いてから、もう一度上げます。</p>
@@ -135,7 +150,7 @@ STAFF_TOKEN は私が作ってファイルに書くので、作り方と置き�
 仮想環境に flet が入っていなければ、入れるコマンドから教えてください。
 toiawase/ に問い合わせのフォームを Flet で作り、flet build web で書き出して、public/toiawase/ に写してください。
 できたら、Pages にもう一度上げるコマンドを教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p4">頼む文をコピー</button>
+<button class="button primary" type="button" data-copy="p4">プロンプトをコピー</button>
 </div>
 <p>初めての <code>flet build web</code> は、Flutter SDK を自動で入れるので時間がかかります。入れるかを聞かれたら、<code>y</code> で答えます。Flutter SDK が入っていれば、書き出しは 1 分ほどです。</p>
 <p><strong>確かめること:</strong> <code>https://〜.pages.dev/toiawase/</code> を開き、フォームから 1 件送って「受け付けました」が出ること。</p>
@@ -146,7 +161,7 @@ toiawase/ に問い合わせのフォームを Flet で作り、flet build web �
 <div class="tanomu">
 <textarea id="p5" readonly rows="3">手引きの 5 の段です。uketori/ に担当者のアプリを Flet で作ってください。
 送り先と鍵を書くファイルの書き方も教えてください。鍵は私が書きます。</textarea>
-<button class="button primary" type="button" data-copy="p5">頼む文をコピー</button>
+<button class="button primary" type="button" data-copy="p5">プロンプトをコピー</button>
 </div>
 <p>「受け取れませんでした: HTTP Error 403」と出たら、「error code: 1010 かもしれません。手引きの User-Agent の所を見て直してください」と頼みます。</p>
 <p><strong>確かめること:</strong> 「受け取る」を押すと、4 で送った物が出ること。受け付けた時刻が日本時間で出ること。<code>~/toiawase/</code> に保存されていること。もう一度押しても、同じ物が増えないこと(Cloudflare から消えたこと)。</p>
@@ -156,7 +171,7 @@ toiawase/ に問い合わせのフォームを Flet で作り、flet build web �
 <textarea id="p6" readonly rows="4">手引きの 6 の段です。確かめた結果を書きます。
 (うまくいった所と、うまくいかなかった所を書く)
 手引きの「確かめ方」で、まだ確かめていない物があれば教えてください。古いサイトを止める前に、することも並べてください。</textarea>
-<button class="button primary" type="button" data-copy="p6">頼む文をコピー</button>
+<button class="button primary" type="button" data-copy="p6">プロンプトをコピー</button>
 </div>
 <p><strong>確かめること:</strong> 古いサーバーの PHP と管理画面を、公開したままにしていないこと。ここが動いていると、静的にした意味がありません。</p>
 
