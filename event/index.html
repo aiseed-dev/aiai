@@ -102,6 +102,21 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
 </ol>
 <p>止まりやすい所: R2 の手続きで支払いの方法が通らない、同じ画面に戻る。先に「Billing」の「Payment methods」の「Add Payment Method」で支払いの方法を足してから、R2 の画面に戻ります。</p>
 <p><strong>R2 にカードなどを登録したくないとき</strong>は、Google フォームを使う手もあります。Google フォームで問い合わせのフォームを作り、お知らせのページからリンクします。Claude には「問い合わせのフォームへのリンクを、Google フォームの https://(フォームの URL)に替えてください」と頼み、Pages にもう一度上げます。この場合、3〜5 の段は要りません。問い合わせは Google に置かれ、Google フォームの画面で受け取ります。</p>
+<p><strong>チャレンジ: Google フォームの回答を Flet のアプリで読む。</strong>担当者のアプリを Flet で作り、Google Forms API で回答を読むこともできます。前に読んだ時刻より後の回答だけを読めます。そのための準備は、自分で Google Cloud のコンソールでします。</p>
+<ol>
+<li>Google Cloud のプロジェクトを作り、Google Forms API を有効にします</li>
+<li>「Google Auth platform」で、同意の画面(Branding)を作ります</li>
+<li>「Clients」で「Create Client」を押し、種類を「Desktop app」にして作ります。出てきた JSON のファイルを保存します</li>
+</ol>
+<div class="tanomu">
+<textarea id="p7" readonly rows="5">Google フォームの回答を、Google Forms API で読む担当者のアプリを Flet で作ってください。
+OAuth のクライアント(Desktop app)の JSON のファイルは、私が保存してあります。置き場所を教えてください。中身はここには貼りません。
+「受け取る」を押すと、前に読んだ時刻より後の回答を読み、PC のフォルダーに JSON で保存して、新しい順に見せてください。
+フォームの ID は (Google フォームの URL の /d/ と /edit の間の文字) です。</textarea>
+<button class="button primary" type="button" data-copy="p7">頼む文をコピー</button>
+</div>
+<p>API では回答を消せません(読むことと一覧しかできません)。受け取った回答は、Google フォームの画面で担当者が消します。クライアントの JSON のファイルは秘密の値です。Claude のチャットに貼らず、作業のフォルダーの外に置きます。<br>
+<span class="small">出典: Google「Method: forms.responses.list」(https://developers.google.com/workspace/forms/api/reference/rest/v1/forms.responses/list)、「Python quickstart」(https://developers.google.com/workspace/forms/api/quickstart/python)。2026-10-25 に確かめた</span></p>
 
 <h2>3. 受け口(Worker と R2)を作って公開する</h2>
 <div class="tanomu">
