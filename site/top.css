@@ -945,3 +945,4 @@ sup { line-height: 0; }
 .tanomu textarea { display: block; width: 100%; box-sizing: border-box; font: inherit; font-size: 0.95rem; line-height: 1.6;
   color: var(--fg); background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; resize: vertical; }
 .tanomu .button { margin-top: 8px; }
+.prose .goal { background: var(--bg-2); border-left: 4px solid var(--accent); border-radius: 8px; padding: 12px 16px; }
