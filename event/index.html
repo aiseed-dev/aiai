@@ -43,21 +43,29 @@
 
 <h2>0. 手引きを Claude に渡す</h2>
 <p>最初に、この勉強会の手引き(何を作るか、何を確かめるか、何を決めてあるか)を Claude に渡します。</p>
-<ul>
-<li>Claude Code なら、下のプロンプトを貼るだけです。手引きは Claude が読みに行きます</li>
-<li>Claude のチャット(claude.ai やアプリ)なら、先に「手引きをコピー」を押して貼り、続けてプロンプトを貼ります</li>
-</ul>
+<p><strong>Claude Code のとき</strong></p>
+<ol>
+<li>作業のフォルダーを 1 つ作ります(例: ドキュメントの中に <code>shizen-site</code>)。作るファイルは、すべてこの中に置きます</li>
+<li>「手引きをダウンロード」を押し、手引き(<code>SKILL.md</code>)を、そのフォルダーに置きます</li>
+<li>Claude Code を、そのフォルダーで開きます(デスクトップのアプリならフォルダーを選び、ターミナルならそのフォルダーに移ってから <code>claude</code> を打ちます)</li>
+<li>下のプロンプトを貼ります</li>
+</ol>
+<p><strong>Claude のチャット(claude.ai やアプリ)のとき</strong></p>
+<ol>
+<li>作業のフォルダーを 1 つ作ります。Claude が示したファイルは、自分でこの中に保存します</li>
+<li>「手引きをコピー」を押してチャットに貼り、続けて下のプロンプトを貼ります</li>
+</ol>
 <div class="actions">
+  <a class="button" href="/event/SKILL.md" download="SKILL.md">手引きをダウンロード</a>
   <button class="button" type="button" data-copy="event-skill">手引きをコピー</button>
-  <a class="button" href="/event/SKILL.md">手引きを開く</a>
 </div>
 <!-- event-skill -->
 <div class="tanomu">
 <textarea id="p0" readonly rows="8">PHP に緊急の脆弱性(CVE-2026-109618、CVE-2026-109619)が公開されました。PHP を使わない静的なサイトにします。
-https://aiai.aiseed.dev/event/SKILL.md の手引き(静的サイトと Flet のフォームへの作り直し)に沿って、一緒に作ってください。
+手引き(SKILL.md、静的サイトと Flet のフォームへの作り直し)に沿って、一緒に作ってください。
 私は HTML も JavaScript も分かりません。PC は Windows です。
 今日の目標は、お知らせのページを Cloudflare Pages に公開するところまでです。
-まず、作業のフォルダーを作り、Python の仮想環境に cf-publish を入れるところまで、コマンドを 1 つずつ教えてください。
+まず、この作業のフォルダーに Python の仮想環境を作り、cf-publish を入れるところまで、コマンドを 1 つずつ教えてください。
 Cloudflare の API トークンとアカウントの ID は、私が自分でファイルに書きます。置き場所と書き方だけ教えてください。</textarea>
 <button class="button primary" type="button" data-copy="p0">プロンプトをコピー</button>
 </div>
