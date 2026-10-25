@@ -37,6 +37,7 @@ nougyou/keikaku/経営計画の結果.adoc
 !tameshi/docs/images/
 !tameshi/docs/images/*.png
 !tameshi/docs/manual.pdf
+!event/static-site.pdf
 # The pictures of the example app made with aiai (kanri/kougeki), drawn by the 作る tab
 !kanri/kougeki/docs/images/
 !kanri/kougeki/docs/images/*.png

@@ -4,6 +4,8 @@
 
 <div class="prose">
 
+<p>今回のやり方の基本: 資料「<a href="/event/static-site.pdf">既存の Web サイトを静的ファイルにする</a>」(PDF、10 ページ)</p>
+
 <p>コードは Claude が書きます。このページには、Claude に渡すプロンプトと、確かめることを、段ごとに並べてあります。上から順に、プロンプトをコピーして Claude に貼り、確かめていきます。</p>
 
 <h2>作る物</h2>
@@ -30,7 +32,7 @@
 <li><strong>アカウントを作る</strong>。無料のアカウントで足ります</li>
 <li><strong>アカウントの ID をコピーする</strong>。「Workers &amp; Pages」を開くと、「Account Details」に <strong>アカウントの ID</strong> があります<br>
   <span class="small">出典: Cloudflare「workers.dev」(https://developers.cloudflare.com/workers/configuration/routing/workers-dev/)、「Find account and zone IDs」(https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/)。2026-10-25 に確かめた</span></li>
-<li><strong>API トークンを作る</strong>。右上の人の印 →「My Profile」→「API Tokens」→「Create Token」→ 雛形を使わずに作る(Custom token)。名前を付け、権限に「Account → Cloudflare Pages → Edit」を足します。目標には、この 1 つで足ります。
+<li><strong>API トークンを作る</strong>。右上の人の印 →「My Profile」→「API Tokens」→「Create Token」→ 雛形を使わずに作る(Custom token)。名前を付け、権限に「Account → Cloudflare Pages → Edit」を足します。目標 1 には、この 1 つで足ります。
   「Continue to summary」→「Create Token」で、トークンが出ます。<br>
   <span class="small">出典: Cloudflare「Create API token」(https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)。2026-10-25 に確かめた</span><br>
   <strong>トークンは 1 度しか出ません。</strong>すぐにコピーし、次の 0 の段で作るファイルに書きます。<strong>Claude のチャットには貼りません</strong></li>
@@ -96,11 +98,12 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
 </div>
 <p>中身には、架空の見本を先に入れてあります。そのままコピーして送れば、すぐにページができます。自分の会社や店で作るときは、上の欄の中で中身を書き替えてから「プロンプトをコピー」を押します。分からない所は、空けたままでかまいません。</p>
 <p><strong>確かめること:</strong> 手元のブラウザーで <code>public/index.html</code> を開き、ページが出ること。書いたことと違う事実が無いこと。</p>
-<p>直すときは、Claude に頼んでも、慣れた人は HTML の文字を自分で書き替えてもかまいません。ページができているので、2 の段ではプロンプトの最後の行(上げるコマンド)だけを頼みます。</p>
+<p>直すときは、Claude に頼んでも、慣れた人は HTML の文字を自分で書き替えてもかまいません。</p>
 
 <h2>2. 静的なサイトを作って公開する</h2>
+<p>新しく作る場合は、ページは 1 の段でできています。下のプロンプトの最後の行(上げるコマンド)だけを頼みます。</p>
 <div class="tanomu">
-<textarea id="p2" readonly rows="5">手引きの 2 の段です。1 の段で決めた中身を元に、public/ にページを作ってください(今のサイトがあればトップページと、あればお知らせのページ。新しく作るならお知らせのページ)。
+<textarea id="p2" readonly rows="5">手引きの 2 の段です。1 の段の一覧を元に、public/ にトップページと、お知らせのページ(あれば)を作ってください。
 お知らせのページを作ったときは、トップページからお知らせのページへのリンクを置いてください。
 問い合わせのフォームへのリンクも置いてください。
 できたら、Pages のプロジェクトの名前を「(英小文字の名前)」にして上げるコマンドを教えてください。</textarea>
@@ -119,7 +122,7 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
 <li><strong>R2 を使い始める</strong>。「Storage &amp; databases」→「R2」→「Overview」を開き、R2 を足す手続き(checkout)を最後まで進めます。この手続きでは、<strong>支払いの方法(カード、PayPal など)の登録を求められます</strong>。カードを確かめるために、少しの金額が一時的に押さえられることがあります。後で戻ります。問い合わせを置くのに R2 が要るので、ここは越えるしかありません。R2 には毎月の無料の枠(保存 10 GB、Class A の操作 100 万回、Class B の操作 1,000 万回。外への転送は無料)があり、ふだんの問い合わせの量なら、十分にその中に収まります<br>
   <span class="small">出典: Cloudflare「Get started」(https://developers.cloudflare.com/r2/get-started/)、「Pricing」(https://developers.cloudflare.com/r2/pricing/)、「Update billing information」(https://developers.cloudflare.com/billing/get-started/update-billing-info/)。2026-10-25 に確かめた</span></li>
 <li><strong>Worker の URL の名前を見る</strong>。「Workers &amp; Pages」の「Your subdomain」に、Worker の URL(<code>(名前).workers.dev</code>)に使う名前が出ています。変えるときは「Change」を押します</li>
-<li><strong>API トークンに権限を足す</strong>。「API Tokens」で目標の段に作ったトークンを編集し、次の 2 つを足します
+<li><strong>API トークンに権限を足す</strong>。「API Tokens」で目標 1 で作ったトークンを編集し、次の 2 つを足します
   <ul>
   <li>Account → Workers Scripts → Edit</li>
   <li>Account → Workers R2 Storage → Edit</li>
