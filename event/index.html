@@ -30,21 +30,6 @@
 </ul>
 <p>Claude Code では、Claude がファイルを書き、コマンドを動かします。Claude のチャット(claude.ai やアプリ)で進めるときは、Claude が示したファイルを自分で保存し、コマンドを自分で動かします。</p>
 
-<h2>Cloudflare の設定</h2>
-<p>当日、最初にします。ここは Claude ではなく、自分でダッシュボード(https://dash.cloudflare.com/)を開いてします。</p>
-<ol>
-<li><strong>アカウントの ID をコピーする</strong>。「Workers &amp; Pages」を開くと、「Account Details」に <strong>アカウントの ID</strong> があります</li>
-<li><strong>API トークンを作る</strong>。右上の人の印 →「My Profile」→「API Tokens」→「Create Token」→ 雛形を使わずに作る(Custom token)。名前を付け、権限に「Account → Cloudflare Pages → Edit」を足します。目標 1 には、この 1 つで足ります。
-  「Continue to summary」→「Create Token」で、トークンが出ます。<br>
-  <span class="small">出典: Cloudflare「Create API token」(https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)。2026-10-25 に確かめた</span><br>
-  トークンは 1 度しか出ないので、すぐにコピーし、次の 0 の段で作るファイルに書きます。<strong>Claude のチャットには貼りません</strong></li>
-</ol>
-<p>止まりやすい所:</p>
-<ul>
-<li>トークンをコピーする前に画面を閉じた。そのトークンを消して、作り直します</li>
-<li>トークンに権限が足りない(cf-publish が「権限が無い」と言う)。「API Tokens」でトークンを編集し、権限が入っているかを見ます</li>
-</ul>
-
 <h2>0. 手引きを Claude に渡す</h2>
 <p>最初に、この勉強会の手引き(何を作るか、何を確かめるか、何を決めてあるか)を Claude に渡します。</p>
 <ol>
@@ -57,17 +42,14 @@
 </div>
 <!-- event-skill -->
 <div class="tanomu">
-<textarea id="p0" readonly rows="8">PHP に緊急の脆弱性(CVE-2026-109618、CVE-2026-109619)が公開されました。PHP を使わない静的なサイトにします。
+<textarea id="p0" readonly rows="6">PHP に緊急の脆弱性(CVE-2026-109618、CVE-2026-109619)が公開されました。PHP を使わない静的なサイトにします。
 手引き(SKILL.md、静的サイトと Flet のフォームへの作り直し)に沿って、一緒に作ってください。
 私は HTML も JavaScript も分かりません。PC は Windows です。
 今日の目標の一つが、静的なサイトを Cloudflare Pages に公開することです。
-まず、この作業のフォルダーに Python の仮想環境を作り、cf-publish を入れるところまで、コマンドを 1 つずつ教えてください。
-Cloudflare の API トークンとアカウントの ID は、私が自分でファイルに書きます。置き場所と書き方だけ教えてください。</textarea>
+まず HTML を作って手元のブラウザーで見て、それから Cloudflare に上げます。次に、1 の段のプロンプトを送ります。</textarea>
 <button class="button primary" type="button" data-copy="p0">プロンプトをコピー</button>
 </div>
 <p>PC が Mac か Linux なら、「Windows」を書き換えます。</p>
-<p><strong>確かめること:</strong> <code>cf-publish --help</code> を打って、使い方の説明が出ること。</p>
-<p><strong>確かめること:</strong> トークンを書いたファイルが、作業のフォルダーの外(<code>~/.config/cloudflare/</code>)にあること。</p>
 
 <h2>1. 載せる中身を決める</h2>
 <p>今のサイトがあるかどうかで、プロンプトを選びます。</p>
@@ -92,7 +74,7 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
 私に聞かずに、下の中身で、お知らせのページを public/index.html にすぐに作ってください。
 下で空けてある所だけを「(ここに〇〇を書く)」の形で空けておいてください。書いていない事実は足さないでください。
 問い合わせのフォームへのリンク(/toiawase/)も置き、public/toiawase/index.html に「準備中」のページを置いてください。
-上げるコマンドも、Pages のプロジェクトの名前の案を入れて出してください。
+できたら、手元のブラウザーで見る方法を教えてください。
 
 名前: 架空の工務店(架空の見本。ページにも架空と書いてください)
 何をしているか: 家の修理とリフォーム。小さな修理から受けます
@@ -102,22 +84,51 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
 <button class="button primary" type="button" data-copy="p1n">プロンプトをコピー</button>
 </div>
 <p>中身には、架空の見本を先に入れてあります。そのままコピーして送れば、すぐにページができます。自分の会社や店で作るときは、上の欄の中で中身を書き替えてから「プロンプトをコピー」を押します。分からない所は、空けたままでかまいません。</p>
-<p><strong>確かめること:</strong> 手元のブラウザーで <code>public/index.html</code> を開き、ページが出ること。書いたことと違う事実が無いこと。</p>
+<p><strong>確かめること:</strong> 手元のブラウザーで <code>public/index.html</code> を開き、ページが出ること。書いたことと違う事実が無いこと。ブラウザーの幅を狭くして(スマートフォンの幅)、崩れていないこと。</p>
 <p>Claude のチャットで作ったときは、ファイルは Claude の側にできます。できたファイルをダウンロードして、作業のフォルダーの <code>public</code> に置きます(<code>toiawase/index.html</code> は <code>public/toiawase/</code> に置きます)。</p>
 <p>直すときは、Claude に頼んでも、慣れた人は HTML の文字を自分で書き替えてもかまいません。</p>
 
-<h2>2. 静的なサイトを作って公開する</h2>
-<p>新しく作る場合は、ページと上げるコマンドは 1 の段でできています。プロジェクトの名前を変えたければ変えて、そのコマンドを動かします。</p>
+<h2>2. ページを作って、手元で見る</h2>
+<p>新しく作る場合は、ページは 1 の段でできています。3 の段に進みます。</p>
 <div class="tanomu">
-<textarea id="p2" readonly rows="6">手引きの 2 の段です。1 の段の一覧を元に、public/ にトップページと、お知らせ(あれば)を作ってください。
+<textarea id="p2" readonly rows="5">手引きの 2 の段です。1 の段の一覧を元に、public/ にトップページと、お知らせ(あれば)を作ってください。
 トップページは public/index.html にしてください。お知らせは、一覧のページと、一つ一つのお知らせのページにし、トップページから一覧へ、一覧から一つ一つへリンクしてください。
 問い合わせのフォームへのリンク(/toiawase/)も置き、public/toiawase/index.html に「準備中」のページを置いてください。
-できたら、Pages のプロジェクトの名前の案を入れて、上げるコマンドを教えてください。</textarea>
+できたら、手元のブラウザーで見る方法を教えてください。</textarea>
 <button class="button primary" type="button" data-copy="p2">プロンプトをコピー</button>
 </div>
-<p><strong>確かめること:</strong> <code>https://(プロジェクトの名前).pages.dev</code> を開き、ページが出ること。リンクを押して、開かないページが無いこと(フォームへのリンクは「準備中」が出ればよい)。スマートフォンでも開き、崩れていないこと。cf-publish が最後に出す <code>https://(8 桁).(プロジェクトの名前).pages.dev</code> は、その回だけの URL です。上げた直後は開けないことがあります。</p>
-<p>Claude のチャットで作ったときは、できたファイルをダウンロードして、作業のフォルダーの <code>public</code> に置いてから上げます。</p>
+<p>Claude のチャットで作ったときは、できたファイルをダウンロードして、作業のフォルダーの <code>public</code> に置きます。</p>
+<p><strong>確かめること:</strong> 手元のブラウザーで <code>public/index.html</code> を開き、ページが出ること。リンクを押して、開かないページが無いこと(フォームへのリンクは「準備中」が出ればよい)。ブラウザーの幅を狭くして(スマートフォンの幅)、崩れていないこと。</p>
 <p>見た目を直したいときは、見えたとおりに頼みます。例:「トップの見出しが大きすぎます。半分くらいにしてください」</p>
+
+<h2>3. Cloudflare に公開する</h2>
+<p>手元で見えたら、Cloudflare に上げます。</p>
+
+<h3>Cloudflare の設定</h3>
+<p>ここは Claude ではなく、自分でダッシュボード(https://dash.cloudflare.com/)を開いてします。</p>
+<ol>
+<li><strong>アカウントの ID をコピーする</strong>。「Workers &amp; Pages」を開くと、「Account Details」に <strong>アカウントの ID</strong> があります</li>
+<li><strong>API トークンを作る</strong>。右上の人の印 →「My Profile」→「API Tokens」→「Create Token」→ 雛形を使わずに作る(Custom token)。名前を付け、権限に「Account → Cloudflare Pages → Edit」を足します。目標 1 には、この 1 つで足ります。
+  「Continue to summary」→「Create Token」で、トークンが出ます。<br>
+  <span class="small">出典: Cloudflare「Create API token」(https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)。2026-10-25 に確かめた</span><br>
+  トークンは 1 度しか出ないので、すぐにコピーし、下のプロンプトで教わるファイルに書きます。<strong>Claude のチャットには貼りません</strong></li>
+</ol>
+<p>止まりやすい所:</p>
+<ul>
+<li>トークンをコピーする前に画面を閉じた。そのトークンを消して、作り直します</li>
+<li>トークンに権限が足りない(cf-publish が「権限が無い」と言う)。「API Tokens」でトークンを編集し、権限が入っているかを見ます</li>
+</ul>
+
+<h3>上げる</h3>
+<div class="tanomu">
+<textarea id="p3" readonly rows="5">手引きの 3 の段です。この作業のフォルダーに Python の仮想環境を作り、cf-publish を入れるコマンドを 1 つずつ教えてください。
+Cloudflare の API トークンとアカウントの ID は、私が自分でファイルに書きます。置き場所と書き方だけ教えてください。値はここには貼りません。
+それから、Pages のプロジェクトの名前の案を入れて、public/ を上げるコマンドを教えてください。</textarea>
+<button class="button primary" type="button" data-copy="p3">プロンプトをコピー</button>
+</div>
+<p><strong>確かめること:</strong> <code>cf-publish --help</code> で使い方の説明が出ること。トークンを書いたファイルが、作業のフォルダーの外(<code>~/.config/cloudflare/</code>)にあること。</p>
+<p><strong>確かめること:</strong> <code>https://(プロジェクトの名前).pages.dev</code> を開き、手元で見たのと同じページが出ること。スマートフォンでも開き、崩れていないこと。cf-publish が最後に出す <code>https://(8 桁).(プロジェクトの名前).pages.dev</code> は、その回だけの URL です。上げた直後は開けないことがあります。</p>
+<p>直したときは、同じコマンドでもう一度上げます。変わったファイルだけが送られます。</p>
 
 <p class="goal"><strong>ここまでで、目標 1 を達成です。</strong>PHP もデータベースも無い静的なサイトが、自分の Cloudflare から世界に出ました。費用はかかっていません。</p>
 
@@ -129,7 +140,7 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
 私が選んでから作り直してください。</textarea>
 <button class="button primary" type="button" data-copy="pd">プロンプトをコピー</button>
 </div>
-<p>3 つから選ぶか、「1 の色で、2 の看板」のように組み合わせを頼みます。作り直したら、2 の段と同じコマンドで、もう一度上げます。</p>
+<p>3 つから選ぶか、「1 の色で、2 の看板」のように組み合わせを頼みます。作り直したら、手元で見てから、3 の段と同じコマンドで、もう一度上げます。</p>
 <p><strong>確かめること:</strong> パソコンとスマートフォンの両方で開き、選んだ案になっていること。崩れていないこと。</p>
 
 <h2>目標 2: 問い合わせのフォームの作成</h2>
@@ -148,7 +159,7 @@ Cloudflare の API トークンとアカウントの ID は、私が自分でフ
   </ul></li>
 </ol>
 <p>止まりやすい所: R2 の手続きで支払いの方法が通らない、同じ画面に戻る。先に「Billing」の「Payment methods」の「Add Payment Method」で支払いの方法を足してから、R2 の画面に戻ります。</p>
-<p><strong>R2 にカードなどを登録したくないとき</strong>は、Google フォームを使う手もあります。Google フォームで問い合わせのフォームを作り、サイトからリンクします。Claude には「問い合わせのフォームへのリンクを、Google フォームの https://(フォームの URL)に替えてください」と頼み、Pages にもう一度上げます。この場合、3〜5 の段は要りません。問い合わせは Google に置かれ、Google フォームの画面で受け取ります。</p>
+<p><strong>R2 にカードなどを登録したくないとき</strong>は、Google フォームを使う手もあります。Google フォームで問い合わせのフォームを作り、サイトからリンクします。Claude には「問い合わせのフォームへのリンクを、Google フォームの https://(フォームの URL)に替えてください」と頼み、Pages にもう一度上げます。この場合、4〜6 の段は要りません。問い合わせは Google に置かれ、Google フォームの画面で受け取ります。</p>
 <p><strong>チャレンジ: Google フォームの回答を Flet のアプリで読む。</strong>担当者のアプリを Flet で作り、Google Forms API で回答を読むこともできます。前に読んだ時刻より後の回答だけを読めます。そのための準備は、自分で Google Cloud のコンソールでします。</p>
 <ol>
 <li>Google Cloud のプロジェクトを作り、Google Forms API を有効にします</li>
@@ -165,47 +176,47 @@ OAuth のクライアント(Desktop app)の JSON のファイルは、私が保�
 <p>API では回答を消せません(読むことと一覧しかできません)。受け取った回答は、Google フォームの画面で担当者が消します。クライアントの JSON のファイルは秘密の値です。Claude のチャットに貼らず、作業のフォルダーの外に置きます。<br>
 <span class="small">出典: Google「Method: forms.responses.list」(https://developers.google.com/workspace/forms/api/reference/rest/v1/forms.responses/list)、「Python quickstart」(https://developers.google.com/workspace/forms/api/quickstart/python)。2026-10-25 に確かめた</span></p>
 
-<h2>3. 受け口(Worker と R2)を作って公開する</h2>
+<h2>4. 受け口(Worker と R2)を作って公開する</h2>
 <div class="tanomu">
-<textarea id="p3" readonly rows="6">手引きの 3 の段です。静的なサイトの URL は https://(プロジェクトの名前).pages.dev です。
+<textarea id="p4w" readonly rows="6">手引きの 4 の段です。静的なサイトの URL は https://(プロジェクトの名前).pages.dev です。
 worker/ に受け口を作ってください。上げる前に、R2 を偽物にした試験を書いて、手引きの確かめを 1 つずつ試してください。
 STAFF_TOKEN は私が作ってファイルに書くので、作り方と置き場所だけ教えてください。
 1 分と 1 日に受ける数は、案を出してから私と決めてください。
 試験が通ったら、上げるコマンドを教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p3">プロンプトをコピー</button>
+<button class="button primary" type="button" data-copy="p4w">プロンプトをコピー</button>
 </div>
 <p><strong>確かめること:</strong> 試験がすべて通ること。試験の中に、よそのサイトからの送り、空のお名前、長すぎる内容、1 分と 1 日の上限(受け取って消した後も数が減らないこと)、断る返事に送り元の許可の頭が付くこと、鍵の無い担当者の口が入っていること。</p>
 <p><strong>確かめること:</strong> 上げたときに <code>https://toiawase.〜.workers.dev</code> が出ること。サブドメインが無いと言われたら、ダッシュボードの「Workers &amp; Pages」を開いてから、もう一度上げます。</p>
 
-<h2>4. 問い合わせのフォームを作る</h2>
+<h2>5. 問い合わせのフォームを作る</h2>
 <div class="tanomu">
-<textarea id="p4" readonly rows="5">手引きの 4 の段です。Worker の URL は https://(3 で出た URL).workers.dev でした。
+<textarea id="p5f" readonly rows="5">手引きの 5 の段です。Worker の URL は https://(4 で出た URL).workers.dev でした。
 仮想環境に flet が入っていなければ、入れるコマンドから教えてください。
 toiawase/ に問い合わせのフォームを Flet で作り、flet build web で書き出して、public/toiawase/ の「準備中」のページと入れ替えてください。
 できたら、Pages にもう一度上げるコマンドを教えてください。</textarea>
-<button class="button primary" type="button" data-copy="p4">プロンプトをコピー</button>
+<button class="button primary" type="button" data-copy="p5f">プロンプトをコピー</button>
 </div>
 <p>初めての <code>flet build web</code> は、Flutter SDK を自動で入れるので時間がかかります。入れるかを聞かれたら、<code>y</code> で答えます。Flutter SDK が入っていれば、書き出しは 1 分ほどです。</p>
 <p><strong>確かめること:</strong> <code>https://〜.pages.dev/toiawase/</code> を開き、フォームから 1 件送って「受け付けました」が出ること。</p>
 <p><strong>確かめること:</strong> お名前を空にする、メールアドレスに <code>@</code> を入れない、内容にリンクを 3 つ書く。どれも理由が出て、受け付けられないこと。</p>
 <p>送れないときは、画面に出た文をそのまま Claude に貼ります。何も出ないときは、ブラウザーの開発者ツール(F12)の「Console」に出た赤い文を貼ります。</p>
 
-<h2>5. 担当者のアプリを作る</h2>
+<h2>6. 担当者のアプリを作る</h2>
 <div class="tanomu">
-<textarea id="p5" readonly rows="4">手引きの 5 の段です。uketori/ に担当者のアプリを Flet で作り、短い利用者マニュアルも作ってください。
+<textarea id="p6u" readonly rows="4">手引きの 6 の段です。uketori/ に担当者のアプリを Flet で作り、短い利用者マニュアルも作ってください。
 保存先は、案を出してから私と決めてください。
 送り先と鍵を書くファイルの書き方も教えてください。鍵は私が書きます。</textarea>
-<button class="button primary" type="button" data-copy="p5">プロンプトをコピー</button>
+<button class="button primary" type="button" data-copy="p6u">プロンプトをコピー</button>
 </div>
 <p>「受け取れませんでした: HTTP Error 403」と出たら、「error code: 1010 かもしれません。手引きの User-Agent の所を見て直してください」と頼みます。</p>
-<p><strong>確かめること:</strong> 利用者マニュアルのとおりに使えること。「受け取る」を押すと、4 で送った物が出ること。受け付けた時刻が日本時間で出ること。決めた保存先に保存されていること。もう一度押しても、同じ物が増えないこと(Cloudflare から消えたこと)。</p>
+<p><strong>確かめること:</strong> 利用者マニュアルのとおりに使えること。「受け取る」を押すと、5 で送った物が出ること。受け付けた時刻が日本時間で出ること。決めた保存先に保存されていること。もう一度押しても、同じ物が増えないこと(Cloudflare から消えたこと)。</p>
 
-<h2>6. 通して確かめる</h2>
+<h2>7. 通して確かめる</h2>
 <div class="tanomu">
-<textarea id="p6" readonly rows="4">手引きの 6 の段です。確かめた結果を書きます。
+<textarea id="p7t" readonly rows="4">手引きの 7 の段です。確かめた結果を書きます。
 (うまくいった所と、うまくいかなかった所を書く)
 手引きの「確かめ方」で、まだ確かめていない物があれば教えてください。古いサイトを止める前に、することも並べてください。</textarea>
-<button class="button primary" type="button" data-copy="p6">プロンプトをコピー</button>
+<button class="button primary" type="button" data-copy="p7t">プロンプトをコピー</button>
 </div>
 <p><strong>確かめること:</strong> 古いサーバーの PHP と管理画面を、公開したままにしていないこと。ここが動いていると、静的にした意味がありません。</p>
 
